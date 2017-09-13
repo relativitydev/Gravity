@@ -1,0 +1,98 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{CFA21C47-85E1-47B9-A824-7CD3989C9998}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Gravity</RootNamespace>
+    <AssemblyName>Gravity</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="kCura.Data.RowDataGateway, Version=9.0.204.6, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\bin\9.3\kCura.Data.RowDataGateway.dll</HintPath>
+    </Reference>
+    <Reference Include="kCura.Relativity.Client, Version=9.0.204.6, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\bin\9.3\kCura.Relativity.Client.dll</HintPath>
+    </Reference>
+    <Reference Include="Relativity.API, Version=9.0.204.6, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\bin\9.3\Relativity.API.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Attributes\IncludeAllPropertiesInMappingAttribute.cs" />
+    <Compile Include="Attributes\RelativitySingleObjectAttribute.cs" />
+    <Compile Include="Attributes\RelativityObjectAttribute.cs" />
+    <Compile Include="Attributes\RelativityMultipleObjectAttribute.cs" />
+    <Compile Include="Attributes\RelativityObjectChildrenListAttribute.cs" />
+    <Compile Include="Attributes\RelativityObjectFieldAttribute.cs" />
+    <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
+    <Compile Include="Base\RelativityFile.cs" />
+    <Compile Include="Base\AppConfigConnectionHelper.cs" />
+    <Compile Include="Extensions\BaseDtoExtensions.cs" />
+    <Compile Include="Extensions\CollectionsExtensions.cs" />
+    <Compile Include="Extensions\EnumHelpers.cs" />
+    <Compile Include="Globals\SQLConstants.cs" />
+    <Compile Include="Utils\InvokeWithRetrySettings.cs" />
+    <Compile Include="Utils\InvokeWithRetryService.cs" />
+    <Compile Include="Base\BaseDto.cs" />
+    <Compile Include="Base\BaseExtensionMethods.cs" />
+    <Compile Include="Base\BaseMasterDto.cs" />
+    <Compile Include="Base\ObjectFieldsDepthLevel.cs" />
+    <Compile Include="Base\RdoFieldType.cs" />
+    <Compile Include="DAL\RSAPI\RsapiDao.cs" />
+    <Compile Include="DAL\RSAPI\RsapiDao.Delete.cs" />
+    <Compile Include="DAL\RSAPI\RsapiDao.Get.cs" />
+    <Compile Include="DAL\RSAPI\RsapiDao.Insert.cs" />
+    <Compile Include="DAL\RSAPI\RsapiDao.Update.cs" />
+    <Compile Include="Extensions\IntExtensions.cs" />
+    <Compile Include="Extensions\RdoExtensions.cs" />
+    <Compile Include="Extensions\StringExtensions.cs" />
+    <Compile Include="Extensions\TypeExtesions.cs" />
+    <Compile Include="Globals\SharedConstants.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Exceptions\ProxyOperationFailedException.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
