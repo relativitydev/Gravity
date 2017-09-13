@@ -70,7 +70,7 @@
     <Compile Include="TestClasses\MultipleChoiceFieldChoices.cs" />
     <Compile Include="TestClasses\SingleChoiceFiledChoices.cs" />
     <Compile Include="BaseTest.cs" />
-    <Compile Include="RsapiDaoGetTest.cs" />
+    <Compile Include="RsapiDaoTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
