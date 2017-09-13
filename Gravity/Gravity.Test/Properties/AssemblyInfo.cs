@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("Gravity.Test")]
 [assembly: AssemblyDescription("Gravity Test Project")]
 [assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("TSD Services, Ltd - Open Source")]
+[assembly: AssemblyProduct("Gravity.Test")]
 [assembly: AssemblyCopyright("Copyright ©  2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
