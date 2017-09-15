@@ -1,6 +1,5 @@
 # Gravity
 CRUDQ Framework for Relativity Custom Development
-# relativity-integration-test-helpers
 
 This project requires references to Relativity's Relativity® SDK dlls. These dlls are not part of the open source project and can be obtained 
 by contacting support@relativity.com, getting it from your Relativity instance, or installing the SDK from the [Community Portal]
