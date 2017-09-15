@@ -54,9 +54,9 @@ namespace Gravity.Test
 		[TestMethod]
 		public void UpdateDTO()
 		{
-			int rdoArtifactIDTarget = 0;
+			int rdoArtifactID = 0;
 
-			var testDto = gravityRsapiDao.GetRelativityObject<GravityLevelOne>(rdoArtifactIDTarget, ObjectFieldsDepthLevel.FullyRecursive);
+			var testDto = gravityRsapiDao.GetRelativityObject<GravityLevelOne>(rdoArtifactID, ObjectFieldsDepthLevel.FullyRecursive);
 			testDto.Name += " Updated";
 			gravityRsapiDao.UpdateRelativityObject<GravityLevelOne>(testDto);
 		}
