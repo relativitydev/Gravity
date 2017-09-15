@@ -1,7 +1,7 @@
 # Gravity
 CRUDQ Framework for Relativity Custom Development
 
-This is also available as a [nuget package].(https://www.nuget.org/packages/RelativityTestHelpersNuget/)
+This is also available as a [nuget package].(https://www.nuget.org/packages/Gravity/)
 
 This project requires references to Relativity's Relativity® SDK dlls. These dlls are not part of the open source project and can be obtained 
 by contacting support@relativity.com, getting it from your Relativity instance, or installing the SDK from the [Community Portal]
