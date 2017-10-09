@@ -47,19 +47,19 @@ The following example demonstrates a RDO represented as a Model:
 		[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", (int)RdoFieldType.MultipleObject, typeof(Items))]
 		public IList<Items> ItemIds { get; set; }
 
-        [RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Items))]
+       		[RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Items))]
 		public List<Items> Items { get; set; }
 
-        [RelativitySingleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Address))]
+       		[RelativitySingleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Address))]
 		public Address Address { get; set; }
 
 		[RelativityObjectField("4501A308-5E68-4314-AEDC-4DEB527F12A8", (int)RdoFieldType.Decimal)]
 		public decimal Total { get; set; }
 
-        [RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", (int)RdoFieldType.SingleChoice, typeof(OrderType))]
+       		[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", (int)RdoFieldType.SingleChoice, typeof(OrderType))]
 		public OrderType OrderType { get; set; }
 
-        [RelativityObjectChildrenList(typeof(RelatedPurchase))]
+        	[RelativityObjectChildrenList(typeof(RelatedPurchase))]
 		public IList<RelatedPurchase> RelatedPurchases { get; set; }
 	}
 ```
@@ -107,9 +107,10 @@ The following example demonstrates a object "Get" used in Event handler. First w
 
 		RsapiDao gravityRsapiDao = new RsapiDao(this.Helper, this.Helper.GetActiveCaseID());
 
-        DemoPurchaseOrder demoOrder =  gravityRsapiDao.GetRelativityObject<DemoPurchaseOrder>(1047088, ObjectFieldsDepthLevel.FirstLevelOnly);
+      		DemoPurchaseOrder demoOrder =  gravityRsapiDao.GetRelativityObject<DemoPurchaseOrder>(1047088,
+		  ObjectFieldsDepthLevel.FirstLevelOnly);
 
-        return returnResponse;
+       		return returnResponse;
 	}
 ```
 
