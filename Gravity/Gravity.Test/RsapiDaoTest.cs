@@ -7,6 +7,8 @@ using Gravity.Test.TestClasses;
 
 namespace Gravity.Test
 {
+	using Relativity.API;
+
 	[TestClass]
 	public class RsapiDaoTest : BaseTest
 	{
@@ -19,7 +21,7 @@ namespace Gravity.Test
 
 			int workspaceId = Convert.ToInt32(ConfigurationManager.AppSettings["WorkspaceID"]);
 
-			gravityRsapiDao = new RsapiDao(base.Helper, workspaceId);
+			gravityRsapiDao = new RsapiDao(base.Helper, workspaceId, ExecutionIdentity.System);
 		}
 
 		[TestMethod]
