@@ -7,13 +7,7 @@ This is also available as a [nuget package].(https://www.nuget.org/packages/Grav
 * .NET 4.5.2
 
 ## Dependencies
-This project requires references to Relativity's Relativity® SDK dlls. These dlls are not part of the open source project and can be obtained 
-by contacting support@relativity.com, getting it from your Relativity instance, or installing the SDK from the [Community Portal]
-(https://community.relativity.com/s/files).
-
-• kCura.Relativity.Client.dll 
-• Relativity.API.dll 
-• kCura.Data.RowDataGateway.dll 
+This project requires references to Relativity's Relativity® SDK dlls, which are referenced via Nuget packages. DLL versions 9.4.224.2 to 9.5.162.111, but these should generally work with earlier or later versions of a Relativity server without any problems.
 
 ## Samples
 Before using the CRUD/Q methods in Gravity you will have to create a model and decorate it with the appropriate attributes.
