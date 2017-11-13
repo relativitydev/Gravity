@@ -29,37 +29,37 @@ namespace Gravity.Base
 			return new UnitTestServicesManager();
 		}
 
-	    public IUrlHelper GetUrlHelper()
-	    {
-	        throw new NotImplementedException();
-	    }
+		public IUrlHelper GetUrlHelper()
+		{
+			throw new NotImplementedException();
+		}
 
-	    public ILogFactory GetLoggerFactory()
-	    {
-	        throw new NotImplementedException();
-	    }
+		public ILogFactory GetLoggerFactory()
+		{
+			throw new NotImplementedException();
+		}
 
-	    public string ResourceDBPrepend()
-	    {
-	        throw new NotImplementedException();
-	    }
+		public string ResourceDBPrepend()
+		{
+			throw new NotImplementedException();
+		}
 
-	    public string ResourceDBPrepend(IDBContext context)
-	    {
-	        throw new NotImplementedException();
-	    }
+		public string ResourceDBPrepend(IDBContext context)
+		{
+			throw new NotImplementedException();
+		}
 
-	    public string GetSchemalessResourceDataBasePrepend(IDBContext context)
-	    {
-	        throw new NotImplementedException();
-	    }
+		public string GetSchemalessResourceDataBasePrepend(IDBContext context)
+		{
+			throw new NotImplementedException();
+		}
 
-	    public Guid GetGuid(int workspaceID, int artifactID)
-	    {
-	        throw new NotImplementedException();
-	    }
+		public Guid GetGuid(int workspaceID, int artifactID)
+		{
+			throw new NotImplementedException();
+		}
 
-	    public void Dispose()
+		public void Dispose()
 		{
 		}
 	}
