@@ -60,6 +60,7 @@
     <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
     <Compile Include="Base\RelativityFile.cs" />
     <Compile Include="Base\AppConfigConnectionHelper.cs" />
+    <Compile Include="DAL\RSAPI\RsapiDao.Get.Document.cs" />
     <Compile Include="Extensions\BaseDtoExtensions.cs" />
     <Compile Include="Extensions\CollectionsExtensions.cs" />
     <Compile Include="Extensions\EnumHelpers.cs" />

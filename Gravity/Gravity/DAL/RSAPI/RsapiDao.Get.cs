@@ -120,98 +120,25 @@ namespace Gravity.DAL.RSAPI
 		}
 		#endregion
 
-		public List<T> GetAllDTOs<T>()
-			where T : BaseDto, new()
-		{
-			List<RDO> objectsRdos = GetRdos<T>();
-
-			return objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-		}
-
 		public List<T> GetAllDTOs<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
 			where T : BaseDto, new()
 		{
-			List<T> returnList = null;
-
 			List<RDO> objectsRdos = GetRdos<T>(queryCondition);
-
-			switch (depthLevel)
-			{
-				case ObjectFieldsDepthLevel.FirstLevelOnly:
-					returnList = objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-					break;
-				case ObjectFieldsDepthLevel.FullyRecursive:
-					var allDtos = new List<T>();
-
-					foreach (var rdo in objectsRdos)
-					{
-						var dto = rdo.ToHydratedDto<T>();
-
-						PopulateChildrenRecursively<T>(dto, rdo, depthLevel);
-
-						allDtos.Add(dto);
-					}
-
-					returnList = allDtos;
-					break;
-				default:
-					return objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-
-			}
-
-			return returnList;
+			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
 		}
 
 		public List<T> GetAllChildDTOs<T>(Guid parentFieldGuid, int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
-			List<RDO> objectsRdos = GetRdos<T>(queryCondition);
-
-			switch (depthLevel)
-			{
-				case ObjectFieldsDepthLevel.FirstLevelOnly:
-					return objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-				case ObjectFieldsDepthLevel.FullyRecursive:
-					var allChildDtos = new List<T>();
-					foreach (var childRdo in objectsRdos)
-					{
-						var childDto = childRdo.ToHydratedDto<T>();
-
-						PopulateChildrenRecursively<T>(childDto, childRdo, depthLevel);
-
-						allChildDtos.Add(childDto);
-					}
-					return allChildDtos;
-				default:
-					return objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-			}
+			return GetAllDTOs<T>(queryCondition, depthLevel);
 		}
 
 		public List<T> GetDTOs<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			List<RDO> objectsRdos = GetRdos(artifactIDs);
-			switch (depthLevel)
-			{
-				case ObjectFieldsDepthLevel.FirstLevelOnly:
-					return objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-				case ObjectFieldsDepthLevel.FullyRecursive:
-					var allDtos = new List<T>();
-
-					foreach (var rdo in objectsRdos)
-					{
-						var dto = rdo.ToHydratedDto<T>();
-
-						PopulateChildrenRecursively<T>(dto, rdo, depthLevel);
-
-						allDtos.Add(dto);
-					}
-
-					return allDtos;
-				default:
-					return objectsRdos.Select<RDO, T>(rdo => rdo.ToHydratedDto<T>()).ToList();
-			}
+			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
 		}
 
 		internal T GetDTO<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
@@ -219,16 +146,20 @@ namespace Gravity.DAL.RSAPI
 		{
 			RDO objectRdo = GetRdo(artifactID);
 
+			return GetHydratedDTO<T>(objectRdo, depthLevel);
+		}
+
+		private T GetHydratedDTO<T>(RDO objectRdo, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new()
+		{
+			T dto = objectRdo.ToHydratedDto<T>();
+
 			switch (depthLevel)
 			{
-				case ObjectFieldsDepthLevel.FirstLevelOnly:
-					return objectRdo.ToHydratedDto<T>();
 				case ObjectFieldsDepthLevel.FullyRecursive:
-					T dto = objectRdo.ToHydratedDto<T>();
 					PopulateChildrenRecursively<T>(dto, objectRdo, depthLevel);
 					return dto;
 				default:
-					return objectRdo.ToHydratedDto<T>();
+					return dto;
 			}
 		}
 
@@ -317,67 +248,17 @@ namespace Gravity.DAL.RSAPI
 		public T GetRelativityObject<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			RDO objectRdo = GetRdo(artifactId);
+			var objectRdo = GetRdo(artifactId);
+			var dto = objectRdo.ToHydratedDto<T>();
 
-			T theObject = objectRdo.ToHydratedDto<T>();
-
-			if (depthLevel != ObjectFieldsDepthLevel.OnlyParentObject)
+			switch (depthLevel)
 			{
-				PopulateChildrenRecursively<T>(theObject, objectRdo, depthLevel);
+				case ObjectFieldsDepthLevel.OnlyParentObject:
+					return dto;
+				default:
+					PopulateChildrenRecursively<T>(dto, objectRdo, depthLevel);
+					return dto;
 			}
-
-			return theObject;
 		}
-
-		public ResultSet<Document> QueryDocumentsByDocumentViewID(int documentViewId)
-		{
-			ResultSet<Document> returnObject;
-
-			Query<Document> query = new Query<Document>();
-			query.Condition = new ViewCondition(documentViewId);
-			query.Fields = FieldValue.SelectedFields;
-
-			using (IRSAPIClient proxy = CreateProxy())
-			{
-				try
-				{
-					returnObject = invokeWithRetryService.InvokeWithRetry(() => proxy.Repositories.Document.Query(query));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			return returnObject;
-		}
-
-		public KeyValuePair<byte[], kCura.Relativity.Client.FileMetadata> DownloadDocumentNative(int documentId)
-		{
-			kCura.Relativity.Client.DTOs.Document doc = new kCura.Relativity.Client.DTOs.Document(documentId);
-			byte[] documentBytes;
-
-			KeyValuePair<DownloadResponse, Stream> documentNativeResponse = new KeyValuePair<DownloadResponse, Stream>();
-
-			using (IRSAPIClient proxy = CreateProxy())
-			{
-				try
-				{
-					documentNativeResponse = invokeWithRetryService.InvokeWithRetry(() => proxy.Repositories.Document.DownloadNative(doc));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			using (MemoryStream ms = (MemoryStream)documentNativeResponse.Value)
-			{
-				documentBytes = ms.ToArray();
-			}
-
-			return new KeyValuePair<byte[], FileMetadata>(documentBytes, documentNativeResponse.Key.Metadata);
-		}
-
 	}
 }
