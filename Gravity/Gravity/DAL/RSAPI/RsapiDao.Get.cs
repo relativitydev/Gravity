@@ -14,29 +14,25 @@ namespace Gravity.DAL.RSAPI
 {
 	public partial class RsapiDao
 	{
-		#region RDO GET Protected stuff
+		#region RDO GET Protected stuff		
 		protected RDO GetRdo(int artifactId)
 		{
-			RDO returnObject = null;
-
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
 				try
 				{
-					returnObject = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.ReadSingle(artifactId));
+					return invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.ReadSingle(artifactId));
 				}
 				catch (Exception ex)
 				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
+					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
 				}
 			}
-
-			return returnObject;
 		}
 
 		protected List<RDO> GetRdos(int[] artifactIds)
 		{
-			ResultSet<RDO> resultSet = new ResultSet<RDO>();
+			ResultSet<RDO> resultSet;
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
 				try
@@ -45,7 +41,7 @@ namespace Gravity.DAL.RSAPI
 				}
 				catch (Exception ex)
 				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
+					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
 				}
 			}
 
@@ -63,12 +59,11 @@ namespace Gravity.DAL.RSAPI
 			Query<RDO> query = new Query<RDO>()
 			{
 				ArtifactTypeGuid = BaseDto.GetObjectTypeGuid<T>(),
-				Condition = queryCondition
+				Condition = queryCondition,
+				Fields = FieldValue.AllFields
 			};
 
-			query.Fields = FieldValue.AllFields;
-
-			QueryResultSet<RDO> results;
+			ResultSet<RDO> results;
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
 				try
@@ -77,7 +72,7 @@ namespace Gravity.DAL.RSAPI
 				}
 				catch (Exception ex)
 				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
+					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
 				}
 			}
 
@@ -86,38 +81,43 @@ namespace Gravity.DAL.RSAPI
 				throw new ArgumentException(results.Message);
 			}
 
-			return results.Results.Select<Result<RDO>, RDO>(result => result.Artifact as RDO).ToList();
+			return results.Results.Select(result => result.Artifact).ToList();
 		}
 
 		protected RelativityFile GetFile(int fileFieldArtifactId, int ourFileContainerInstanceArtifactId)
 		{
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
+				var fileRequest = new FileRequest(proxyToWorkspace.APIOptions)
+				{
+					Target =
+					{
+						FieldId = fileFieldArtifactId,
+						ObjectArtifactId = ourFileContainerInstanceArtifactId
+					}
+				};
+
+				KeyValuePair<DownloadResponse, Stream> fileData;
+
 				try
 				{
-					var fileRequest = new FileRequest(proxyToWorkspace.APIOptions);
-					fileRequest.Target.FieldId = fileFieldArtifactId;
-					fileRequest.Target.ObjectArtifactId = ourFileContainerInstanceArtifactId;
-
-					RelativityFile returnValue;
-					var fileData = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Download(fileRequest));
-
-					using (MemoryStream ms = (MemoryStream)fileData.Value)
-					{
-						FileValue fileValue = new FileValue(null, ms.ToArray());
-						FileMetadata fileMetadata = fileData.Key.Metadata;
-
-						returnValue = new RelativityFile(fileFieldArtifactId, fileValue, fileMetadata);
-					}
-
-					return returnValue;
+					fileData = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Download(fileRequest));
 				}
 				catch (Exception ex)
 				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
+					throw new ProxyOperationFailedException("Failed in method: " + MethodBase.GetCurrentMethod(), ex);
+				}
+
+				using (MemoryStream ms = (MemoryStream)fileData.Value)
+				{
+					FileValue fileValue = new FileValue(null, ms.ToArray());
+					FileMetadata fileMetadata = fileData.Key.Metadata;
+
+					return new RelativityFile(fileFieldArtifactId, fileValue, fileMetadata);
 				}
 			}
 		}
+
 		#endregion
 
 		public List<T> GetAllDTOs<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
@@ -141,7 +141,7 @@ namespace Gravity.DAL.RSAPI
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
 		}
 
-		internal T GetDTO<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
+		public T GetRelativityObject<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			RDO objectRdo = GetRdo(artifactID);
@@ -149,18 +149,26 @@ namespace Gravity.DAL.RSAPI
 			return GetHydratedDTO<T>(objectRdo, depthLevel);
 		}
 
-		private T GetHydratedDTO<T>(RDO objectRdo, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new()
+		private T GetHydratedDTO<T>(RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new()
 		{
 			T dto = objectRdo.ToHydratedDto<T>();
 
 			switch (depthLevel)
 			{
+				case ObjectFieldsDepthLevel.OnlyParentObject:
+					break;
+				case ObjectFieldsDepthLevel.FirstLevelOnly:
+					PopulateChildrenRecursively<T>(dto, objectRdo, ObjectFieldsDepthLevel.OnlyParentObject);
+					break;
 				case ObjectFieldsDepthLevel.FullyRecursive:
-					PopulateChildrenRecursively<T>(dto, objectRdo, depthLevel);
-					return dto;
+					PopulateChildrenRecursively<T>(dto, objectRdo, ObjectFieldsDepthLevel.FullyRecursive);
+					break;
 				default:
-					return dto;
+					throw new ArgumentOutOfRangeException(nameof(depthLevel));
 			}
+
+			return dto;
 		}
 
 		internal void PopulateChildrenRecursively<T>(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
@@ -172,37 +180,31 @@ namespace Gravity.DAL.RSAPI
 
 				Type childType = objectPropertyInfo.Value.ChildType;
 
-				int[] childArtifactIds = objectRdo[objectPropertyInfo.Value.FieldGuid].GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
-							.Select<kCura.Relativity.Client.DTOs.Artifact, int>(artifact => artifact.ArtifactID).ToArray();
+				int[] childArtifactIds = objectRdo[objectPropertyInfo.Value.FieldGuid]
+					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
+					.Select(artifact => artifact.ArtifactID)
+					.ToArray();
 
-				MethodInfo method = GetType().GetMethod("GetDTOs", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
+				MethodInfo method = GetGenericMethod(nameof(GetDTOs), childType);
 				var allObjects = method.Invoke(this, new object[] { childArtifactIds, depthLevel }) as IEnumerable;
 
-				var listType = typeof(List<>).MakeGenericType(theMultipleObjectAttribute.ChildType);
-				IList returnList = (IList)Activator.CreateInstance(listType);
-
-				foreach (var item in allObjects)
-				{
-					returnList.Add(item);
-				}
+				var returnList = MakeGenericList(allObjects, theMultipleObjectAttribute.ChildType);
 
 				propertyInfo.SetValue(baseDto, returnList);
 			}
 
-			foreach (var ObjectPropertyInfo in BaseDto.GetRelativitySingleObjectPropertyInfos<T>())
+			foreach (var objectPropertyInfo in BaseDto.GetRelativitySingleObjectPropertyInfos<T>())
 			{
-				var propertyInfo = ObjectPropertyInfo.Key;
+				var propertyInfo = objectPropertyInfo.Key;
 
-				Type objectType = ObjectPropertyInfo.Value.ChildType;
+				Type objectType = objectPropertyInfo.Value.ChildType;
 				var singleObject = Activator.CreateInstance(objectType);
 
-				int childArtifactId = objectRdo[ObjectPropertyInfo.Value.FieldGuid].ValueAsSingleObject.ArtifactID;
-
-				MethodInfo method = GetType().GetMethod("GetDTO", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { objectType });
+				int childArtifactId = objectRdo[objectPropertyInfo.Value.FieldGuid].ValueAsSingleObject.ArtifactID;
 
 				if (childArtifactId != 0)
 				{
+					MethodInfo method = GetGenericMethod(nameof(GetRelativityObject), objectType);
 					singleObject = method.Invoke(this, new object[] { childArtifactId, depthLevel });
 				}
 
@@ -215,24 +217,18 @@ namespace Gravity.DAL.RSAPI
 				var theChildAttribute = childPropertyInfo.Value;
 
 				Type childType = childPropertyInfo.Value.ChildType;
-				MethodInfo method = GetType().GetMethod("GetAllChildDTOs", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
+				MethodInfo method = GetGenericMethod(nameof(GetAllChildDTOs), childType);
 				var allChildObjects = method.Invoke(this, new object[] { parentFieldGuid, baseDto.ArtifactId, depthLevel }) as IEnumerable;
 
-				var listType = typeof(List<>).MakeGenericType(theChildAttribute.ChildType);
-				IList returnList = (IList)Activator.CreateInstance(listType);
-
-				foreach (var item in allChildObjects)
-				{
-					returnList.Add(item);
-				}
+				var returnList = MakeGenericList(allChildObjects, theChildAttribute.ChildType);
 
 				propertyInfo.SetValue(baseDto, returnList);
 			}
 
-			foreach (var filePropertyInfo in baseDto.GetType().GetPublicProperties().Where(prop => prop.PropertyType == typeof(RelativityFile)))
+			foreach (var filePropertyInfo in baseDto.GetType().GetPublicProperties()
+				.Where(prop => prop.PropertyType == typeof(RelativityFile)))
 			{
 				var filePropertyValue = filePropertyInfo.GetValue(baseDto, null) as RelativityFile;
 
@@ -245,20 +241,24 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		public T GetRelativityObject<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)
-			where T : BaseDto, new()
+		private static MethodInfo GetGenericMethod(string methodName, params Type[] types)
 		{
-			var objectRdo = GetRdo(artifactId);
-			var dto = objectRdo.ToHydratedDto<T>();
+			return typeof(RsapiDao)
+				.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+				.MakeGenericMethod(types);
+		}
 
-			switch (depthLevel)
+		private static IList MakeGenericList(IEnumerable items, Type type)
+		{
+			var listType = typeof(List<>).MakeGenericType(type);
+			IList returnList = (IList)Activator.CreateInstance(listType);
+
+			foreach (var item in items)
 			{
-				case ObjectFieldsDepthLevel.OnlyParentObject:
-					return dto;
-				default:
-					PopulateChildrenRecursively<T>(dto, objectRdo, depthLevel);
-					return dto;
+				returnList.Add(item);
 			}
+
+			return returnList;
 		}
 	}
 }
