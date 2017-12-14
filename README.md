@@ -9,9 +9,9 @@ This is also available as a [nuget package](https://www.nuget.org/packages/Gravi
 ## Dependencies
 This project requires references to Relativity's Relativity® SDK dlls, which are referenced via Nuget packages. Only DLL versions 9.4.224.2 to 9.5.162.111 are supported at the moment, but these should generally work with earlier or later versions of a Relativity server without any problems.
 
-### Sample / Test Suite
+## Sample / Test Suite
 
-See [separate page](SampleGettingStarted.md)
+Information about the demo application and accompanying integration tests is available on a [separate page](SampleGettingStarted.md).
 
 ## Usage Guide
 Before using the CRUD/Q methods in Gravity you will have to create a model and decorate it with the appropriate attributes:
