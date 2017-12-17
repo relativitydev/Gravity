@@ -11,12 +11,15 @@ namespace Gravity.DAL.RSAPI
 
 	public partial class RsapiDao
 	{
+		private const int DefaultBatchSize = 1000;
+
 		public ExecutionIdentity CurrentExecutionIdentity { get; set; }
 
 		protected IHelper helper;
 		protected int workspaceId;
 		
 		private InvokeWithRetryService invokeWithRetryService;
+		private readonly int BatchSize;
 
 		protected IRSAPIClient CreateProxy()
 		{
@@ -26,11 +29,14 @@ namespace Gravity.DAL.RSAPI
 			return proxy;
 		}
 
-		public RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
+		public RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, 
+			InvokeWithRetrySettings invokeWithRetrySettings = null, 
+			int batchSize = DefaultBatchSize)
 		{
 			this.helper = helper;
 			this.workspaceId = workspaceId;
 			this.CurrentExecutionIdentity = executionIdentity;
+			this.BatchSize = batchSize;
 
 			if (invokeWithRetrySettings == null)
 			{
@@ -39,7 +45,7 @@ namespace Gravity.DAL.RSAPI
 			}
 			else
 			{
-				this.invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings);
+			this.invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings);
 			}
 		}
 

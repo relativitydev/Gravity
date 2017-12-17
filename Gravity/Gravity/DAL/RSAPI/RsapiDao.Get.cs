@@ -26,7 +26,7 @@ namespace Gravity.DAL.RSAPI
 				.GetResultData();
 		}
 
-		protected List<RDO> GetRdos<T>(Condition queryCondition = null)
+		protected IEnumerable<RDO> GetRdos<T>(Condition queryCondition = null)
 			where T : BaseDto
 		{
 			Query<RDO> query = new Query<RDO>()
@@ -36,8 +36,7 @@ namespace Gravity.DAL.RSAPI
 				Fields = FieldValue.AllFields
 			};
 
-			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Query(query))
-				.GetResultData();
+			return QueryWithPaging(query).SelectMany(x => x.GetResultData());
 		}
 
 		protected RelativityFile GetFile(int fileFieldArtifactId, int ourFileContainerInstanceArtifactId)
@@ -67,14 +66,14 @@ namespace Gravity.DAL.RSAPI
 
 		#endregion
 
-		public List<T> GetAllDTOs<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
+		public IEnumerable<T> GetAllDTOs<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
 			where T : BaseDto, new()
 		{
-			List<RDO> objectsRdos = GetRdos<T>(queryCondition);
-			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
+			IEnumerable<RDO> objectsRdos = GetRdos<T>(queryCondition);
+			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel));
 		}
 
-		public List<T> GetAllChildDTOs<T>(Guid parentFieldGuid, int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
+		public IEnumerable<T> GetAllChildDTOs<T>(Guid parentFieldGuid, int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
@@ -198,14 +197,35 @@ namespace Gravity.DAL.RSAPI
 		private static IList MakeGenericList(IEnumerable items, Type type)
 		{
 			var listType = typeof(List<>).MakeGenericType(type);
-			IList returnList = (IList)Activator.CreateInstance(listType);
-
-			foreach (var item in items)
-			{
-				returnList.Add(item);
-			}
-
+			IList returnList = (IList)Activator.CreateInstance(listType, items);
 			return returnList;
-		}			
+		}
+
+		/// <summary>
+		/// Runs an RSAPI Query in pages.
+		/// </summary>
+		/// <param name="query">The query.</param>
+		/// <returns>An enumerable that yields each batch result set</returns>
+		private IEnumerable<QueryResultSet<RDO>> QueryWithPaging(Query<RDO> query)
+		{
+			using (var proxyToWorkspace = CreateProxy())
+			{ 
+				var initialResultSet = InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Repositories.RDO.Query(query));
+				yield return initialResultSet;
+
+				string queryToken = initialResultSet.QueryToken;
+
+				// Iterate though all remaining pages 
+				var totalCount = initialResultSet.TotalCount;
+				int currentPosition = BatchSize + 1;
+
+				while (currentPosition <= totalCount)
+				{
+					yield return InvokeProxyWithRetry(proxyToWorkspace, 
+						proxy => proxy.Repositories.RDO.QuerySubset(queryToken, currentPosition, BatchSize));
+					currentPosition += BatchSize;
+				}
+			}
+		}
 	}
 }
