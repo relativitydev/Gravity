@@ -63,6 +63,7 @@
     <Compile Include="DAL\RSAPI\RsapiDao.Get.Document.cs" />
     <Compile Include="Extensions\BaseDtoExtensions.cs" />
     <Compile Include="Extensions\CollectionsExtensions.cs" />
+    <Compile Include="Extensions\ResultSetExtensions.cs" />
     <Compile Include="Extensions\EnumHelpers.cs" />
     <Compile Include="Globals\SQLConstants.cs" />
     <Compile Include="Utils\InvokeWithRetrySettings.cs" />

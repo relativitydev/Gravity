@@ -24,19 +24,7 @@ namespace Gravity.DAL.RSAPI
 				Fields = FieldValue.SelectedFields
 			};
 
-			using (IRSAPIClient proxy = CreateProxy())
-			{
-				try
-				{
-					returnObject = invokeWithRetryService.InvokeWithRetry(() => proxy.Repositories.Document.Query(query));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + MethodBase.GetCurrentMethod(), ex);
-				}
-			}
-
-			return returnObject;
+			return InvokeProxyWithRetry(proxy => proxy.Repositories.Document.Query(query));
 		}
 
 		public KeyValuePair<byte[], FileMetadata> DownloadDocumentNative(int documentId)
@@ -44,19 +32,8 @@ namespace Gravity.DAL.RSAPI
 			Document doc = new Document(documentId);
 			byte[] documentBytes;
 
-			KeyValuePair<DownloadResponse, Stream> documentNativeResponse = new KeyValuePair<DownloadResponse, Stream>();
-
-			using (IRSAPIClient proxy = CreateProxy())
-			{
-				try
-				{
-					documentNativeResponse = invokeWithRetryService.InvokeWithRetry(() => proxy.Repositories.Document.DownloadNative(doc));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			KeyValuePair<DownloadResponse, Stream> documentNativeResponse
+				= InvokeProxyWithRetry(proxy => proxy.Repositories.Document.DownloadNative(doc));
 
 			using (MemoryStream ms = (MemoryStream)documentNativeResponse.Value)
 			{

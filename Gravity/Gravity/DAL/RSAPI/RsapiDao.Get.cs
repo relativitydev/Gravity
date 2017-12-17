@@ -17,40 +17,13 @@ namespace Gravity.DAL.RSAPI
 		#region RDO GET Protected stuff		
 		protected RDO GetRdo(int artifactId)
 		{
-			using (IRSAPIClient proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					return invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.ReadSingle(artifactId));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.ReadSingle(artifactId));
 		}
 
 		protected List<RDO> GetRdos(int[] artifactIds)
 		{
-			ResultSet<RDO> resultSet;
-			using (IRSAPIClient proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					resultSet = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.Read(artifactIds));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			if (resultSet.Success == false)
-			{
-				throw new ArgumentException(resultSet.Message);
-			}
-
-			return resultSet.Results.Select(items => items.Artifact).ToList();
+			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Read(artifactIds))
+				.GetResultData();
 		}
 
 		protected List<RDO> GetRdos<T>(Condition queryCondition = null)
@@ -63,25 +36,8 @@ namespace Gravity.DAL.RSAPI
 				Fields = FieldValue.AllFields
 			};
 
-			ResultSet<RDO> results;
-			using (IRSAPIClient proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					results = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.Query(query));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			if (results.Success == false)
-			{
-				throw new ArgumentException(results.Message);
-			}
-
-			return results.Results.Select(result => result.Artifact).ToList();
+			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Query(query))
+				.GetResultData();
 		}
 
 		protected RelativityFile GetFile(int fileFieldArtifactId, int ourFileContainerInstanceArtifactId)
@@ -97,16 +53,7 @@ namespace Gravity.DAL.RSAPI
 					}
 				};
 
-				KeyValuePair<DownloadResponse, Stream> fileData;
-
-				try
-				{
-					fileData = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Download(fileRequest));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + MethodBase.GetCurrentMethod(), ex);
-				}
+				var fileData = InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Download(fileRequest));
 
 				using (MemoryStream ms = (MemoryStream)fileData.Value)
 				{
@@ -259,6 +206,6 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			return returnList;
-		}
+		}			
 	}
 }
