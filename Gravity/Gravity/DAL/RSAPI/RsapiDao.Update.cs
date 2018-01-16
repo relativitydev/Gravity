@@ -15,36 +15,12 @@ namespace Gravity.DAL.RSAPI
 		#region UPDATE Protected Stuff
 		protected WriteResultSet<RDO> UpdateRdos(params RDO[] rdos)
 		{
-			WriteResultSet<RDO> resultSet = new WriteResultSet<RDO>();
-
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					resultSet = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.Update(rdos));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			return resultSet;
+			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Update(rdos));
 		}
 
 		protected void UpdateRdo(RDO theRdo)
 		{
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Repositories.RDO.UpdateSingle(theRdo));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.UpdateSingle(theRdo));
 		}
 		#endregion
 

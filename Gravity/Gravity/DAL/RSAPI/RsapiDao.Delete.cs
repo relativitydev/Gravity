@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Gravity.Base;
 using Gravity.Exceptions;
+using Gravity.Extensions;
 
 namespace Gravity.DAL.RSAPI
 {
@@ -12,47 +13,18 @@ namespace Gravity.DAL.RSAPI
 		#region RDO DELETE Protected stuff
 		protected void DeleteRDO(int artifactId)
 		{
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Repositories.RDO.DeleteSingle(artifactId));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.DeleteSingle(artifactId));
 		}
 
 		protected void DeleteRDO(Guid artifactGuid)
 		{
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Repositories.RDO.DeleteSingle(artifactGuid));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.DeleteSingle(artifactGuid));
 		}
 
 		protected void DeleteRDOs(List<int> artifactIds)
 		{
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Repositories.RDO.Delete(artifactIds));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Delete(artifactIds))
+				.GetResultData(); //ensure no exceptions
 		}
 		#endregion
 

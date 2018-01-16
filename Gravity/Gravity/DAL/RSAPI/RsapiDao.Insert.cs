@@ -16,18 +16,7 @@ namespace Gravity.DAL.RSAPI
 		#region RDO INSERT Protected Stuff
 		protected int InsertRdo(RDO newRdo)
 		{
-			int resultArtifactId = 0;
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					resultArtifactId = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.CreateSingle(newRdo));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			var resultArtifactId = InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.CreateSingle(newRdo));
 
 			if (resultArtifactId <= 0)
 			{
@@ -39,21 +28,7 @@ namespace Gravity.DAL.RSAPI
 
 		protected WriteResultSet<RDO> InsertRdos(params RDO[] newRdos)
 		{
-			WriteResultSet<RDO> resultSet = new WriteResultSet<RDO>();
-
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					resultSet = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.Create(newRdos));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			return resultSet;
+			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Create(newRdos));
 		}
 
 		protected void InsertUpdateFileField(BaseDto objectToInsert, int parentId)
@@ -79,14 +54,7 @@ namespace Gravity.DAL.RSAPI
 									uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
 									uploadRequest.Target.ObjectArtifactId = parentId;
 
-									try
-									{
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-									}
-									catch (Exception ex)
-									{
-										throw ex;
-									}
+									InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
 								}
 							}
 							else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
@@ -107,11 +75,9 @@ namespace Gravity.DAL.RSAPI
 
 									try
 									{
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
+										InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
 									}
-									catch (Exception)
+									finally
 									{
 										invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
 									}
@@ -140,14 +106,7 @@ namespace Gravity.DAL.RSAPI
 							uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
 							uploadRequest.Target.ObjectArtifactId = parentId;
 
-							try
-							{
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-							}
-							catch (Exception ex)
-							{
-								throw ex;
-							}
+							InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
 						}
 					}
 					else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
@@ -168,11 +127,9 @@ namespace Gravity.DAL.RSAPI
 
 							try
 							{
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
+								InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
 							}
-							catch (Exception)
+							finally
 							{
 								invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
 							}

@@ -6,6 +6,8 @@ using Gravity.Utils;
 namespace Gravity.DAL.RSAPI
 {
 	using System;
+	using System.Runtime.CompilerServices;
+	using Gravity.Exceptions;
 
 	public partial class RsapiDao
 	{
@@ -23,7 +25,7 @@ namespace Gravity.DAL.RSAPI
 
 			return proxy;
 		}
-		
+
 		public RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
 		{
 			this.helper = helper;
@@ -46,5 +48,58 @@ namespace Gravity.DAL.RSAPI
 			: this(helper, workspaceId, ExecutionIdentity.System, invokeWithRetrySettings)
 		{
 		}
+
+		#region InvokeProxyWithRetry
+		/*
+			These methods (and their overloads) replace the existing retry and error handling logic.
+			When these functions are called, memberName will be replaced by the name of the calling
+			function if not explicitly provided. This is what replaces the MethodInfo.GetCurrentMethod()
+			method when this code was copied to each individual call.
+		*/
+
+		protected T InvokeProxyWithRetry<T>(IRSAPIClient proxy, Func<IRSAPIClient, T> func, [CallerMemberName] string memberName = null)
+		{
+			try
+			{
+				return invokeWithRetryService.InvokeWithRetry(() => func(proxy));
+			}
+			catch (Exception ex)
+			{
+				throw new ProxyOperationFailedException("Failed in method: " + memberName, ex);
+			}
+		}
+
+		protected void InvokeProxyWithRetry(IRSAPIClient proxy, Action<IRSAPIClient> func, [CallerMemberName] string memberName = null)
+		{
+			try
+			{
+				invokeWithRetryService.InvokeVoidMethodWithRetry(() => func(proxy));
+			}
+			catch (Exception ex)
+			{
+				throw new ProxyOperationFailedException("Failed in method: " + memberName, ex);
+			}
+		}
+
+		/*
+			In addition to what the above methods do, these also create the proxy when it is only needed once.
+		*/
+
+		protected T InvokeProxyWithRetry<T>(Func<IRSAPIClient, T> func, [CallerMemberName] string memberName = null)
+		{
+			using (var proxy = CreateProxy())
+			{
+				return InvokeProxyWithRetry(proxy, func, memberName);
+			}
+		}
+
+		protected void InvokeProxyWithRetry(Action<IRSAPIClient> func, [CallerMemberName] string memberName = null)
+		{
+			using (var proxy = CreateProxy())
+			{
+				InvokeProxyWithRetry(proxy, func, memberName);
+			}
+		}
+		#endregion
 	}
 }
