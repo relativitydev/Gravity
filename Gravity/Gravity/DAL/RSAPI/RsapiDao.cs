@@ -11,6 +11,7 @@ namespace Gravity.DAL.RSAPI
 
 	public partial class RsapiDao
 	{
+
 		public ExecutionIdentity CurrentExecutionIdentity { get; set; }
 
 		protected IHelper helper;
@@ -31,16 +32,7 @@ namespace Gravity.DAL.RSAPI
 			this.helper = helper;
 			this.workspaceId = workspaceId;
 			this.CurrentExecutionIdentity = executionIdentity;
-
-			if (invokeWithRetrySettings == null)
-			{
-				InvokeWithRetrySettings defaultSettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts, SharedConstants.sleepTimeInMiliseconds);
-				this.invokeWithRetryService = new InvokeWithRetryService(defaultSettings);
-			}
-			else
-			{
-				this.invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings);
-			}
+			this.invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings ?? InvokeWithRetrySettings.Default);
 		}
 
 		[Obsolete("This constructor has been deprecated. Use RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings) instead.")]
