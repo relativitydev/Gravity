@@ -1,23 +1,21 @@
 ﻿using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
-using Gravity.Base;
-using Gravity.Exceptions;
-using Gravity.Extensions;
+using Relativity.API;
+using Gravity.Utils;
 
 namespace Gravity.DAL.RSAPI
 {
-	public partial class RsapiDao
+	public class RsapiDocumentDao : RsapiDaoBase
 	{
+		public RsapiDocumentDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
+			: base(helper, workspaceId, executionIdentity)
+		{
+		}
+
 		public ResultSet<Document> QueryDocumentsByDocumentViewID(int documentViewId)
 		{
-			ResultSet<Document> returnObject;
-
 			Query<Document> query = new Query<Document>()
 			{
 				Condition = new ViewCondition(documentViewId),
