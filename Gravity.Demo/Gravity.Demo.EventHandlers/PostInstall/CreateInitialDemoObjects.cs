@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using Gravity.DAL.RSAPI;
 using Gravity.Demo.EventHandler.Constants;
 using Gravity.Demo.EventHandlers.Models;
+using Relativity.API;
 
 namespace Gravity.Demo.EventHandlers.PostInstall
 {
@@ -22,7 +23,7 @@ namespace Gravity.Demo.EventHandlers.PostInstall
 
 			try
 			{
-				gravityRsapiDao = new RsapiDao(this.Helper, this.Helper.GetActiveCaseID());
+				gravityRsapiDao = new RsapiDao(this.Helper, this.Helper.GetActiveCaseID(), ExecutionIdentity.System);
 
 				gravityRsapiDao.InsertRelativityObject<GravityLevelOne>(DemoModelsConstants.LevelOneObject);
 				returnResponse.Message = "Demo object imported successfully";

@@ -36,6 +36,9 @@
     <Reference Include="kCura.Relativity.Client, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Relativity.Rsapi.9.5.162.111\lib\kCura.Relativity.Client.dll</HintPath>
     </Reference>
+    <Reference Include="Polly, Version=1.0.0.0, Culture=neutral, PublicKeyToken=c8a3ffc3f8f825cc, processorArchitecture=MSIL">
+      <HintPath>..\packages\Polly.1.0.0\lib\net45\Polly.dll</HintPath>
+    </Reference>
     <Reference Include="Relativity.API, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Relativity.Api.9.5.162.111\lib\Relativity.API.dll</HintPath>
     </Reference>

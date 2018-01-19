@@ -39,105 +39,99 @@ namespace Gravity.DAL.RSAPI
 				if (attributeValue.FieldType == (int)RdoFieldType.File)
 				{
 					RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
-					if (relativityFile != null)
-					{
-						if (relativityFile.FileValue != null)
-						{
-							if (relativityFile.FileValue.Path != null)
-							{
-								using (IRSAPIClient proxyToWorkspace = CreateProxy())
-								{
-									var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-									uploadRequest.Metadata.FileName = relativityFile.FileValue.Path;
-									uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-									uploadRequest.Overwrite = true;
-									uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-									uploadRequest.Target.ObjectArtifactId = parentId;
+                    if (relativityFile?.FileValue != null)
+                    {
+                        if (relativityFile.FileValue.Path != null)
+                        {
+                            using (IRSAPIClient proxyToWorkspace = CreateProxy())
+                            {
+                                var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
+                                uploadRequest.Metadata.FileName = relativityFile.FileValue.Path;
+                                uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
+                                uploadRequest.Overwrite = true;
+                                uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
+                                uploadRequest.Target.ObjectArtifactId = parentId;
 
-									InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
-								}
-							}
-							else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
-							{
-								string tempPath = Path.GetTempPath();
-								string fileName = tempPath + relativityFile.FileMetadata.FileName;
+                                InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
+                            }
+                        }
+                        else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
+                        {
+                            string tempPath = Path.GetTempPath();
+                            string fileName = tempPath + relativityFile.FileMetadata.FileName;
 
-								using (IRSAPIClient proxyToWorkspace = CreateProxy())
-								{
-									System.IO.File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
+                            using (IRSAPIClient proxyToWorkspace = CreateProxy())
+                            {
+                                System.IO.File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
 
-									var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-									uploadRequest.Metadata.FileName = fileName;
-									uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-									uploadRequest.Overwrite = true;
-									uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-									uploadRequest.Target.ObjectArtifactId = parentId;
+                                var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
+                                uploadRequest.Metadata.FileName = fileName;
+                                uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
+                                uploadRequest.Overwrite = true;
+                                uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
+                                uploadRequest.Target.ObjectArtifactId = parentId;
 
-									try
-									{
-										InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
-									}
-									finally
-									{
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
-									}
-								}
-							}
-						}
-					}
-				}
+                                try
+                                {
+                                    InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
+                                }
+                                finally
+                                {
+                                    this.filePolicy.Execute(() => System.IO.File.Delete(fileName));
+                                }
+                            }
+                        }
+                    }
+                }
 			}
 		}
 
 		protected void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
 		{
-			if (relativityFile != null)
-			{
-				if (relativityFile.FileValue != null)
-				{
-					if (relativityFile.FileValue.Path != null)
-					{
-						using (IRSAPIClient proxyToWorkspace = CreateProxy())
-						{
-							var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-							uploadRequest.Metadata.FileName = relativityFile.FileValue.Path;
-							uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-							uploadRequest.Overwrite = true;
-							uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-							uploadRequest.Target.ObjectArtifactId = parentId;
+            if (relativityFile?.FileValue != null)
+            {
+                if (relativityFile.FileValue.Path != null)
+                {
+                    using (IRSAPIClient proxyToWorkspace = CreateProxy())
+                    {
+                        var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
+                        uploadRequest.Metadata.FileName = relativityFile.FileValue.Path;
+                        uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
+                        uploadRequest.Overwrite = true;
+                        uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
+                        uploadRequest.Target.ObjectArtifactId = parentId;
 
-							InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
-						}
-					}
-					else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
-					{
-						string tempPath = Path.GetTempPath();
-						string fileName = tempPath + relativityFile.FileMetadata.FileName;
+                        InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
+                    }
+                }
+                else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
+                {
+                    string tempPath = Path.GetTempPath();
+                    string fileName = tempPath + relativityFile.FileMetadata.FileName;
 
-						using (IRSAPIClient proxyToWorkspace = CreateProxy())
-						{
-							System.IO.File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
+                    using (IRSAPIClient proxyToWorkspace = CreateProxy())
+                    {
+                        System.IO.File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
 
-							var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-							uploadRequest.Metadata.FileName = fileName;
-							uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-							uploadRequest.Overwrite = true;
-							uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-							uploadRequest.Target.ObjectArtifactId = parentId;
+                        var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
+                        uploadRequest.Metadata.FileName = fileName;
+                        uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
+                        uploadRequest.Overwrite = true;
+                        uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
+                        uploadRequest.Target.ObjectArtifactId = parentId;
 
-							try
-							{
-								InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
-							}
-							finally
-							{
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
-							}
-						}
-					}
-				}
-			}
-		}
+                        try
+                        {
+                            InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
+                        }
+                        finally
+                        {
+                            this.filePolicy.Execute(() => System.IO.File.Delete(fileName));
+                        }
+                    }
+                }
+            }
+        }
 		#endregion
 
 		public void InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)
