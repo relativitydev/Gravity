@@ -8,6 +8,7 @@ namespace Gravity.DAL.RSAPI
 	using System;
 	using System.Runtime.CompilerServices;
 	using Gravity.Exceptions;
+	using Polly;
 
 	public partial class RsapiDao
 	{
@@ -17,7 +18,8 @@ namespace Gravity.DAL.RSAPI
 		protected IHelper helper;
 		protected int workspaceId;
 		
-		private InvokeWithRetryService invokeWithRetryService;
+		private Policy proxyPolicy;
+		private Policy filePolicy;
 
 		protected IRSAPIClient CreateProxy()
 		{
@@ -27,18 +29,25 @@ namespace Gravity.DAL.RSAPI
 			return proxy;
 		}
 
-		public RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
+        /// <summary>
+        /// Creates an instance of the RsapiDao class using default InvokeWithRetry policies for RSAPI and File IO failures.
+        /// </summary>
+        public RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity)
+            : this(helper, workspaceId, executionIdentity, StandardPolicies.InvokeWithRetry(), StandardPolicies.InvokeWithRetry())
+        {
+
+        }
+
+        /// <summary>
+        /// Creates an instance of the RsapiDao class using separate policies for RSAPI and File IO failures.
+        /// </summary>
+        public RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, Policy proxyPolicy, Policy filePolicy)
 		{
 			this.helper = helper;
 			this.workspaceId = workspaceId;
 			this.CurrentExecutionIdentity = executionIdentity;
-			this.invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings ?? InvokeWithRetrySettings.Default);
-		}
-
-		[Obsolete("This constructor has been deprecated. Use RsapiDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings) instead.")]
-		public RsapiDao(IHelper helper, int workspaceId, InvokeWithRetrySettings invokeWithRetrySettings = null)
-			: this(helper, workspaceId, ExecutionIdentity.System, invokeWithRetrySettings)
-		{
+			this.proxyPolicy = proxyPolicy;
+			this.filePolicy = filePolicy;
 		}
 
 		#region InvokeProxyWithRetry
@@ -53,7 +62,7 @@ namespace Gravity.DAL.RSAPI
 		{
 			try
 			{
-				return invokeWithRetryService.InvokeWithRetry(() => func(proxy));
+				return this.proxyPolicy.Execute(() => func(proxy));
 			}
 			catch (Exception ex)
 			{
@@ -65,7 +74,7 @@ namespace Gravity.DAL.RSAPI
 		{
 			try
 			{
-				invokeWithRetryService.InvokeVoidMethodWithRetry(() => func(proxy));
+				this.proxyPolicy.Execute(() => func(proxy));
 			}
 			catch (Exception ex)
 			{

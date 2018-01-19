@@ -69,8 +69,7 @@
     <Compile Include="Extensions\ResultSetExtensions.cs" />
     <Compile Include="Extensions\EnumHelpers.cs" />
     <Compile Include="Globals\SQLConstants.cs" />
-    <Compile Include="Utils\InvokeWithRetrySettings.cs" />
-    <Compile Include="Utils\InvokeWithRetryService.cs" />
+    <Compile Include="Utils\StandardPolicies.cs" />
     <Compile Include="Base\BaseDto.cs" />
     <Compile Include="Base\BaseExtensionMethods.cs" />
     <Compile Include="Base\BaseMasterDto.cs" />
