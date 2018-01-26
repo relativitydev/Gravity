@@ -44,13 +44,13 @@ namespace Gravity.Extensions
 			return returnValue;
 		}
 
-		public static void InvokeGenericMethod(this object obj, Type typeArgument, string methodName, params object[] args)
+		public static object InvokeGenericMethod(this object obj, Type typeArgument, string methodName, params object[] args)
 		{
 			MethodInfo method = obj.GetType()
 				.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
 				.MakeGenericMethod(new Type[] { typeArgument });
 
-			method.Invoke(obj, args);
+			return method.Invoke(obj, args);
 		}
 	}
 }

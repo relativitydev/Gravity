@@ -35,8 +35,7 @@ namespace Gravity.DAL.RSAPI
 				if (objectsToBeInserted.Count != 0)
 				{
 					Type type = objectsToBeInserted[0].GetType();
-					MethodInfo method = GetType().GetMethod("InsertChildListObjects",BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { type });
-					method.Invoke(this, new object[] { objectsToBeInserted, parentArtifactId });
+					this.InvokeGenericMethod(type, nameof(InsertChildListObjects), objectsToBeInserted, parentArtifactId);
 				}
 
 				bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Where(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile))).Count() > 0;
@@ -69,8 +68,8 @@ namespace Gravity.DAL.RSAPI
 				if (objectsToBeInserted.Count != 0)
 				{
 					Type type = objectsToBeInserted[0].GetType();
-					MethodInfo method = GetType().GetMethod("InsertChildListObjects", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { type });
-					method.Invoke(this, new object[] { objectsToBeInserted, parentArtifactId });
+					this.InvokeGenericMethod(type, nameof(InsertChildListObjects), objectsToBeInserted, parentArtifactId);
+
 				}
 
 				foreach (var objectToBeUpdated in objectsToUpdated.Where(o => o.ArtifactId != 0))
@@ -89,9 +88,7 @@ namespace Gravity.DAL.RSAPI
 
 						if (childObjectsList != null && childObjectsList.Count != 0)
 						{
-							MethodInfo method = GetType().GetMethod("UpdateChildListObjects", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
-							method.Invoke(this, new object[] { childObjectsList, parentArtifactId });
+							this.InvokeGenericMethod(childType, nameof(UpdateChildListObjects), childObjectsList, parentArtifactId);
 						}
 					}
 				}
@@ -120,9 +117,7 @@ namespace Gravity.DAL.RSAPI
 
 					if (childObjectsList != null && childObjectsList.Count != 0)
 					{
-						MethodInfo method = GetType().GetMethod("UpdateChildListObjects", BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
-						method.Invoke(this, new object[] { childObjectsList, theObjectToUpdate.ArtifactId });
+						this.InvokeGenericMethod(childType, nameof(UpdateChildListObjects), childObjectsList, theObjectToUpdate.ArtifactId);
 					}
 				}
 			}

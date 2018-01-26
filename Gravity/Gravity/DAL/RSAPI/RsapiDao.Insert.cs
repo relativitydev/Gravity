@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Gravity.Base;
 using Gravity.Exceptions;
+using Gravity.Extensions;
 
 namespace Gravity.DAL.RSAPI
 {
@@ -212,9 +213,7 @@ namespace Gravity.DAL.RSAPI
 
 						if (childObjectsList != null && childObjectsList.Count != 0)
 						{
-							MethodInfo method = GetType().GetMethod("InsertChildListObjects", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
-							method.Invoke(this, new object[] { childObjectsList, insertedRdoArtifactID });
+							this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, insertedRdoArtifactID);
 						}
 					}
 				}
@@ -243,9 +242,7 @@ namespace Gravity.DAL.RSAPI
 
 					if (childObjectsList != null && childObjectsList.Count != 0)
 					{
-						MethodInfo method = GetType().GetMethod("InsertChildListObjects", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
-						method.Invoke(this, new object[] { childObjectsList, resultArtifactId });
+						this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
 					}
 				}
 			}
