@@ -17,32 +17,20 @@ namespace Gravity.Extensions
 			var saltStringBytes = Generate256BitsOfRandomEntropy();
 			var ivStringBytes = Generate256BitsOfRandomEntropy();
 			var plainTextBytes = Encoding.UTF8.GetBytes(plainText);
-			using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
+			var keyBytes = GetPasswordBytes(passPhrase, saltStringBytes);
+
+			using (var symmetricKey = GetEncryptionRijndaelManaged())
+			using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, ivStringBytes))
+			using (var memoryStream = new MemoryStream())
+			using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
 			{
-				var keyBytes = password.GetBytes(Keysize / 8);
-				using (var symmetricKey = new RijndaelManaged())
-				{
-					symmetricKey.BlockSize = 256;
-					symmetricKey.Mode = CipherMode.CBC;
-					symmetricKey.Padding = PaddingMode.PKCS7;
-					using (var encryptor = symmetricKey.CreateEncryptor(keyBytes, ivStringBytes))
-					{
-						using (var memoryStream = new MemoryStream())
-						{
-							using (var cryptoStream = new CryptoStream(memoryStream, encryptor, CryptoStreamMode.Write))
-							{
-								cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
-								cryptoStream.FlushFinalBlock();
-								var cipherTextBytes = saltStringBytes;
-								cipherTextBytes = cipherTextBytes.Concat(ivStringBytes).ToArray();
-								cipherTextBytes = cipherTextBytes.Concat(memoryStream.ToArray()).ToArray();
-								memoryStream.Close();
-								cryptoStream.Close();
-								return Convert.ToBase64String(cipherTextBytes);
-							}
-						}
-					}
-				}
+				cryptoStream.Write(plainTextBytes, 0, plainTextBytes.Length);
+				cryptoStream.FlushFinalBlock();
+				var cipherTextBytes = saltStringBytes
+					.Concat(ivStringBytes)
+					.Concat(memoryStream.ToArray())
+					.ToArray();
+				return Convert.ToBase64String(cipherTextBytes);
 			}
 		}
 
@@ -52,31 +40,35 @@ namespace Gravity.Extensions
 			var saltStringBytes = cipherTextBytesWithSaltAndIv.Take(Keysize / 8).ToArray();
 			var ivStringBytes = cipherTextBytesWithSaltAndIv.Skip(Keysize / 8).Take(Keysize / 8).ToArray();
 			var cipherTextBytes = cipherTextBytesWithSaltAndIv.Skip((Keysize / 8) * 2).Take(cipherTextBytesWithSaltAndIv.Length - ((Keysize / 8) * 2)).ToArray();
+			var keyBytes = GetPasswordBytes(passPhrase, saltStringBytes);
 
+			using (var symmetricKey = GetEncryptionRijndaelManaged())
+			using (var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes))
+			using (var memoryStream = new MemoryStream(cipherTextBytes))
+			using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
+			{
+				var plainTextBytes = new byte[cipherTextBytes.Length];
+				var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
+				return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
+			}
+		}
+
+		private static byte[] GetPasswordBytes(string passPhrase, byte[] saltStringBytes)
+		{
 			using (var password = new Rfc2898DeriveBytes(passPhrase, saltStringBytes, DerivationIterations))
 			{
-				var keyBytes = password.GetBytes(Keysize / 8);
-				using (var symmetricKey = new RijndaelManaged())
-				{
-					symmetricKey.BlockSize = 256;
-					symmetricKey.Mode = CipherMode.CBC;
-					symmetricKey.Padding = PaddingMode.PKCS7;
-					using (var decryptor = symmetricKey.CreateDecryptor(keyBytes, ivStringBytes))
-					{
-						using (var memoryStream = new MemoryStream(cipherTextBytes))
-						{
-							using (var cryptoStream = new CryptoStream(memoryStream, decryptor, CryptoStreamMode.Read))
-							{
-								var plainTextBytes = new byte[cipherTextBytes.Length];
-								var decryptedByteCount = cryptoStream.Read(plainTextBytes, 0, plainTextBytes.Length);
-								memoryStream.Close();
-								cryptoStream.Close();
-								return Encoding.UTF8.GetString(plainTextBytes, 0, decryptedByteCount);
-							}
-						}
-					}
-				}
+				return password.GetBytes(Keysize / 8);
 			}
+		}
+
+		private static RijndaelManaged GetEncryptionRijndaelManaged()
+		{
+			return new RijndaelManaged()
+			{
+				BlockSize = 256,
+				Mode = CipherMode.CBC,
+				Padding = PaddingMode.PKCS7
+			};
 		}
 
 		private static byte[] Generate256BitsOfRandomEntropy()
