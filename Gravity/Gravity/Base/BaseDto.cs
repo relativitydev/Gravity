@@ -23,99 +23,42 @@ namespace Gravity.Base
 
 		public static Guid GetParentArtifactIdFieldGuid<T>()
 		{
-			Guid returnGuid = new Guid();
+			var propertyInfo = GetPropertyAttributes<T, RelativityObjectFieldParentArtifactIdAttribute>()
+				.FirstOrDefault()?
+				.Item1;
 
-			foreach (var propertyInfo in typeof(T).GetPublicProperties())
-			{
-				bool isPropertyAParentIdField = propertyInfo.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>() != null;
-				if (isPropertyAParentIdField == true)
-				{
-					returnGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
-					break;
-				}
-			}
-
-			return returnGuid;
+			return propertyInfo?.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid ?? new Guid();
 		}
 
 		public static Dictionary<PropertyInfo, RelativityObjectFieldAttribute> GetRelativityObjectFieldListInfos<T>()
 		{
-			var returnDictionary = new Dictionary<PropertyInfo, RelativityObjectFieldAttribute>();
-
-			foreach (var propertyInfo in typeof(T).GetPublicProperties())
-			{
-				var fieldAttribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
-				if (fieldAttribute != null)
-				{
-					returnDictionary.Add(propertyInfo, fieldAttribute);
-				}
-			}
-
-			return returnDictionary;
+			return GetPropertyAttributes<T, RelativityObjectFieldAttribute>()
+				.ToDictionary(x => x.Item1, x => x.Item2);
 		}
+
 
 		public static Dictionary<PropertyInfo, Type> GetRelativityObjectChildrenPropertyInfos<T>()
 		{
-			Dictionary<PropertyInfo, Type> returnDictionary = new Dictionary<PropertyInfo, Type>();
-
-			foreach (var propertyInfo in typeof(T).GetPublicProperties())
-			{
-				RelativityObjectChildrenListAttribute childrenAttibute = propertyInfo.GetCustomAttribute<RelativityObjectChildrenListAttribute>();
-				if (childrenAttibute != null)
-				{
-					returnDictionary.Add(propertyInfo, childrenAttibute.ChildType);
-				}
-			}
-
-			return returnDictionary;
+			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
+				.ToDictionary(x => x.Item1, x => x.Item2.ChildType);
 		}
 
 		public static Dictionary<PropertyInfo, RelativityMultipleObjectAttribute> GetRelativityMultipleObjectPropertyInfos<T>()
 		{
-			var returnDictionary = new Dictionary<PropertyInfo, RelativityMultipleObjectAttribute>();
-
-			foreach (var propertyInfo in typeof(T).GetPublicProperties())
-			{
-				RelativityMultipleObjectAttribute childAttibute = propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>();
-				if (childAttibute != null)
-				{
-					returnDictionary.Add(propertyInfo, childAttibute);
-				}
-			}
-
-			return returnDictionary;
+			return GetPropertyAttributes<T, RelativityMultipleObjectAttribute>()
+				.ToDictionary(x => x.Item1, x => x.Item2);
 		}
 
 		public static Dictionary<PropertyInfo, RelativitySingleObjectAttribute> GetRelativitySingleObjectPropertyInfos<T>()
 		{
-			var returnDictionary = new Dictionary<PropertyInfo, RelativitySingleObjectAttribute>();
-
-			foreach (var propertyInfo in typeof(T).GetPublicProperties())
-			{
-				RelativitySingleObjectAttribute childAttibute = propertyInfo.GetCustomAttribute<RelativitySingleObjectAttribute>();
-				if (childAttibute != null)
-				{
-					returnDictionary.Add(propertyInfo, childAttibute);
-				}
-			}
-
-			return returnDictionary;
+			return GetPropertyAttributes<T, RelativitySingleObjectAttribute>()
+				.ToDictionary(x => x.Item1, x => x.Item2);
 		}
 
 		public static Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> GetRelativityObjectChildrenListInfos<T>()
 		{
-			var returnDictionary = new Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute>();
-
-			foreach (var propertyInfo in typeof(T).GetPublicProperties())
-			{
-				RelativityObjectChildrenListAttribute childAttibute = propertyInfo.GetCustomAttribute<RelativityObjectChildrenListAttribute>();
-				if (childAttibute != null)
-				{
-					returnDictionary.Add(propertyInfo, childAttibute);
-				}
-			}
-
-			return returnDictionary;
+			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
+				.ToDictionary(x => x.Item1, x => x.Item2);
 		}
 
 		public object GetPropertyValue(string propertyName)
@@ -126,36 +69,21 @@ namespace Gravity.Base
 		// TODO: Re-work this one to accept selector for the property, not ugly string propertyName
 		public static Guid GetRelativityFieldGuidOfProperty<T>(string propertyName)
 		{
-			Guid returnGuid = new Guid();
 
-			var theProperty = typeof(T).GetPublicProperties().FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
-			if (theProperty != null)
-			{
-				var fieldAttribute = theProperty.GetCustomAttribute<RelativityObjectFieldAttribute>();
-				if (fieldAttribute != null)
-				{
-					returnGuid = fieldAttribute.FieldGuid;
-				}
-			}
+			var fieldAttribute = typeof(T).GetPublicProperties()
+				.FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+				.GetCustomAttribute<RelativityObjectFieldAttribute>();
+			
 
-			return returnGuid;
+			return fieldAttribute?.FieldGuid ?? new Guid();
+
 		}
 
 		public PropertyInfo GetParentArtifactIdProperty()
 		{
-			PropertyInfo returnPropertyInfo = null;
-
-			foreach (var propertyInfo in this.GetType().GetPublicProperties())
-			{
-				bool isPropertyAParentIdField = propertyInfo.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>() != null;
-				if (isPropertyAParentIdField == true)
-				{
-					returnPropertyInfo = propertyInfo;
-					break;
-				}
-			}
-
-			return returnPropertyInfo;
+			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())
+				.FirstOrDefault()?
+				.Item1;
 		}
 
 		// BE CAREFULL!
@@ -175,14 +103,10 @@ namespace Gravity.Base
 			RelativityObjectAttribute objectTypeAttribute = this.GetType().GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO rdo = new RDO(objectTypeAttribute.ObjectTypeGuid, ArtifactId);
 
-			var parentProperty = this.GetParentArtifactIdProperty();
-			if (parentProperty != null)
+			var parentId = this.GetParentArtifactIdProperty()?.GetValue(this, null);
+			if (parentId != null)
 			{
-				var parentId = parentProperty.GetValue(this, null);
-				if (parentId != null)
-				{
-					rdo.ParentArtifact = new kCura.Relativity.Client.DTOs.Artifact((int)parentId);
-				}
+				rdo.ParentArtifact = new Artifact((int)parentId);
 			}
 
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
@@ -191,92 +115,101 @@ namespace Gravity.Base
 
 				RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
-				if (fieldAttribute != null)
+				if (fieldAttribute == null)
 				{
-					object propertyValue = property.GetValue(this);
-					if (propertyValue != null && fieldAttribute.FieldType != (int)RdoFieldType.File)
-					{
-						switch (fieldAttribute.FieldType)
+					continue;
+				}
+
+				if (fieldAttribute.FieldType == (int)RdoFieldType.File)
+				{
+					continue;
+				}
+
+				object propertyValue = property.GetValue(this);
+				if (propertyValue == null)
+				{
+					continue;
+				}
+
+				switch (fieldAttribute.FieldType)
+				{
+					case (int)RdoFieldType.Currency:
+					case (int)RdoFieldType.Date:
+					case (int)RdoFieldType.Decimal:
+					case (int)RdoFieldType.Empty:
+					case (int)RdoFieldType.LongText:
+					case (int)RdoFieldType.WholeNumber:
+					case (int)RdoFieldType.YesNo:
+					case (int)RdoFieldType.User:
+						theFieldValue = propertyValue;
+						break;
+					case (int)RdoFieldType.FixedLengthText:
+						int stringLenght;
+						stringLenght = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length != null ?
+							property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length.Value :
+							3000;
+
+						string theString = propertyValue as string;
+						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLenght)
 						{
-							case (int)RdoFieldType.Currency:
-							case (int)RdoFieldType.Date:
-							case (int)RdoFieldType.Decimal:
-							case (int)RdoFieldType.Empty:
-							case (int)RdoFieldType.LongText:
-							case (int)RdoFieldType.WholeNumber:
-							case (int)RdoFieldType.YesNo:
-							case (int)RdoFieldType.User:
-								theFieldValue = propertyValue;
-								break;
-							case (int)RdoFieldType.FixedLengthText:
-								int stringLenght;
-								stringLenght = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length != null ?
-									property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length.Value :
-									3000;
-
-								string theString = propertyValue as string;
-								if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLenght)
-								{
-									theString = theString.Substring(0, (stringLenght - 3));
-									theString += "...";
-								}
-
-								theFieldValue = theString;
-								break;
-							case (int)RdoFieldType.MultipleChoice:
-								// We have IList<Enum> values here
-								var multiChoiceFieldValueList = new MultiChoiceFieldValueList();
-
-								IEnumerable enumEnumerable = propertyValue as IEnumerable;
-								Type entryType = enumEnumerable.AsQueryable().ElementType;
-
-								var enumValues = Enum.GetValues(entryType);
-								foreach (var enumValueObject in enumEnumerable)
-								{
-									var memberInfo = entryType.GetMember(enumValueObject.ToString());
-									var relativityObjectAttribute = memberInfo[0].GetCustomAttribute<RelativityObjectAttribute>();
-									multiChoiceFieldValueList.Add(new kCura.Relativity.Client.DTOs.Choice(relativityObjectAttribute.ObjectTypeGuid));
-								}
-
-								theFieldValue = multiChoiceFieldValueList;
-								break;
-							case (int)RdoFieldType.MultipleObject:
-								var listOfObjects = new FieldValueList<kCura.Relativity.Client.DTOs.Artifact>();
-
-								foreach (int artifactId in (IList<int>)propertyValue)
-								{
-									listOfObjects.Add(new kCura.Relativity.Client.DTOs.Artifact(artifactId));
-								}
-
-								theFieldValue = listOfObjects;
-								break;
-							case (int)RdoFieldType.SingleChoice:
-
-								bool isEnumDefined = Enum.IsDefined(propertyValue.GetType(), propertyValue);
-
-								if (isEnumDefined == true)
-								{
-									var choiceGuid = propertyValue.GetType().GetMember(propertyValue.ToString())[0].GetCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
-									theFieldValue = new kCura.Relativity.Client.DTOs.Choice(choiceGuid);
-								}
-								break;
-							case (int)RdoFieldType.SingleObject:
-								if ((int)propertyValue > 0)
-								{
-									theFieldValue = new kCura.Relativity.Client.DTOs.Artifact((int)propertyValue);
-								}
-								break;
-							case SharedConstants.FieldTypeCustomListInt:
-								theFieldValue = ((IList<int>)propertyValue).ToSeparatedString(SharedConstants.ListIntSeparatorChar);
-								break;
-							case SharedConstants.FieldTypeByteArray:
-								theFieldValue = Convert.ToBase64String((byte[])propertyValue);
-								break;
+							theString = theString.Substring(0, (stringLenght - 3));
+							theString += "...";
 						}
 
-						rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, theFieldValue));
-					}
+						theFieldValue = theString;
+						break;
+					case (int)RdoFieldType.MultipleChoice:
+						// We have IList<Enum> values here
+						var multiChoiceFieldValueList = new MultiChoiceFieldValueList();
+
+						IEnumerable enumEnumerable = propertyValue as IEnumerable;
+						Type entryType = enumEnumerable.AsQueryable().ElementType;
+
+						var enumValues = Enum.GetValues(entryType);
+						foreach (var enumValueObject in enumEnumerable)
+						{
+							var memberInfo = entryType.GetMember(enumValueObject.ToString());
+							var relativityObjectAttribute = memberInfo[0].GetCustomAttribute<RelativityObjectAttribute>();
+							multiChoiceFieldValueList.Add(new Choice(relativityObjectAttribute.ObjectTypeGuid));
+						}
+
+						theFieldValue = multiChoiceFieldValueList;
+						break;
+					case (int)RdoFieldType.MultipleObject:
+						var listOfObjects = new FieldValueList<Artifact>();
+
+						foreach (int artifactId in (IList<int>)propertyValue)
+						{
+							listOfObjects.Add(new Artifact(artifactId));
+						}
+
+						theFieldValue = listOfObjects;
+						break;
+					case (int)RdoFieldType.SingleChoice:
+
+						bool isEnumDefined = Enum.IsDefined(propertyValue.GetType(), propertyValue);
+
+						if (isEnumDefined == true)
+						{
+							var choiceGuid = propertyValue.GetType().GetMember(propertyValue.ToString())[0].GetCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
+							theFieldValue = new Choice(choiceGuid);
+						}
+						break;
+					case (int)RdoFieldType.SingleObject:
+						if ((int)propertyValue > 0)
+						{
+							theFieldValue = new Artifact((int)propertyValue);
+						}
+						break;
+					case SharedConstants.FieldTypeCustomListInt:
+						theFieldValue = ((IList<int>)propertyValue).ToSeparatedString(SharedConstants.ListIntSeparatorChar);
+						break;
+					case SharedConstants.FieldTypeByteArray:
+						theFieldValue = Convert.ToBase64String((byte[])propertyValue);
+						break;
 				}
+
+				rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, theFieldValue));
 			}
 
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
@@ -295,16 +228,8 @@ namespace Gravity.Base
 						if (propertyValue != null)
 						{
 							int artifactId = (int)propertyValue.GetType().GetProperty("ArtifactId").GetValue(propertyValue, null);
-							if (artifactId != 0)
-							{
-								theFieldValue = new kCura.Relativity.Client.DTOs.Artifact(artifactId);
-								rdo.Fields.Add(new FieldValue(singleObjectAttribute.FieldGuid, theFieldValue));
-							}
-							else
-							{
-								theFieldValue = null;
-								rdo.Fields.Add(new FieldValue(singleObjectAttribute.FieldGuid, theFieldValue));
-							}
+							theFieldValue = artifactId == 0 ? null : new Artifact(artifactId);
+							rdo.Fields.Add(new FieldValue(singleObjectAttribute.FieldGuid, theFieldValue));
 						}
 					}
 
@@ -319,13 +244,13 @@ namespace Gravity.Base
 						object propertyValue = property.GetValue(this);
 						if (propertyValue != null)
 						{
-							var listOfObjects = new FieldValueList<kCura.Relativity.Client.DTOs.Artifact>();
+							var listOfObjects = new FieldValueList<Artifact>();
 
 							foreach (var objectValue in propertyValue as IList)
 							{
 								int artifactId = (int)objectValue.GetType().GetProperty("ArtifactId").GetValue(objectValue, null);
 
-								listOfObjects.Add(new kCura.Relativity.Client.DTOs.Artifact(artifactId));
+								listOfObjects.Add(new Artifact(artifactId));
 							}
 
 							theFieldValue = listOfObjects;
@@ -347,6 +272,16 @@ namespace Gravity.Base
 				stream.Position = 0;
 				return (T)formatter.Deserialize(stream);
 			}
+		}
+
+		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<T, A>() where A : Attribute
+	=> GetPropertyAttributes<A>(typeof(T));
+
+		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<A>(Type type) where A : Attribute
+		{
+			return type.GetPublicProperties()
+				.Select(p => new Tuple<PropertyInfo, A>(p, p.GetCustomAttribute<A>()))
+				.Where(kvp => kvp.Item2 != null);
 		}
 	}
 }
