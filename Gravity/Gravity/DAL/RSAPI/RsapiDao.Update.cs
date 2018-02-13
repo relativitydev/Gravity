@@ -57,7 +57,7 @@ namespace Gravity.DAL.RSAPI
 					foreach (var objectToBeUpdated in objectsToUpdated.Where(o => o.ArtifactId != 0))
 					{
 						UpdateRdo(objectToBeUpdated.ToRdo());
-						InsertUpdateFileField(objectToBeUpdated, objectToBeUpdated.ArtifactId);
+						InsertUpdateFileFields(objectToBeUpdated, objectToBeUpdated.ArtifactId);
 					}
 				}
 			}
@@ -75,7 +75,7 @@ namespace Gravity.DAL.RSAPI
 				foreach (var objectToBeUpdated in objectsToUpdated.Where(o => o.ArtifactId != 0))
 				{
 					UpdateRdo(objectToBeUpdated.ToRdo());
-					InsertUpdateFileField(objectToBeUpdated, objectToBeUpdated.ArtifactId);
+					InsertUpdateFileFields(objectToBeUpdated, objectToBeUpdated.ArtifactId);
 
 					foreach (var childPropertyInfo in childObjectsInfo)
 					{
@@ -101,7 +101,7 @@ namespace Gravity.DAL.RSAPI
 			RDO rdo = theObjectToUpdate.ToRdo();
 
 			UpdateRdo(rdo);
-			InsertUpdateFileField(theObjectToUpdate, theObjectToUpdate.ArtifactId);
+			InsertUpdateFileFields(theObjectToUpdate, theObjectToUpdate.ArtifactId);
 
 			Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
 			if (childObjectsInfo.Count != 0)
