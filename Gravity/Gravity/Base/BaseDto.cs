@@ -69,14 +69,12 @@ namespace Gravity.Base
 		// TODO: Re-work this one to accept selector for the property, not ugly string propertyName
 		public static Guid GetRelativityFieldGuidOfProperty<T>(string propertyName)
 		{
-
 			var fieldAttribute = typeof(T).GetPublicProperties()
 				.FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
 				.GetCustomAttribute<RelativityObjectFieldAttribute>();
 			
 
 			return fieldAttribute?.FieldGuid ?? new Guid();
-
 		}
 
 		public PropertyInfo GetParentArtifactIdProperty()
@@ -86,7 +84,7 @@ namespace Gravity.Base
 				.Item1;
 		}
 
-		// BE CAREFULL!
+		// BE CAREFUL!
 		// This is the Artifact ID of the DTO within the working Workspace (where app is installed, usually)
 		// If you need the global Artifact ID (for Group, User, Client, etc)
 		// If you need that one, you need to use MasterArtifactID from inheriting class BaseMasterDto
@@ -111,19 +109,7 @@ namespace Gravity.Base
 
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
 			{
-				object theFieldValue = null;
 
-				RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
-
-				if (fieldAttribute == null)
-				{
-					continue;
-				}
-
-				if (fieldAttribute.FieldType == (int)RdoFieldType.File)
-				{
-					continue;
-				}
 
 				object propertyValue = property.GetValue(this);
 				if (propertyValue == null)
@@ -131,137 +117,159 @@ namespace Gravity.Base
 					continue;
 				}
 
-				switch (fieldAttribute.FieldType)
-				{
-					case (int)RdoFieldType.Currency:
-					case (int)RdoFieldType.Date:
-					case (int)RdoFieldType.Decimal:
-					case (int)RdoFieldType.Empty:
-					case (int)RdoFieldType.LongText:
-					case (int)RdoFieldType.WholeNumber:
-					case (int)RdoFieldType.YesNo:
-					case (int)RdoFieldType.User:
-						theFieldValue = propertyValue;
-						break;
-					case (int)RdoFieldType.FixedLengthText:
-						int stringLenght;
-						stringLenght = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length != null ?
-							property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length.Value :
-							3000;
-
-						string theString = propertyValue as string;
-						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLenght)
-						{
-							theString = theString.Substring(0, (stringLenght - 3));
-							theString += "...";
-						}
-
-						theFieldValue = theString;
-						break;
-					case (int)RdoFieldType.MultipleChoice:
-						// We have IList<Enum> values here
-						var multiChoiceFieldValueList = new MultiChoiceFieldValueList();
-
-						IEnumerable enumEnumerable = propertyValue as IEnumerable;
-						Type entryType = enumEnumerable.AsQueryable().ElementType;
-
-						var enumValues = Enum.GetValues(entryType);
-						foreach (var enumValueObject in enumEnumerable)
-						{
-							var memberInfo = entryType.GetMember(enumValueObject.ToString());
-							var relativityObjectAttribute = memberInfo[0].GetCustomAttribute<RelativityObjectAttribute>();
-							multiChoiceFieldValueList.Add(new Choice(relativityObjectAttribute.ObjectTypeGuid));
-						}
-
-						theFieldValue = multiChoiceFieldValueList;
-						break;
-					case (int)RdoFieldType.MultipleObject:
-						var listOfObjects = new FieldValueList<Artifact>();
-
-						foreach (int artifactId in (IList<int>)propertyValue)
-						{
-							listOfObjects.Add(new Artifact(artifactId));
-						}
-
-						theFieldValue = listOfObjects;
-						break;
-					case (int)RdoFieldType.SingleChoice:
-
-						bool isEnumDefined = Enum.IsDefined(propertyValue.GetType(), propertyValue);
-
-						if (isEnumDefined == true)
-						{
-							var choiceGuid = propertyValue.GetType().GetMember(propertyValue.ToString())[0].GetCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
-							theFieldValue = new Choice(choiceGuid);
-						}
-						break;
-					case (int)RdoFieldType.SingleObject:
-						if ((int)propertyValue > 0)
-						{
-							theFieldValue = new Artifact((int)propertyValue);
-						}
-						break;
-					case SharedConstants.FieldTypeCustomListInt:
-						theFieldValue = ((IList<int>)propertyValue).ToSeparatedString(SharedConstants.ListIntSeparatorChar);
-						break;
-					case SharedConstants.FieldTypeByteArray:
-						theFieldValue = Convert.ToBase64String((byte[])propertyValue);
-						break;
-				}
-
-				rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, theFieldValue));
-			}
-
-			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
-			{
-				object theFieldValue = null;
-				RelativitySingleObjectAttribute singleObjectAttribute = property.GetCustomAttribute<RelativitySingleObjectAttribute>();
-				RelativityMultipleObjectAttribute multipleObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
-
-				if (singleObjectAttribute != null)
-				{
-					int fieldsWithSameGuid = rdo.Fields.Where(c => c.Guids.Contains(singleObjectAttribute.FieldGuid)).Count();
-
-					if (fieldsWithSameGuid == 0)
-					{
-						object propertyValue = property.GetValue(this);
-						if (propertyValue != null)
-						{
-							int artifactId = (int)propertyValue.GetType().GetProperty("ArtifactId").GetValue(propertyValue, null);
-							theFieldValue = artifactId == 0 ? null : new Artifact(artifactId);
-							rdo.Fields.Add(new FieldValue(singleObjectAttribute.FieldGuid, theFieldValue));
-						}
-					}
-
-				}
-
-				if (multipleObjectAttribute != null)
-				{
-					int fieldsWithSameGuid = rdo.Fields.Where(c => c.Guids.Contains(multipleObjectAttribute.FieldGuid)).Count();
-
-					if (fieldsWithSameGuid == 0)
-					{
-						object propertyValue = property.GetValue(this);
-						if (propertyValue != null)
-						{
-							var listOfObjects = new FieldValueList<Artifact>();
-
-							foreach (var objectValue in propertyValue as IList)
-							{
-								int artifactId = (int)objectValue.GetType().GetProperty("ArtifactId").GetValue(objectValue, null);
-
-								listOfObjects.Add(new Artifact(artifactId));
-							}
-
-							theFieldValue = listOfObjects;
-							rdo.Fields.Add(new FieldValue(multipleObjectAttribute.FieldGuid, theFieldValue));
-						}
-					}
-				}
+				if (TryAddSimplePropertyValue(rdo, property, propertyValue)) { continue; }
+				if (TryAddObjectPropertyValue(rdo, property, propertyValue)) { continue; }
+				if (TryAddMultipleObjectPropertyValue(rdo, property, propertyValue)) { continue; }
 			}
 
 			return rdo;
 		}
+
+		#region TryAddPropertyValue methods
+
+		private bool TryAddSimplePropertyValue(RDO rdo, PropertyInfo property, object propertyValue)
+		{
+			RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
+
+			if (fieldAttribute == null || fieldAttribute.FieldType == (int)RdoFieldType.File)
+			{
+				return false;
+			}
+
+			var relativityValue = ConvertPropertyValue(property, fieldAttribute.FieldType, propertyValue);
+
+			rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, relativityValue));
+			return true;
+		}
+
+		private bool TryAddObjectPropertyValue(RDO rdo, PropertyInfo property, object propertyValue)
+		{
+			var singleObjectAttributeGuid = property.GetCustomAttribute<RelativitySingleObjectAttribute>()?.FieldGuid;
+
+			if (singleObjectAttributeGuid == null)
+			{
+				return false;
+			}
+
+			// skip if field already exists
+			if (rdo.Fields.Any(c => c.Guids.Contains(singleObjectAttributeGuid.Value)))
+			{
+				return false;
+			}
+
+			//Note that this isn't recursive (only ArtifactIDs are set), because recursive inserts, etc. are handled separately anyways.
+			int artifactId = (int)propertyValue.GetType().GetProperty(nameof(ArtifactId)).GetValue(propertyValue, null);
+			var relativityValue = artifactId == 0 ? null : new Artifact(artifactId);
+
+			rdo.Fields.Add(new FieldValue(singleObjectAttributeGuid.Value, relativityValue));
+			return true;
+		}
+
+		private bool TryAddMultipleObjectPropertyValue(RDO rdo, PropertyInfo property, object propertyValue)
+		{
+			var multipleObjectAttributeGuid = property.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid;
+
+			if (multipleObjectAttributeGuid == null)
+			{
+				return false;
+			}
+
+			// skip if field already exists
+			if (rdo.Fields.Any(c => c.Guids.Contains(multipleObjectAttributeGuid.Value)))
+			{
+				return false;
+			}
+
+			var enumerableOfObjects = ((IList)propertyValue)
+				.Cast<object>()
+				.Select(objectValue => (int)objectValue.GetType().GetProperty(nameof(ArtifactId)).GetValue(objectValue, null))
+				.Select(artifactId => new Artifact(artifactId));
+			var relativityValue = new FieldValueList<Artifact>(enumerableOfObjects);
+
+			rdo.Fields.Add(new FieldValue(multipleObjectAttributeGuid.Value, relativityValue));
+			return true;
+		}
+
+		private static object ConvertPropertyValue(PropertyInfo property, int fieldType, object propertyValue)
+		{
+			switch (fieldType)
+			{
+				case (int)RdoFieldType.Currency:
+				case (int)RdoFieldType.Date:
+				case (int)RdoFieldType.Decimal:
+				case (int)RdoFieldType.Empty:
+				case (int)RdoFieldType.LongText:
+				case (int)RdoFieldType.WholeNumber:
+				case (int)RdoFieldType.YesNo:
+				case (int)RdoFieldType.User:
+					{
+						return propertyValue;
+					}
+
+				//truncate fixed-length text
+				case (int)RdoFieldType.FixedLengthText:
+					{
+						int stringLength = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length ?? 3000;
+
+						string theString = propertyValue as string;
+						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLength)
+						{
+							theString = theString.Substring(0, (stringLength - 3)) + "...";
+						}
+
+						return theString;
+					}
+
+				case (int)RdoFieldType.MultipleChoice:
+					{
+						var multiChoiceFieldValueEnumerable = ((IEnumerable)propertyValue)
+							.Cast<Enum>()
+							.Select(x => x.GetRelativityObjectAttributeGuidValue())
+							.Select(choiceGuid => new Choice(choiceGuid));
+
+						return new MultiChoiceFieldValueList(multiChoiceFieldValueEnumerable);
+					}
+
+				case (int)RdoFieldType.MultipleObject:
+					{
+						return new FieldValueList<Artifact>(
+							((IList<int>)propertyValue).Select(x => new Artifact(x)));
+					}
+
+				case (int)RdoFieldType.SingleChoice:
+					{
+						if (Enum.IsDefined(propertyValue.GetType(), propertyValue))
+						{
+							var choiceGuid = ((Enum)propertyValue).GetRelativityObjectAttributeGuidValue();
+							return new Choice(choiceGuid);
+						}
+						break;
+					}
+
+				case (int)RdoFieldType.SingleObject:
+					{
+						if ((int)propertyValue > 0)
+						{
+							return new Artifact((int)propertyValue);
+						}
+						break;
+					}
+
+				case SharedConstants.FieldTypeCustomListInt:
+					{
+						return ((IList<int>)propertyValue).ToSeparatedString(SharedConstants.ListIntSeparatorChar);
+					}
+
+				case SharedConstants.FieldTypeByteArray:
+					{
+						return Convert.ToBase64String((byte[])propertyValue);
+					}
+			}
+
+			return null;
+		}
+
+		#endregion
 
 		public T DeepClone<T>()
 		{
@@ -275,7 +283,7 @@ namespace Gravity.Base
 		}
 
 		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<T, A>() where A : Attribute
-	=> GetPropertyAttributes<A>(typeof(T));
+			=> GetPropertyAttributes<A>(typeof(T));
 
 		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<A>(Type type) where A : Attribute
 		{
