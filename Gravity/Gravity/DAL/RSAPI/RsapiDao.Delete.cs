@@ -74,7 +74,7 @@ namespace Gravity.DAL.RSAPI
 
 				if (thisArtifactIDs.Count != 0)
 				{
-					this.InvokeGenericMethod(childType, "DeleteChildObjects", thisChildTypeObj, thisArtifactIDs);
+					this.InvokeGenericMethod(childType, nameof(DeleteChildObjects), thisChildTypeObj, thisArtifactIDs);
 				}
 			}
 		}

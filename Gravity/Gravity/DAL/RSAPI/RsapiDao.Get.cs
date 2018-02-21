@@ -131,8 +131,7 @@ namespace Gravity.DAL.RSAPI
 					.Select(artifact => artifact.ArtifactID)
 					.ToArray();
 
-				MethodInfo method = GetGenericMethod(nameof(GetDTOs), childType);
-				var allObjects = method.Invoke(this, new object[] { childArtifactIds, depthLevel }) as IEnumerable;
+				var allObjects = this.InvokeGenericMethod(childType, nameof(GetDTOs), childArtifactIds, depthLevel) as IEnumerable;
 
 				var returnList = MakeGenericList(allObjects, theMultipleObjectAttribute.ChildType);
 
@@ -150,8 +149,7 @@ namespace Gravity.DAL.RSAPI
 
 				if (childArtifactId != 0)
 				{
-					MethodInfo method = GetGenericMethod(nameof(GetRelativityObject), objectType);
-					singleObject = method.Invoke(this, new object[] { childArtifactId, depthLevel });
+					singleObject = this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel );
 				}
 
 				propertyInfo.SetValue(baseDto, singleObject);
@@ -165,8 +163,7 @@ namespace Gravity.DAL.RSAPI
 				Type childType = childPropertyInfo.Value.ChildType;
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
-				MethodInfo method = GetGenericMethod(nameof(GetAllChildDTOs), childType);
-				var allChildObjects = method.Invoke(this, new object[] { parentFieldGuid, baseDto.ArtifactId, depthLevel }) as IEnumerable;
+				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
 
 				var returnList = MakeGenericList(allChildObjects, theChildAttribute.ChildType);
 
@@ -185,13 +182,6 @@ namespace Gravity.DAL.RSAPI
 
 				filePropertyInfo.SetValue(baseDto, filePropertyValue);
 			}
-		}
-
-		private static MethodInfo GetGenericMethod(string methodName, params Type[] types)
-		{
-			return typeof(RsapiDao)
-				.GetMethod(methodName, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-				.MakeGenericMethod(types);
 		}
 
 		private static IList MakeGenericList(IEnumerable items, Type type)
