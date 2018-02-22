@@ -11,6 +11,9 @@ namespace Gravity.Extensions
 {
 	public static class RdoExtensions
 	{
+		private static string ChoiceTrim(this string str)
+			=> new[] { " ", "-", "(", ")" }.Aggregate(str, (s, c) => s.Replace(c, ""));
+
 		// TODO: Scope a US to replace the usage of kCura.Relativity.Client.FieldType with our own enum for only our usages
 		public static T ToHydratedDto<T>(this RDO rdo)
 			where T : BaseDto, new()
@@ -26,7 +29,7 @@ namespace Gravity.Extensions
 				{
 					FieldValue theFieldValue = rdo[fieldAttribute.FieldGuid];
 
-					switch ((int)fieldAttribute.FieldType)
+					switch (fieldAttribute.FieldType)
 					{
 						case (int)RdoFieldType.Currency:
 							newValueObject = theFieldValue.ValueAsCurrency;
@@ -43,8 +46,7 @@ namespace Gravity.Extensions
 						case (int)RdoFieldType.File:
 							if (theFieldValue.Value != null)
 							{
-								RelativityFile fileData = new RelativityFile(theFieldValue.ArtifactID);
-								newValueObject = fileData;
+								newValueObject = new RelativityFile(theFieldValue.ArtifactID);
 							}
 							break;
 						case (int)RdoFieldType.FixedLengthText:
@@ -54,65 +56,62 @@ namespace Gravity.Extensions
 							newValueObject = theFieldValue.ValueAsLongText;
 							break;
 						case (int)RdoFieldType.MultipleChoice:
-							// Means we have IList<some_enum> here, in fieldAttribute.ObjectDTOType
-							var valueAsMultipleChoice = theFieldValue.ValueAsMultipleChoice;
-							if (valueAsMultipleChoice != null)
 							{
-								var listOfEnumValuesDoNotUse = typeof(List<>).MakeGenericType(fieldAttribute.ObjectFieldDTOType);
-								var listOfEnumValuesInstance = (IList)Activator.CreateInstance(listOfEnumValuesDoNotUse);
-								foreach (var choice in valueAsMultipleChoice)
+								var valueAsMultipleChoice = theFieldValue.ValueAsMultipleChoice;
+								if (valueAsMultipleChoice == null)
+									break;
+
+								//get a List<target_enum_type> to hold your converted values
+								var genericListType = typeof(List<>).MakeGenericType(fieldAttribute.ObjectFieldDTOType);
+								var listOfEnumValuesInstance = (IList)Activator.CreateInstance(genericListType);
+
+								//get choice names
+								var choiceNames = new HashSet<string>(
+									valueAsMultipleChoice.Select(c => c.Name.ChoiceTrim()),
+									StringComparer.InvariantCultureIgnoreCase);
+
+								//get enum values of type that correspond to those names
+								var enumValues = Enum.GetValues(fieldAttribute.ObjectFieldDTOType).Cast<Enum>()
+									.Where(x => choiceNames.Contains(x.ToString()));
+
+								//add to list
+								foreach (var theValueObject in enumValues)
 								{
-									string choiceNameTrimmed = choice.Name.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
-									System.Array enumValues = System.Enum.GetValues(fieldAttribute.ObjectFieldDTOType);
-									for (int i = 0; i < enumValues.Length; i++)
-									{
-										object theValueObject = enumValues.GetValue(i);
-										if (theValueObject.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase) == true)
-										{
-											listOfEnumValuesInstance.Add(theValueObject);
-										}
-									}
+									listOfEnumValuesInstance.Add(theValueObject);
 								}
 
-								// Now we have a List<object> and we need it to be List<fieldAttribute.ObjectFieldDTOType>
+								//set to new object
 								newValueObject = listOfEnumValuesInstance;
 							}
 							break;
 						case (int)RdoFieldType.MultipleObject:
-							newValueObject = theFieldValue.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
-								.Select<kCura.Relativity.Client.DTOs.Artifact, int>(artifact => artifact.ArtifactID).ToList();
+							newValueObject = theFieldValue.GetValueAsMultipleObject<Artifact>()
+								.Select(artifact => artifact.ArtifactID).ToList();
 							break;
 						case (int)RdoFieldType.SingleChoice:
-							kCura.Relativity.Client.DTOs.Choice theChoice = theFieldValue.ValueAsSingleChoice;
-							if (theChoice != null)
 							{
-								string choiceNameTrimmed = theChoice.Name.Replace(" ", "").Replace("-", "").Replace("(", "").Replace(")", "");
-								System.Array enumValues = System.Enum.GetValues(fieldAttribute.ObjectFieldDTOType);
-								for (int i = 0; i < enumValues.Length; i++)
-								{
-									object theValueObject = enumValues.GetValue(i);
-									if (theValueObject.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase) == true)
-									{
-										newValueObject = theValueObject;
-										break;
-									}
-								}
+
+								string choiceNameTrimmed = theFieldValue.ValueAsSingleChoice.Name.ChoiceTrim();
+
+								if (choiceNameTrimmed == null)
+									break;
+
+								newValueObject = Enum.GetValues(fieldAttribute.ObjectFieldDTOType)
+									.Cast<object>()
+									.FirstOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
 							}
 							break;
 						case (int)RdoFieldType.SingleObject:
-							if (theFieldValue != null && theFieldValue.ValueAsSingleObject != null && theFieldValue.ValueAsSingleObject.ArtifactID > 0)
+							if (theFieldValue?.ValueAsSingleObject?.ArtifactID > 0)
 							{
 								newValueObject = theFieldValue.ValueAsSingleObject.ArtifactID;
 							}
 							break;
 						case (int)RdoFieldType.User:
-							if (theFieldValue.Value != null)
+							if (theFieldValue.Value != null && property.PropertyType == typeof(User))
 							{
-								if (property.PropertyType == typeof(User))
-								{
-									newValueObject = theFieldValue.Value as User;
-								}
-							 }
+								newValueObject = theFieldValue.Value as User;
+							}
 							break;
 						case (int)RdoFieldType.WholeNumber:
 							newValueObject = theFieldValue.ValueAsWholeNumber;
