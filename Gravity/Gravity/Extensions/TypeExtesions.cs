@@ -13,10 +13,7 @@ namespace Gravity.Extensions
 			foreach (var propertyInfo in type.GetPublicProperties())
 			{
 				RelativityObjectFieldParentArtifactIdAttribute parentAttribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>();
-				if (parentAttribute != null)
-				{
-					returnValue = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
-				}
+				return propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid ?? new Guid();
 			}
 
 			return returnValue;
@@ -24,24 +21,19 @@ namespace Gravity.Extensions
 
 		public static Guid GetFieldGuidValueFromAttribute(this PropertyInfo propertyInfo)
 		{
-			Guid returnValue = new Guid();
+			return propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid
+				?? propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid
+				?? propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid
+				?? new Guid();
+		}
 
-			if (propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>() != null)
-			{
-				returnValue = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
-			}
+		public static object InvokeGenericMethod(this object obj, Type typeArgument, string methodName, params object[] args)
+		{
+			MethodInfo method = obj.GetType()
+				.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+				.MakeGenericMethod(new Type[] { typeArgument });
 
-			if (propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>() != null)
-			{
-				returnValue = propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>().FieldGuid;
-			}
-
-			if (propertyInfo.GetCustomAttribute<RelativitySingleObjectAttribute>() != null)
-			{
-				returnValue = propertyInfo.GetCustomAttribute<RelativitySingleObjectAttribute>().FieldGuid;
-			}
-
-			return returnValue;
+			return method.Invoke(obj, args);
 		}
 	}
 }

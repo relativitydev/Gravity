@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using Gravity.Base;
 using Gravity.Exceptions;
+using Gravity.Extensions;
 
 namespace Gravity.DAL.RSAPI
 {
@@ -16,18 +17,7 @@ namespace Gravity.DAL.RSAPI
 		#region RDO INSERT Protected Stuff
 		protected int InsertRdo(RDO newRdo)
 		{
-			int resultArtifactId = 0;
-			using (var proxyToWorkspace = CreateProxy())
-			{
-				try
-				{
-					resultArtifactId = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.CreateSingle(newRdo));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
+			var resultArtifactId = InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.CreateSingle(newRdo));
 
 			if (resultArtifactId <= 0)
 			{
@@ -37,149 +27,86 @@ namespace Gravity.DAL.RSAPI
 			return resultArtifactId;
 		}
 
-		protected WriteResultSet<RDO> InsertRdos(params RDO[] newRdos)
+		protected void InsertUpdateFileFields(BaseDto objectToInsert, int parentId)
 		{
-			WriteResultSet<RDO> resultSet = new WriteResultSet<RDO>();
-
-			using (var proxyToWorkspace = CreateProxy())
+			foreach (var propertyInfo in objectToInsert.GetType()
+                .GetProperties()
+                .Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == (int)RdoFieldType.File))
 			{
-				try
-				{
-					resultSet = invokeWithRetryService.InvokeWithRetry(() => proxyToWorkspace.Repositories.RDO.Create(newRdos));
-				}
-				catch (Exception ex)
-				{
-					throw new ProxyOperationFailedException("Failed in method: " + System.Reflection.MethodInfo.GetCurrentMethod(), ex);
-				}
-			}
-
-			return resultSet;
-		}
-
-		protected void InsertUpdateFileField(BaseDto objectToInsert, int parentId)
-		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>() != null))
-			{
-				RelativityObjectFieldAttribute attributeValue = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
-				if (attributeValue.FieldType == (int)RdoFieldType.File)
-				{
-					RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
-					if (relativityFile != null)
-					{
-						if (relativityFile.FileValue != null)
-						{
-							if (relativityFile.FileValue.Path != null)
-							{
-								using (IRSAPIClient proxyToWorkspace = CreateProxy())
-								{
-									var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-									uploadRequest.Metadata.FileName = relativityFile.FileValue.Path;
-									uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-									uploadRequest.Overwrite = true;
-									uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-									uploadRequest.Target.ObjectArtifactId = parentId;
-
-									try
-									{
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-									}
-									catch (Exception ex)
-									{
-										throw ex;
-									}
-								}
-							}
-							else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
-							{
-								string tempPath = Path.GetTempPath();
-								string fileName = tempPath + relativityFile.FileMetadata.FileName;
-
-								using (IRSAPIClient proxyToWorkspace = CreateProxy())
-								{
-									System.IO.File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
-
-									var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-									uploadRequest.Metadata.FileName = fileName;
-									uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-									uploadRequest.Overwrite = true;
-									uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-									uploadRequest.Target.ObjectArtifactId = parentId;
-
-									try
-									{
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
-									}
-									catch (Exception)
-									{
-										invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
-									}
-								}
-							}
-						}
-					}
-				}
+                RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
+                InsertUpdateFileField(relativityFile, parentId);
 			}
 		}
 
 		protected void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
 		{
-			if (relativityFile != null)
+            if (relativityFile?.FileValue == null)
+            {
+                return;
+            }
+
+            if (relativityFile.FileValue.Path != null)
+            {
+                UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
+            }
+            else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
+            {
+                string fileName = Path.GetTempPath() + relativityFile.FileMetadata.FileName;
+                File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
+
+                try
+                {
+                    UploadFile(relativityFile, parentId, fileName);
+                }
+                finally
+                {
+                    invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(fileName));
+                }
+                
+            }
+        }
+
+        private void UploadFile(RelativityFile relativityFile, int parentId, string fileName)
+        {
+            using (IRSAPIClient proxyToWorkspace = CreateProxy())
+            {
+                var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
+                uploadRequest.Metadata.FileName = fileName;
+                uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
+                uploadRequest.Overwrite = true;
+                uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
+                uploadRequest.Target.ObjectArtifactId = parentId;
+                InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
+            }
+        }
+
+
+        private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, KeyValuePair<PropertyInfo, RelativityObjectChildrenListAttribute> childPropertyInfo)
+        {
+            var propertyInfo = childPropertyInfo.Key;
+            var theChildAttribute = childPropertyInfo.Value;
+
+            Type childType = theChildAttribute.ChildType;
+            var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;
+
+            if (childObjectsList?.Count != 0)
+            {
+				this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
+            }
+        }
+
+        private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto, new()
+		{
+			PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
+			PropertyInfo ArtifactIdProperty = objectToBeInserted.GetType().GetProperty("ArtifactId");
+
+			if (parentArtifactIdProperty == null)
 			{
-				if (relativityFile.FileValue != null)
-				{
-					if (relativityFile.FileValue.Path != null)
-					{
-						using (IRSAPIClient proxyToWorkspace = CreateProxy())
-						{
-							var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-							uploadRequest.Metadata.FileName = relativityFile.FileValue.Path;
-							uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-							uploadRequest.Overwrite = true;
-							uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-							uploadRequest.Target.ObjectArtifactId = parentId;
-
-							try
-							{
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-							}
-							catch (Exception ex)
-							{
-								throw ex;
-							}
-						}
-					}
-					else if (string.IsNullOrEmpty(relativityFile.FileMetadata.FileName) == false)
-					{
-						string tempPath = Path.GetTempPath();
-						string fileName = tempPath + relativityFile.FileMetadata.FileName;
-
-						using (IRSAPIClient proxyToWorkspace = CreateProxy())
-						{
-							System.IO.File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
-
-							var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-							uploadRequest.Metadata.FileName = fileName;
-							uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-							uploadRequest.Overwrite = true;
-							uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-							uploadRequest.Target.ObjectArtifactId = parentId;
-
-							try
-							{
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => proxyToWorkspace.Upload(uploadRequest));
-
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
-							}
-							catch (Exception)
-							{
-								invokeWithRetryService.InvokeVoidMethodWithRetry(() => System.IO.File.Delete(fileName));
-							}
-						}
-					}
-				}
+				return;
 			}
+
+			parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
+			ArtifactIdProperty.SetValue(objectToBeInserted, 0);
 		}
 		#endregion
 
@@ -187,113 +114,51 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
-			if (childObjectsInfo.Count == 0)
+
+			bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile)));
+
+			if (childObjectsInfo.Any() || isFilePropertyPresent)
 			{
-				bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Where(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile))).Count() > 0;
-				if (isFilePropertyPresent == false)
+				foreach (var objectToBeInserted in objectsToInserted)
 				{
-					List<RDO> rdosToBeInserted = new List<RDO>();
+					SetParentArtifactID(objectToBeInserted, parentArtifactId);
+					int insertedRdoArtifactID = InsertRdo(objectToBeInserted.ToRdo());
+					InsertUpdateFileFields(objectToBeInserted, insertedRdoArtifactID);
 
-					foreach (var objectToBeInserted in objectsToInserted)
+					foreach (var childPropertyInfo in childObjectsInfo)
 					{
-						PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
-						PropertyInfo ArtifactIdProperty = objectToBeInserted.GetType().GetProperty("ArtifactId");
-
-						if (parentArtifactIdProperty != null)
-						{
-							parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
-							ArtifactIdProperty.SetValue(objectToBeInserted, 0);
-						}
-
-						rdosToBeInserted.Add(objectToBeInserted.ToRdo());
-					}
-
-					InsertRdos(rdosToBeInserted.ToArray());
-				}
-				else
-				{
-					foreach (var objectToBeInserted in objectsToInserted)
-					{
-						PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
-						PropertyInfo ArtifactIdProperty = objectToBeInserted.GetType().GetProperty("ArtifactId");
-
-						if (parentArtifactIdProperty != null)
-						{
-							parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
-							ArtifactIdProperty.SetValue(objectToBeInserted, 0);
-						}
-
-						int insertedRdoArtifactID = InsertRdo(objectToBeInserted.ToRdo());
-						InsertUpdateFileField(objectToBeInserted, insertedRdoArtifactID);
+						InsertChildListObjectsWithDynamicType(objectToBeInserted, insertedRdoArtifactID, childPropertyInfo);
 					}
 				}
 			}
 			else
 			{
+
 				foreach (var objectToBeInserted in objectsToInserted)
 				{
-					PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
-					PropertyInfo ArtifactIdProperty = objectToBeInserted.GetType().GetProperty("ArtifactId");
-
-					if (parentArtifactIdProperty != null)
-					{
-						parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
-						ArtifactIdProperty.SetValue(objectToBeInserted, 0);
-					}
-
-					int insertedRdoArtifactID = InsertRdo(objectToBeInserted.ToRdo());
-					InsertUpdateFileField(objectToBeInserted, insertedRdoArtifactID);
-
-					foreach (var childPropertyInfo in childObjectsInfo)
-					{
-						var propertyInfo = childPropertyInfo.Key;
-						var theChildAttribute = childPropertyInfo.Value;
-
-						Type childType = childPropertyInfo.Value.ChildType;
-
-						var childObjectsList = childPropertyInfo.Key.GetValue(objectToBeInserted, null) as IList;
-
-						if (childObjectsList != null && childObjectsList.Count != 0)
-						{
-							MethodInfo method = GetType().GetMethod("InsertChildListObjects", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
-							method.Invoke(this, new object[] { childObjectsList, insertedRdoArtifactID });
-						}
-					}
+					SetParentArtifactID(objectToBeInserted, parentArtifactId);
 				}
-			}
+
+				var rdosToBeInserted = objectsToInserted.Select(x => x.ToRdo()).ToArray();
+
+				InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Create(rdosToBeInserted));
+			}			
 		}
 
-		public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
+        public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
 		{
-			RDO rdo = theObjectToInsert.ToRdo();
 
-			int resultArtifactId = InsertRdo(rdo);
+			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
 
-			InsertUpdateFileField(theObjectToInsert, resultArtifactId);
+			InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
 
 			Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
-			if (childObjectsInfo.Count != 0)
-			{
-				foreach (var childPropertyInfo in childObjectsInfo)
-				{
-					var propertyInfo = childPropertyInfo.Key;
-					var theChildAttribute = childPropertyInfo.Value;
+			foreach (var childPropertyInfo in childObjectsInfo)
+            {
+                InsertChildListObjectsWithDynamicType(theObjectToInsert, resultArtifactId, childPropertyInfo);
+            }
 
-					Type childType = childPropertyInfo.Value.ChildType;
-
-					var childObjectsList = childPropertyInfo.Key.GetValue(theObjectToInsert, null) as IList;
-
-					if (childObjectsList != null && childObjectsList.Count != 0)
-					{
-						MethodInfo method = GetType().GetMethod("InsertChildListObjects", BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).MakeGenericMethod(new Type[] { childType });
-
-						method.Invoke(this, new object[] { childObjectsList, resultArtifactId });
-					}
-				}
-			}
-
-			return resultArtifactId;
+            return resultArtifactId;
 		}
-	}
+    }
 }
