@@ -12,22 +12,22 @@ namespace Gravity.DAL.RSAPI
 	{
 		public ExecutionIdentity CurrentExecutionIdentity { get; set; }
 
-		protected IHelper helper;
+		protected IServicesMgr servicesManager;
 		protected int workspaceId;
 
 		protected InvokeWithRetryService invokeWithRetryService;
 
 		protected IRSAPIClient CreateProxy()
 		{
-			var proxy = helper.GetServicesManager().CreateProxy<IRSAPIClient>(this.CurrentExecutionIdentity);
+			var proxy = servicesManager.CreateProxy<IRSAPIClient>(this.CurrentExecutionIdentity);
 			proxy.APIOptions.WorkspaceID = workspaceId;
 
 			return proxy;
 		}
 
-		public RsapiDaoBase(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
+		public RsapiDaoBase(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
 		{
-			this.helper = helper;
+			this.servicesManager = servicesManager;
 			this.workspaceId = workspaceId;
 			this.CurrentExecutionIdentity = executionIdentity;
 
