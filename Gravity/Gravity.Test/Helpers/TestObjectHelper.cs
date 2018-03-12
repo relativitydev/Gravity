@@ -6,8 +6,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Gravity.Utils;
+using Gravity.Base;
 
-namespace Gravity.Test
+namespace Gravity.Test.Helpers
 {
     public class TestObjectHelper
     {
@@ -22,19 +23,11 @@ namespace Gravity.Test
             _retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
         }
 
-        public int CreateTestObjectWithGravity()
+        public int CreateTestObjectWithGravity(BaseDto testObject)
         {
-            
-
             RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
 
-            var testDto = new TestClasses.TestObject
-            {
-                Name = "Test Name",
-                TextField = "Text Field"
-            };
-
-            int testDtoId = gravityRsapiDao.InsertRelativityObject<TestClasses.TestObject>(testDto);
+            int testDtoId = gravityRsapiDao.InsertRelativityObject<BaseDto>(testObject);
 
             return testDtoId;
         }

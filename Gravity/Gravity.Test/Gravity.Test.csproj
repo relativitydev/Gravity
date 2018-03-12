@@ -62,10 +62,14 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="Constants.cs" />
     <Compile Include="Helpers\TestObjectHelper.cs" />
+    <Compile Include="Helpers\TestValues.cs" />
+    <Compile Include="TestClasses\GravityLevel2.cs" />
+    <Compile Include="TestClasses\GravityLevel2Child.cs" />
+    <Compile Include="TestClasses\GravityLevelOne.cs" />
+    <Compile Include="TestClasses\MultipleChoiceFieldChoices.cs" />
+    <Compile Include="TestClasses\SingleChoiceFiledChoices.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestClasses\TestObject.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Gravity\Gravity.csproj">
@@ -75,6 +79,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="RelativityApplication\GravityDemo.rap" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
