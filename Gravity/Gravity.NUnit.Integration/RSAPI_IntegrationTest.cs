@@ -194,7 +194,6 @@ namespace Gravity.NUnit.Integration
                 Assert.Greater(newRdoArtifactId, 0);
                 Console.WriteLine("Artifact ID > 0 Assertion Complete...." + newRdoArtifactId.ToString());
 
-                //should to validation of names and stuff
                 Console.WriteLine("Assertion Complete....");
             }
             catch (Exception ex)
@@ -209,16 +208,10 @@ namespace Gravity.NUnit.Integration
 
         [TestCase("LongTextField", TestValues.LongTextFieldValue)]
         [TestCase("FixedTextField", TestValues.String100Length)]
-        //This Test Fails
-        //[TestCase("FixedTextField", Gravity.Test.Helpers.TestValues.String101Length)]
-        //should figure out how to test custom attribute length + 1 vs. just picking 100
         [TestCase("IntegerField", -1)]
         [TestCase("BoolField", true)]
-        //will fail for more than 2 decimals
         [TestCase("DecimalField", 123.45)]
         [TestCase("CurrencyField", 5648.54)]
-        //This Test Fails
-        //[TestCase("IntegerField", 99999999999999999)]
         [Test, Description("Verify Object Long Text Field Created")]
         //need object fields, could get a little more difficult
         public void Valid_Gravity_Object_Create_Field_Type<T>(string objectPropertyName, T sampleData)
@@ -231,7 +224,7 @@ namespace Gravity.NUnit.Integration
                 Console.WriteLine("Starting Arrangement for property...." + objectPropertyName);
 
                 GravityLevelOne testObject = new GravityLevelOne();
-                testObject.Name = testObject.Name = "TestObject_" + objectPropertyName + Guid.NewGuid().ToString();
+                testObject.Name = "TestObjectCreate_" + objectPropertyName + Guid.NewGuid().ToString();
 
                 Guid testFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>(objectPropertyName);
                 RdoFieldType fieldType = Gravity.Base.BaseDto.GetRelativityFieldTypeOfProperty<GravityLevelOne>(objectPropertyName);
@@ -296,7 +289,95 @@ namespace Gravity.NUnit.Integration
                 //Assert
                 Assert.AreEqual(sampleData, newObjectValue);
 
-                //should to validation of names and stuff
+                Console.WriteLine("Assertion Complete....");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error encountered in " + System.Reflection.MethodBase.GetCurrentMethod().Name, ex);
+            }
+            finally
+            {
+                Console.WriteLine("Ending Test case " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            }
+        }
+
+        [TestCase("LongTextField", TestValues.LongTextFieldValue)]
+        [TestCase("FixedTextField", TestValues.String100Length)]
+        [TestCase("IntegerField", -1)]
+        [TestCase("BoolField", true)]
+        [TestCase("DecimalField", 123.45)]
+        [TestCase("CurrencyField", 5648.54)]
+        public void Valid_Gravity_Object_Read_Field_Type<T>(string objectPropertyName, T sampleData)
+        {
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
+
+            try
+            {
+                //Arrange
+                Console.WriteLine("Starting Arrangement for property...." + objectPropertyName);
+
+                GravityLevelOne testObject = new GravityLevelOne();
+                testObject.Name = "TestObjectRead_" + objectPropertyName + Guid.NewGuid().ToString();
+
+                Guid testObjectTypeGuid = testObject.GetType().GetCustomAttribute<RelativityObjectAttribute>(false).ObjectTypeGuid;
+                Guid nameFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>("Name");
+                Guid testFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>(objectPropertyName);
+                RdoFieldType fieldType = Gravity.Base.BaseDto.GetRelativityFieldTypeOfProperty<GravityLevelOne>(objectPropertyName);
+
+                _client.APIOptions.WorkspaceID = _workspaceId;
+
+                var dto = new RDO();
+                int newArtifactId = -1;
+                dto.ArtifactTypeGuids.Add(testObjectTypeGuid);
+                dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
+                dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
+                WriteResultSet<RDO> writeResults = _client.Repositories.RDO.Create(dto);
+
+                if (writeResults.Success)
+                {
+                    newArtifactId = writeResults.Results[0].Artifact.ArtifactID;
+                    Console.WriteLine(string.Format("Object was created with Artifact ID {0}.", newArtifactId));
+                }
+                else
+                {
+                    Console.WriteLine(string.Format("An error occurred creating object: {0}", writeResults.Message));
+
+                    for (Int32 i = 0; i <= writeResults.Results.Count - 1; i++)
+                    {
+                        if (!writeResults.Results[i].Success)
+                        {
+                            Console.WriteLine(String.Format("An error occurred in create request {0}: {1}", i, writeResults.Results[i].Message));
+                        }
+                    }
+                }
+
+                Console.WriteLine("Arrangement Complete....");
+
+                //Act
+                Console.WriteLine("Starting Act....");
+
+                dynamic gravityFieldValue = null;
+
+                if (newArtifactId > 0)
+                {
+                    GravityLevelOne testGravityObject = _testObjectHelper.ReturnTestObjectWithGravity<GravityLevelOne>(newArtifactId);
+                    gravityFieldValue = testGravityObject.GetPropertyValue(objectPropertyName);
+                }
+               
+                Console.WriteLine("Act Complete....");
+
+                //Assert
+                Console.WriteLine("Starting Assertion....");
+
+                if (newArtifactId > 0)
+                {
+                    Assert.AreEqual(sampleData, gravityFieldValue);
+                }
+                else
+                {
+                    Assert.Fail("Could not create object to test with through RSAPI.  This is not a Gravity failure.");
+                }
+
                 Console.WriteLine("Assertion Complete....");
             }
             catch (Exception ex)

@@ -19,5 +19,5 @@ namespace Gravity.DAL.RSAPI
 			this.BatchSize = batchSize;
 		}
 
-	}
+    }
 }
