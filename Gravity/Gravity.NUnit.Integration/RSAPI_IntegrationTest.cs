@@ -11,6 +11,13 @@ using Relativity.Test.Helpers.ServiceFactory.Extentions;
 using Relativity.Test.Helpers.SharedTestHelpers;
 using Relativity.Test.Helpers.WorkspaceHelpers;
 using Gravity.Test;
+using System.Configuration;
+using System.Diagnostics.Eventing.Reader;
+using Gravity.Base;
+using Gravity.Test.TestClasses;
+using kCura.Relativity.Client.DTOs;
+using System.Reflection;
+using Gravity.Test.Helpers;
 
 namespace Gravity.NUnit.Integration
 {
@@ -19,7 +26,10 @@ namespace Gravity.NUnit.Integration
     {
         #region Variables
 
-        private bool _debug = true;
+        //this is set to true and should skip the creation of the database, installation of the testing application, and the deletion of the workspace.
+        //must point _workspaceId = valid workspace with application already installed in the Setup
+        private bool _debug = Convert.ToBoolean(ConfigurationManager.AppSettings["Debug"]);
+        private int _debugWorkspaceId = Convert.ToInt32(ConfigurationManager.AppSettings["DebugWorkspaceId"]);
 
         private IRSAPIClient _client;
         private readonly string _workspaceName = $"GravityTest_{Guid.NewGuid()}";
@@ -28,8 +38,9 @@ namespace Gravity.NUnit.Integration
         private IDBContext _eddsDbContext;
         private IDBContext _dbContext;
         //public string FilepathApplication = TestHelpers.Constants.Agent.DEFAULT_RAP_FILE_LOCATION + TestHelpers.Constants.Application.General.APPLICATION_NAME;
-        public string FilepathApplication = "";
-        private Test.TestObjectHelper _testObjectHelper;
+        public string _applicaitonFilePath = ConfigurationManager.AppSettings["TestApplicationLocation"];
+        public string _applicationName = ConfigurationManager.AppSettings["TestApplicationName"];
+        private Test.Helpers.TestObjectHelper _testObjectHelper;
         #endregion
 
         #region Setup
@@ -59,7 +70,8 @@ namespace Gravity.NUnit.Integration
                 }
                 else
                 {
-                    _workspaceId = 1020846;
+                    //must point _workspaceId = valid workspace with application already installed
+                    _workspaceId = _debugWorkspaceId;
                     Console.WriteLine($"Using existing workspace [WorkspaceArtifactId= {_workspaceId}].....");
                 }
                
@@ -78,7 +90,7 @@ namespace Gravity.NUnit.Integration
                     if (!_debug)
                     {
                         //Import Application
-                        Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, Gravity.Test.Constants.GRAVITY_TEST_APPLICATION_LOCATION, Gravity.Test.Constants.GRAVITY_TEST_APPLICATION_NAME);
+                        Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicaitonFilePath, _applicationName);
                         Console.WriteLine("Application import Complete.");
                     }
                     else
@@ -102,7 +114,7 @@ namespace Gravity.NUnit.Integration
 
                 Console.WriteLine("Creating TestObject Helper.");
                 //1 retry setting because I want to know if it fails quickly while debugging, may bump up for production
-                _testObjectHelper = new Test.TestObjectHelper(_servicesManager, _workspaceId, 1);
+                _testObjectHelper = new Test.Helpers.TestObjectHelper(_servicesManager, _workspaceId, 1);
                 Console.WriteLine("TestObject Helper Created.");
 
             }
@@ -154,24 +166,23 @@ namespace Gravity.NUnit.Integration
         [Test, Description("Verify Test Object is Created")]
         public void Valid_Gravity_Object_Created()
         {
-            Console.WriteLine("Valid_Gravity_Object_Created");
-
-            //Create temp var to hold value of Workspace when entering method, will be used to reset upon exit.
-            var clientWorkspaceArtifactId = _client.APIOptions.WorkspaceID;
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
 
             try
             {
                 //Arrange
                 Console.WriteLine("Starting Arrangement....");
 
-                // Create Export Utility Job record
-              
+                GravityLevelOne testObject = new GravityLevelOne();
+                testObject.Name = $"TestObject_{Guid.NewGuid()}"; 
+               
+
                 Console.WriteLine("Arrangement Complete....");
 
                 //Act
                 Console.WriteLine("Starting Act....");
 
-                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity();
+                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity(testObject);
 
                 Console.WriteLine("Act Complete....");
 
@@ -179,22 +190,122 @@ namespace Gravity.NUnit.Integration
                 Console.WriteLine("Starting Assertion....");
 
                 //Assert object returned valid Artifact ID
-                Console.WriteLine("Starting Artifact ID < 0 Assertion....");
+                Console.WriteLine("Starting Artifact ID > 0 Assertion....");
                 Assert.Greater(newRdoArtifactId, 0);
-                Console.WriteLine("Artifact ID < 0 Assertion Complete...." + newRdoArtifactId.ToString());
+                Console.WriteLine("Artifact ID > 0 Assertion Complete...." + newRdoArtifactId.ToString());
 
                 //should to validation of names and stuff
                 Console.WriteLine("Assertion Complete....");
             }
             catch (Exception ex)
             {
-                throw new Exception("Error encountered in Test Valid_Gravity_Object_Created.", ex);
+                throw new Exception("Error encountered in " + System.Reflection.MethodBase.GetCurrentMethod().Name, ex);
             }
             finally
             {
-                //Reset the client APIOptions Workspace context
-                _client.APIOptions.WorkspaceID = clientWorkspaceArtifactId;
-                Console.WriteLine("Ending Test case Valid_Gravity_Object_Created");
+                Console.WriteLine("Ending Test case " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+            }
+        }
+
+        [TestCase("LongTextField", TestValues.LongTextFieldValue)]
+        [TestCase("FixedTextField", TestValues.String100Length)]
+        //This Test Fails
+        //[TestCase("FixedTextField", Gravity.Test.Helpers.TestValues.String101Length)]
+        //should figure out how to test custom attribute length + 1 vs. just picking 100
+        [TestCase("IntegerField", -1)]
+        [TestCase("BoolField", true)]
+        //will fail for more than 2 decimals
+        [TestCase("DecimalField", 123.45)]
+        [TestCase("CurrencyField", 5648.54)]
+        //This Test Fails
+        //[TestCase("IntegerField", 99999999999999999)]
+        [Test, Description("Verify Object Long Text Field Created")]
+        //need object fields, could get a little more difficult
+        public void Valid_Gravity_Object_Create_Field_Type<T>(string objectPropertyName, T sampleData)
+        {
+            Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
+
+            try
+            {
+                //Arrange
+                Console.WriteLine("Starting Arrangement for property...." + objectPropertyName);
+
+                GravityLevelOne testObject = new GravityLevelOne();
+                testObject.Name = testObject.Name = "TestObject_" + objectPropertyName + Guid.NewGuid().ToString();
+
+                Guid testFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>(objectPropertyName);
+                RdoFieldType fieldType = Gravity.Base.BaseDto.GetRelativityFieldTypeOfProperty<GravityLevelOne>(objectPropertyName);
+
+                //need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
+                switch (fieldType)
+                {
+                    case RdoFieldType.Currency:
+                    case RdoFieldType.Decimal:
+                        testObject.SetValueByPropertyName(objectPropertyName, Convert.ToDecimal(sampleData));
+                        break;
+                    default:
+                        testObject.SetValueByPropertyName(objectPropertyName, sampleData);
+                        break;
+                }
+
+                _client.APIOptions.WorkspaceID = _workspaceId;
+
+                Console.WriteLine("Arrangement Complete....");
+
+                //Act
+                Console.WriteLine("Starting Act....");
+
+                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity(testObject);
+
+                //read artifactID from RSAPI
+                RDO newObject = _client.Repositories.RDO.ReadSingle(newRdoArtifactId);
+
+                FieldValue field = newObject.Fields.Get(testFieldGuid);
+
+                dynamic newObjectValue = null;
+
+                //would like to use switch, but switch is funky with Type
+                switch (fieldType)
+                {
+                    case RdoFieldType.LongText:
+                        newObjectValue = field.ValueAsLongText;
+                        break;
+                    case RdoFieldType.FixedLengthText:
+                        newObjectValue = field.ValueAsFixedLengthText;
+                        break;
+                    case RdoFieldType.WholeNumber:
+                        newObjectValue = field.ValueAsWholeNumber;
+                        break;
+                    case RdoFieldType.YesNo:
+                        newObjectValue = field.ValueAsYesNo;
+                        break;
+                    case RdoFieldType.Currency:
+                        newObjectValue = field.ValueAsCurrency;
+                        break;
+                    case RdoFieldType.Decimal:
+                        newObjectValue = field.ValueAsDecimal;
+                        break;
+
+                }
+
+                Console.WriteLine("Act Complete....");
+
+                //Assert
+                Console.WriteLine("Starting Assertion....");
+
+                //Assert
+                Assert.AreEqual(sampleData, newObjectValue);
+
+                //should to validation of names and stuff
+                Console.WriteLine("Assertion Complete....");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error encountered in " + System.Reflection.MethodBase.GetCurrentMethod().Name, ex);
+            }
+            finally
+            {
+                Console.WriteLine("Ending Test case " + System.Reflection.MethodBase.GetCurrentMethod().Name);
             }
         }
         #endregion
