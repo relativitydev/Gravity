@@ -8,7 +8,11 @@ namespace Gravity.Test.Helpers
 {
     public static class TestValues
     {
-        public static string LongTextFieldValue = @"
+        public const string String100Length = @"xSBM1vIDJWmPKDRSmbs6sSmtue9N5v0FWxOmiujHAO50SDPgj5R9x9YBWCHMBVZpsilzc0XtazCE7Oas8uYYEKYgscj4U7bOc9bX";
+        public const string String99Length = @"EvqAoACTPw7PdTwMcyTXm8ZPmcOrirFgXCJkjsPgatzWoGp3cui0Xai7mkGp2FfPUDjURha0mX3SLvJO1j8waBrKqACGHk1PgtP";
+        public const string String101Length = @"6APawBJvx9zyc7x5etgB1mBtyv7M3gEZ2YhIoYOICNDieD9Xn24gGwWCfJ7viuyLFinmaZGvWm8Su5XxzX2uMBkkhUBcObEF2nQhr";
+
+        public const string LongTextFieldValue = @"
 Bacon ipsum dolor amet ad dolor consequat tri-tip occaecat ipsum veniam laborum, cupidatat elit alcatra buffalo turkey. Pancetta nulla pariatur, filet mignon id shoulder anim reprehenderit pork burgdoggen kielbasa aliquip. Cupidatat chicken buffalo ad tri-tip hamburger pork. Beef ribs drumstick hamburger capicola, exercitation cillum andouille t-bone.
 
 Chicken brisket aute tenderloin prosciutto turkey andouille. In brisket beef ribs pork belly enim, ad elit sunt consectetur. Ut meatball dolore ea biltong alcatra, qui in cupim spare ribs chuck fugiat. Jerky sausage fugiat shank. Ut velit biltong elit fugiat, pariatur leberkas enim cow buffalo kielbasa ham hock turducken. Voluptate nisi swine minim buffalo, chuck aute. Esse biltong sirloin flank spare ribs ut.

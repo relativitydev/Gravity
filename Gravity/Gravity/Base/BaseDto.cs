@@ -77,7 +77,20 @@ namespace Gravity.Base
 			return fieldAttribute?.FieldGuid ?? new Guid();
 		}
 
-		public PropertyInfo GetParentArtifactIdProperty()
+	    public static RdoFieldType GetRelativityFieldTypeOfProperty<T>(string propertyName)
+	    {
+	        var fieldAttribute = typeof(T).GetPublicProperties()
+	            .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+	            .GetCustomAttribute<RelativityObjectFieldAttribute>();
+
+            //TODO: need to update this ugliness when convert Field Type to RdoFieldType
+	        int fieldTypeAsInt = fieldAttribute?.FieldType ?? -1;
+	        RdoFieldType returnType = (RdoFieldType) fieldTypeAsInt;
+
+            return returnType;
+	    }
+
+        public PropertyInfo GetParentArtifactIdProperty()
 		{
 			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())
 				.FirstOrDefault()?
