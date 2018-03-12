@@ -31,5 +31,11 @@ namespace Gravity.Test.Helpers
 
             return testDtoId;
         }
+
+        public T ReturnTestObjectWithGravity<T>(int artifactId) where T : BaseDto, new()
+        {
+            RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
+            return gravityRsapiDao.GetRelativityObject<T>(artifactId,ObjectFieldsDepthLevel.FirstLevelOnly);
+        }
     }
 }
