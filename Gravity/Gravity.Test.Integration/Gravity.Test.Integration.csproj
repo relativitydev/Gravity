@@ -7,8 +7,8 @@
     <ProjectGuid>{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gravity.NUnit.Integration</RootNamespace>
-    <AssemblyName>Gravity.NUnit.Integration</AssemblyName>
+    <RootNamespace>Gravity.Test.Integration</RootNamespace>
+    <AssemblyName>Gravity.Test.Integration</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />

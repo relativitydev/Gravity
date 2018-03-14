@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity", "Gravity\Gravity.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity.Test", "Gravity.Test\Gravity.Test.csproj", "{5A30BD81-511E-40D3-BA48-08399AE61A7B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity.NUnit.Integration", "Gravity.NUnit.Integration\Gravity.NUnit.Integration.csproj", "{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity.Test.Integration", "Gravity.Test.Integration\Gravity.Test.Integration.csproj", "{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

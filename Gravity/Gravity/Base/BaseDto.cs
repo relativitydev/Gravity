@@ -26,7 +26,6 @@ namespace Gravity.Base
 			var propertyInfo = GetPropertyAttributes<T, RelativityObjectFieldParentArtifactIdAttribute>()
 				.FirstOrDefault()?
 				.Item1;
-
 			return propertyInfo?.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid ?? new Guid();
 		}
 
@@ -66,29 +65,13 @@ namespace Gravity.Base
 			return this.GetType().GetProperty(propertyName).GetValue(this, null);
 		}
 
-		// TODO: Re-work this one to accept selector for the property, not ugly string propertyName
-		public static Guid GetRelativityFieldGuidOfProperty<T>(string propertyName)
-		{
-			var fieldAttribute = typeof(T).GetPublicProperties()
-				.FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
-				.GetCustomAttribute<RelativityObjectFieldAttribute>();
-			
-
-			return fieldAttribute?.FieldGuid ?? new Guid();
-		}
-
-	    public static RdoFieldType GetRelativityFieldTypeOfProperty<T>(string propertyName)
-	    {
-	        var fieldAttribute = typeof(T).GetPublicProperties()
-	            .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
-	            .GetCustomAttribute<RelativityObjectFieldAttribute>();
-
-            //TODO: need to update this ugliness when convert Field Type to RdoFieldType
-	        int fieldTypeAsInt = fieldAttribute?.FieldType ?? -1;
-	        RdoFieldType returnType = (RdoFieldType) fieldTypeAsInt;
-
-            return returnType;
-	    }
+        public static T2 GetCustomAttributeOfProperty<T, T2>(string propertyName, Func<RelativityObjectFieldAttribute, T2> relativityObjectFieldAttributSelector)
+        {
+            var fieldAttribute = typeof(T).GetPublicProperties()
+                .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+                .GetCustomAttribute<RelativityObjectFieldAttribute>();
+            return relativityObjectFieldAttributSelector(fieldAttribute);
+        }
 
         public PropertyInfo GetParentArtifactIdProperty()
 		{

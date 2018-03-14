@@ -19,7 +19,7 @@ using kCura.Relativity.Client.DTOs;
 using System.Reflection;
 using Gravity.Test.Helpers;
 
-namespace Gravity.NUnit.Integration
+namespace Gravity.Test.Integration
 {
     [TestFixture]
     public class RSAPI_IntegrationTest
@@ -38,7 +38,7 @@ namespace Gravity.NUnit.Integration
         private IDBContext _eddsDbContext;
         private IDBContext _dbContext;
         //public string FilepathApplication = TestHelpers.Constants.Agent.DEFAULT_RAP_FILE_LOCATION + TestHelpers.Constants.Application.General.APPLICATION_NAME;
-        public string _applicaitonFilePath = ConfigurationManager.AppSettings["TestApplicationLocation"];
+        public string _applicationFilePath = ConfigurationManager.AppSettings["TestApplicationLocation"];
         public string _applicationName = ConfigurationManager.AppSettings["TestApplicationName"];
         private Test.Helpers.TestObjectHelper _testObjectHelper;
         #endregion
@@ -90,7 +90,7 @@ namespace Gravity.NUnit.Integration
                     if (!_debug)
                     {
                         //Import Application
-                        Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicaitonFilePath, _applicationName);
+                        Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicationFilePath, _applicationName);
                         Console.WriteLine("Application import Complete.");
                     }
                     else
@@ -146,7 +146,7 @@ namespace Gravity.NUnit.Integration
                 }
                 else
                 {
-                    Console.WriteLine("Not deleteing workspace because tests are using existing");
+                    Console.WriteLine("Not deleting workspace because tests are using existing");
                 }                
             }
             catch (Exception ex)
@@ -226,8 +226,9 @@ namespace Gravity.NUnit.Integration
                 GravityLevelOne testObject = new GravityLevelOne();
                 testObject.Name = "TestObjectCreate_" + objectPropertyName + Guid.NewGuid().ToString();
 
-                Guid testFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>(objectPropertyName);
-                RdoFieldType fieldType = Gravity.Base.BaseDto.GetRelativityFieldTypeOfProperty<GravityLevelOne>(objectPropertyName);
+                Guid testFieldGuid = BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, Guid>(objectPropertyName, x => x.FieldGuid);
+                //can get rid of cast once FieldType is created as RdoFieldType and not int
+                RdoFieldType fieldType = (RdoFieldType)BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, int>(objectPropertyName, x => x.FieldType);
 
                 //need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
                 switch (fieldType)
@@ -255,9 +256,8 @@ namespace Gravity.NUnit.Integration
 
                 FieldValue field = newObject.Fields.Get(testFieldGuid);
 
-                dynamic newObjectValue = null;
+                object newObjectValue = null;
 
-                //would like to use switch, but switch is funky with Type
                 switch (fieldType)
                 {
                     case RdoFieldType.LongText:
@@ -320,9 +320,9 @@ namespace Gravity.NUnit.Integration
                 testObject.Name = "TestObjectRead_" + objectPropertyName + Guid.NewGuid().ToString();
 
                 Guid testObjectTypeGuid = testObject.GetType().GetCustomAttribute<RelativityObjectAttribute>(false).ObjectTypeGuid;
-                Guid nameFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>("Name");
-                Guid testFieldGuid = Gravity.Base.BaseDto.GetRelativityFieldGuidOfProperty<GravityLevelOne>(objectPropertyName);
-                RdoFieldType fieldType = Gravity.Base.BaseDto.GetRelativityFieldTypeOfProperty<GravityLevelOne>(objectPropertyName);
+                Guid nameFieldGuid = BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, Guid>("Name", x => x.FieldGuid);
+                Guid testFieldGuid = BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, Guid>(objectPropertyName, x => x.FieldGuid);
+                RdoFieldType fieldType = (RdoFieldType)BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, int>(objectPropertyName, x => x.FieldType);
 
                 _client.APIOptions.WorkspaceID = _workspaceId;
 
@@ -356,7 +356,7 @@ namespace Gravity.NUnit.Integration
                 //Act
                 Console.WriteLine("Starting Act....");
 
-                dynamic gravityFieldValue = null;
+                object gravityFieldValue = null;
 
                 if (newArtifactId > 0)
                 {
