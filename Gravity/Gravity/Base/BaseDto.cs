@@ -65,14 +65,6 @@ namespace Gravity.Base
 			return this.GetType().GetProperty(propertyName).GetValue(this, null);
 		}
 
-        public static T2 GetCustomAttributeOfProperty<T, T2>(string propertyName, Func<RelativityObjectFieldAttribute, T2> relativityObjectFieldAttributSelector)
-        {
-            var fieldAttribute = typeof(T).GetPublicProperties()
-                .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
-                .GetCustomAttribute<RelativityObjectFieldAttribute>();
-            return relativityObjectFieldAttributSelector(fieldAttribute);
-        }
-
         public PropertyInfo GetParentArtifactIdProperty()
 		{
 			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())

@@ -18,6 +18,7 @@ using Gravity.Test.TestClasses;
 using kCura.Relativity.Client.DTOs;
 using System.Reflection;
 using Gravity.Test.Helpers;
+using System.Linq.Expressions;
 
 namespace Gravity.Test.Integration
 {
@@ -226,9 +227,9 @@ namespace Gravity.Test.Integration
                 GravityLevelOne testObject = new GravityLevelOne();
                 testObject.Name = "TestObjectCreate_" + objectPropertyName + Guid.NewGuid().ToString();
 
-                Guid testFieldGuid = BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, Guid>(objectPropertyName, x => x.FieldGuid);
+                Guid testFieldGuid = testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
                 //can get rid of cast once FieldType is created as RdoFieldType and not int
-                RdoFieldType fieldType = (RdoFieldType)BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, int>(objectPropertyName, x => x.FieldType);
+                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
                 //need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
                 switch (fieldType)
@@ -319,10 +320,10 @@ namespace Gravity.Test.Integration
                 GravityLevelOne testObject = new GravityLevelOne();
                 testObject.Name = "TestObjectRead_" + objectPropertyName + Guid.NewGuid().ToString();
 
-                Guid testObjectTypeGuid = testObject.GetType().GetCustomAttribute<RelativityObjectAttribute>(false).ObjectTypeGuid;
-                Guid nameFieldGuid = BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, Guid>("Name", x => x.FieldGuid);
-                Guid testFieldGuid = BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, Guid>(objectPropertyName, x => x.FieldGuid);
-                RdoFieldType fieldType = (RdoFieldType)BaseDto.GetCustomAttributeOfProperty<GravityLevelOne, int>(objectPropertyName, x => x.FieldType);
+                Guid testObjectTypeGuid = testObject.GetCustomAttibutes<RelativityObjectAttribute>().ObjectTypeGuid;
+                Guid nameFieldGuid = testObject.GetCustomAttibute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+                Guid testFieldGuid = testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
+                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
                 _client.APIOptions.WorkspaceID = _workspaceId;
 
