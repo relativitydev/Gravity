@@ -19,6 +19,7 @@ using kCura.Relativity.Client.DTOs;
 using System.Reflection;
 using Gravity.Test.Helpers;
 using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 
 namespace Gravity.Test.Integration
 {
@@ -342,13 +343,10 @@ namespace Gravity.Test.Integration
                 else
                 {
                     Console.WriteLine(string.Format("An error occurred creating object: {0}", writeResults.Message));
-
-                    for (Int32 i = 0; i <= writeResults.Results.Count - 1; i++)
+                    foreach (var result in writeResults.Results.Select((item, index) => new {rdoResult = item, itemNumber = index}).Where(x => x.rdoResult.Success.Equals(false))
+                        .Where(y => y.rdoResult.Success.Equals(false)))
                     {
-                        if (!writeResults.Results[i].Success)
-                        {
-                            Console.WriteLine(String.Format("An error occurred in create request {0}: {1}", i, writeResults.Results[i].Message));
-                        }
+                        Console.WriteLine(String.Format("An error occurred in create request {0}: {1}", result.itemNumber, result.rdoResult.Message));
                     }
                 }
 
