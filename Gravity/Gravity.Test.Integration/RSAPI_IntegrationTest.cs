@@ -228,9 +228,9 @@ namespace Gravity.Test.Integration
                 GravityLevelOne testObject = new GravityLevelOne();
                 testObject.Name = "TestObjectCreate_" + objectPropertyName + Guid.NewGuid().ToString();
 
-                Guid testFieldGuid = testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
+                Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
                 //can get rid of cast once FieldType is created as RdoFieldType and not int
-                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
                 //need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
                 switch (fieldType)
@@ -322,9 +322,9 @@ namespace Gravity.Test.Integration
                 testObject.Name = "TestObjectRead_" + objectPropertyName + Guid.NewGuid().ToString();
 
                 Guid testObjectTypeGuid = testObject.GetCustomAttibutes<RelativityObjectAttribute>().ObjectTypeGuid;
-                Guid nameFieldGuid = testObject.GetCustomAttibute<RelativityObjectFieldAttribute>("Name").FieldGuid;
-                Guid testFieldGuid = testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
-                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttibute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+                Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+                Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
+                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
                 _client.APIOptions.WorkspaceID = _workspaceId;
 
@@ -333,6 +333,7 @@ namespace Gravity.Test.Integration
                 dto.ArtifactTypeGuids.Add(testObjectTypeGuid);
                 dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
                 dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
+              
                 WriteResultSet<RDO> writeResults = _client.Repositories.RDO.Create(dto);
 
                 if (writeResults.Success)

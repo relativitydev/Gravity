@@ -79,7 +79,7 @@ namespace Gravity.Base
 			return body.Member.Name;
 		}
 
-	    public static TAttribute GetCustomAttibute<TAttribute>(this object obj, string propertyName) where TAttribute : Attribute
+	    public static TAttribute GetCustomAttribute<TAttribute>(this object obj, string propertyName) where TAttribute : Attribute
 	    {
 	        TAttribute fieldAttribute = obj.GetType().GetPublicProperties()
 	            .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
