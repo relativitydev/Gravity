@@ -303,3 +303,9 @@ $RECYCLE.BIN/
 *.lnk
 *.orig
 *.diff
+/developmentScripts/buildtools/NUnit.Extension.NUnitV2ResultWriter.3.5.0
+/developmentScripts/buildtools/NUnit.Extension.VSProjectLoader.3.5.0
+/developmentScripts/buildtools/psake.4.6.0
+/developmentScripts/buildtools/nuget.exe
+/developmentScripts/buildtools/Microsoft.Build.Logging.StructuredLogger.1.0.89
+/developmentScripts/buildtools/NUnit.ConsoleRunner.3.6.0
