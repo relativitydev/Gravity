@@ -26,7 +26,6 @@ namespace Gravity.Base
 			var propertyInfo = GetPropertyAttributes<T, RelativityObjectFieldParentArtifactIdAttribute>()
 				.FirstOrDefault()?
 				.Item1;
-
 			return propertyInfo?.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid ?? new Guid();
 		}
 
@@ -41,18 +40,7 @@ namespace Gravity.Base
 			return this.GetType().GetProperty(propertyName).GetValue(this, null);
 		}
 
-		// TODO: Re-work this one to accept selector for the property, not ugly string propertyName
-		public static Guid GetRelativityFieldGuidOfProperty<T>(string propertyName)
-		{
-			var fieldAttribute = typeof(T).GetPublicProperties()
-				.FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
-				.GetCustomAttribute<RelativityObjectFieldAttribute>();
-			
-
-			return fieldAttribute?.FieldGuid ?? new Guid();
-		}
-
-		public PropertyInfo GetParentArtifactIdProperty()
+        public PropertyInfo GetParentArtifactIdProperty()
 		{
 			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())
 				.FirstOrDefault()?

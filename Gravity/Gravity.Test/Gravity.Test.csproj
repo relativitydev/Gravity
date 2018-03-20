@@ -62,13 +62,13 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Helpers\TestObjectHelper.cs" />
+    <Compile Include="Helpers\TestValues.cs" />
     <Compile Include="TestClasses\GravityLevel2.cs" />
     <Compile Include="TestClasses\GravityLevel2Child.cs" />
     <Compile Include="TestClasses\GravityLevelOne.cs" />
     <Compile Include="TestClasses\MultipleChoiceFieldChoices.cs" />
     <Compile Include="TestClasses\SingleChoiceFiledChoices.cs" />
-    <Compile Include="BaseTest.cs" />
-    <Compile Include="RsapiDaoTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -78,10 +78,12 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="packages.config" />
+    <None Include="RelativityApplication\GravityDemo.rap" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <Content Include="RelativityApplication\TestingApplication.xml" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

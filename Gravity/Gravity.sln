@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Express 14 for Web
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity", "Gravity\Gravity.csproj", "{CFA21C47-85E1-47B9-A824-7CD3989C9998}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity.Test", "Gravity.Test\Gravity.Test.csproj", "{5A30BD81-511E-40D3-BA48-08399AE61A7B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravity.Test.Integration", "Gravity.Test.Integration\Gravity.Test.Integration.csproj", "{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,8 +23,15 @@ Global
 		{5A30BD81-511E-40D3-BA48-08399AE61A7B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A30BD81-511E-40D3-BA48-08399AE61A7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A30BD81-511E-40D3-BA48-08399AE61A7B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {02DBD25B-BBE4-4F36-9E32-31682E297EC9}
 	EndGlobalSection
 EndGlobal

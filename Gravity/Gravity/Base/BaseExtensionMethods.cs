@@ -79,7 +79,21 @@ namespace Gravity.Base
 			return body.Member.Name;
 		}
 
-		public static void SetValueByPropertyName(this object input, string propertyName, object value)
+	    public static TAttribute GetCustomAttribute<TAttribute>(this object obj, string propertyName) where TAttribute : Attribute
+	    {
+	        TAttribute fieldAttribute = obj.GetType().GetPublicProperties()
+	            .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+	            .GetCustomAttribute<TAttribute>();
+	        return fieldAttribute;
+	    }
+
+	    public static TAttribute GetObjectLevelCustomAttribute<TAttribute>(this object obj) where TAttribute : Attribute
+	    {
+	        TAttribute fieldAttribute = obj.GetType().GetCustomAttributes<TAttribute>().FirstOrDefault();
+	        return fieldAttribute;
+	    }
+       
+        public static void SetValueByPropertyName(this object input, string propertyName, object value)
 		{
 			PropertyInfo prop = input.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 			prop.SetValue(input, value);

@@ -9,8 +9,8 @@ namespace Gravity.DAL.RSAPI
 {
 	public class RsapiDocumentDao : RsapiDaoBase
 	{
-		public RsapiDocumentDao(IHelper helper, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
-			: base(helper, workspaceId, executionIdentity)
+		public RsapiDocumentDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity, InvokeWithRetrySettings invokeWithRetrySettings = null)
+			: base(servicesManager, workspaceId, executionIdentity)
 		{
 		}
 
