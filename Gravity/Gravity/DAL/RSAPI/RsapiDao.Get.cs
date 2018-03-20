@@ -119,69 +119,64 @@ namespace Gravity.DAL.RSAPI
 
 		internal void PopulateChildrenRecursively<T>(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
 		{
-			foreach (var objectPropertyInfo in BaseDto.GetRelativityMultipleObjectPropertyInfos<T>())
+			foreach (var objectPropertyInfo in baseDto.GetType().GetPublicProperties())
 			{
-				var propertyInfo = objectPropertyInfo.Key;
-				var theMultipleObjectAttribute = objectPropertyInfo.Value;
+				var childValue = GetChildObjectRecursively(baseDto, objectRdo, depthLevel, objectPropertyInfo);
+				if (childValue != null)
+				{
+					objectPropertyInfo.SetValue(baseDto, childValue);
+				}
+			}
+		}
 
-				Type childType = objectPropertyInfo.Value.ChildType;
+		private object GetChildObjectRecursively(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
+		{
+			//multiple object
+			var multiObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
+			if (multiObjectAttribute != null)
+			{
+				Type objectType = multiObjectAttribute.ChildType;
 
-				int[] childArtifactIds = objectRdo[objectPropertyInfo.Value.FieldGuid]
+				int[] childArtifactIds = objectRdo[multiObjectAttribute.FieldGuid]
 					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
 					.Select(artifact => artifact.ArtifactID)
 					.ToArray();
 
-				var allObjects = this.InvokeGenericMethod(childType, nameof(GetDTOs), childArtifactIds, depthLevel) as IEnumerable;
+				var allObjects = this.InvokeGenericMethod(objectType, nameof(GetDTOs), childArtifactIds, depthLevel) as IEnumerable;
 
-				var returnList = MakeGenericList(allObjects, theMultipleObjectAttribute.ChildType);
-
-				propertyInfo.SetValue(baseDto, returnList);
+				return MakeGenericList(allObjects, objectType);
 			}
 
-			foreach (var objectPropertyInfo in BaseDto.GetRelativitySingleObjectPropertyInfos<T>())
+			//single object
+			var singleObjectAttribute = property.GetCustomAttribute<RelativitySingleObjectAttribute>();
+			if (singleObjectAttribute != null)
 			{
-				var propertyInfo = objectPropertyInfo.Key;
-
-				Type objectType = objectPropertyInfo.Value.ChildType;
-				var singleObject = Activator.CreateInstance(objectType);
-
-				int childArtifactId = objectRdo[objectPropertyInfo.Value.FieldGuid].ValueAsSingleObject.ArtifactID;
-
-				if (childArtifactId != 0)
-				{
-					singleObject = this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel );
-				}
-
-				propertyInfo.SetValue(baseDto, singleObject);
+				var objectType = singleObjectAttribute.ChildType;
+				int childArtifactId = objectRdo[singleObjectAttribute.FieldGuid].ValueAsSingleObject.ArtifactID;
+				return childArtifactId == 0
+					? Activator.CreateInstance(objectType)
+					: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);
 			}
 
-			foreach (var childPropertyInfo in BaseDto.GetRelativityObjectChildrenListInfos<T>())
+			//child object
+			var childType = property.GetCustomAttribute<RelativityObjectChildrenListAttribute>()?.ChildType;
+			if (childType != null)
 			{
-				var propertyInfo = childPropertyInfo.Key;
-				var theChildAttribute = childPropertyInfo.Value;
-
-				Type childType = childPropertyInfo.Value.ChildType;
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
 
-				var returnList = MakeGenericList(allChildObjects, theChildAttribute.ChildType);
-
-				propertyInfo.SetValue(baseDto, returnList);
+				return MakeGenericList(allChildObjects, childType);
 			}
 
-			foreach (var filePropertyInfo in baseDto.GetType().GetPublicProperties()
-				.Where(prop => prop.PropertyType == typeof(RelativityFile)))
+			//file
+			var relativityFile = property.GetValue(baseDto, null) as RelativityFile;
+			if (relativityFile != null)
 			{
-				var filePropertyValue = filePropertyInfo.GetValue(baseDto, null) as RelativityFile;
-
-				if (filePropertyValue != null)
-				{
-					filePropertyValue = GetFile(filePropertyValue.ArtifactTypeId, baseDto.ArtifactId);
-				}
-
-				filePropertyInfo.SetValue(baseDto, filePropertyValue);
+				return GetFile(relativityFile.ArtifactTypeId, baseDto.ArtifactId);
 			}
+
+			return null;
 		}
 
 		private static IList MakeGenericList(IEnumerable items, Type type)

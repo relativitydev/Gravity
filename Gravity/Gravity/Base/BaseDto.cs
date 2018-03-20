@@ -30,31 +30,6 @@ namespace Gravity.Base
 			return propertyInfo?.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid ?? new Guid();
 		}
 
-		public static Dictionary<PropertyInfo, RelativityObjectFieldAttribute> GetRelativityObjectFieldListInfos<T>()
-		{
-			return GetPropertyAttributes<T, RelativityObjectFieldAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2);
-		}
-
-
-		public static Dictionary<PropertyInfo, Type> GetRelativityObjectChildrenPropertyInfos<T>()
-		{
-			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2.ChildType);
-		}
-
-		public static Dictionary<PropertyInfo, RelativityMultipleObjectAttribute> GetRelativityMultipleObjectPropertyInfos<T>()
-		{
-			return GetPropertyAttributes<T, RelativityMultipleObjectAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2);
-		}
-
-		public static Dictionary<PropertyInfo, RelativitySingleObjectAttribute> GetRelativitySingleObjectPropertyInfos<T>()
-		{
-			return GetPropertyAttributes<T, RelativitySingleObjectAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2);
-		}
-
 		public static Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> GetRelativityObjectChildrenListInfos<T>()
 		{
 			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
