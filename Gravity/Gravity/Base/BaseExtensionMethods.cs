@@ -87,7 +87,7 @@ namespace Gravity.Base
 	        return fieldAttribute;
 	    }
 
-	    public static TAttribute GetCustomAttibutes<TAttribute>(this object obj) where TAttribute : Attribute
+	    public static TAttribute GetObjectLevelCustomAttribute<TAttribute>(this object obj) where TAttribute : Attribute
 	    {
 	        TAttribute fieldAttribute = obj.GetType().GetCustomAttributes<TAttribute>().FirstOrDefault();
 	        return fieldAttribute;

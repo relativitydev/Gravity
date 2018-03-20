@@ -321,7 +321,7 @@ namespace Gravity.Test.Integration
                 GravityLevelOne testObject = new GravityLevelOne();
                 testObject.Name = "TestObjectRead_" + objectPropertyName + Guid.NewGuid().ToString();
 
-                Guid testObjectTypeGuid = testObject.GetCustomAttibutes<RelativityObjectAttribute>().ObjectTypeGuid;
+                Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
                 Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
                 Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
                 RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
