@@ -2,19 +2,22 @@ FormatTaskName "------- Executing Task: {0} -------"
 Framework "4.6" #.NET framework version
 
 properties {
-    $build_config = "Debug"
+    $build_config = "Release"
     $verbosity = "normal" # q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]
     $build_artifacts = Join-Path $root "Artifacts"
     $test_logs = Join-Path $build_artifacts "TestLogs"
     $build_logs = Join-Path $build_artifacts "BuildLogs"
-    $solution = Join-Path $root "..\Gravity\Gravity.sln" 
+    $solution = Join-Path $root "..\Gravity\Gravity.sln"
+	# MSBUILD VS 2017 - 'C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe'
+	# MSBUILD VS2015 - C:\Program Files (x86)\MSBuild\14.0\Bin\MSBuild.exe
+	$msbuild = "C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\MSBuild.exe"
 }
 
 task default -Depends LocalBuild
 task LocalBuild -Depends Compile, IntegrationTest
 
 task NuGetRestore -Description "Restore NuGet packages for the solution" {
-	Write-Host "msbuild :  $msbuildExe"
+	Write-Host "msbuild :  $msbuild"
     Write-Verbose "Solution :  $solution"
     exec { & $nuget_exe @('restore', $solution) }
 }
@@ -27,12 +30,22 @@ task TestInitialize -Description "Cleanup pre-existing test artifacts, if they e
     InitializeDirectory $test_logs
 }
 
+task Clean -Description "Clean the build artifacts and build tools" {
+	#Uncomment this line if you need to delete the build and test logs
+	#Remove-Item -Force -Recurse $build_artifacts -ErrorAction Ignore
+	exec { & $msbuild @($solution,
+					('/t:Clean'),
+					('/property:Configuration=' + $build_config),
+					('/verbosity:' + $verbosity))
+		}
+}
+
 task Compile -Depends CompileInitialize, NuGetRestore -Description "Compile the solution" {
     Write-Verbose "Configuration: $build_config"
     Write-Verbose "Verbosity: $verbosity"
 
     # https://msdn.microsoft.com/en-us/library/ms164311.aspx
-    exec { msbuild  @($solution,
+    exec { & $msbuild  @($solution,
             ("/property:Configuration=$build_config")
             ("/verbosity:$verbosity"),
             ('/nologo'),

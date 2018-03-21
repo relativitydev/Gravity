@@ -18,7 +18,7 @@ Write-Verbose "BASE_DIR resolves to: $BASE_DIR"
 $NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 
 #VS2015
-#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe"
+#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.3.0/nuget.exe"
 
 Write-Verbose "nuget URL: $NUGET_URL"
 
@@ -55,9 +55,6 @@ if ($LASTEXITCODE -ne 0) {
     Throw "An error occured while restoring NuGet tools."
 }
 
-
-# Build the solution
-
 # Import any modules that you'll need to build
 Import-Module (Join-Path $TOOLS_DIR "psake.4.6.0\tools\psake.psm1") -ErrorAction Stop
 
@@ -67,7 +64,7 @@ Invoke-PSake "defaultBuildTest.ps1" `
     'tools_dir' = $TOOLS_DIR;
     'nuget_exe' = $NUGET_EXE;  
     'nunit_exe' = $NUNIT_EXE;
-    'logger' = $LOGGER 
+    'logger' = $LOGGER
 }`
     -properties @{	'build_config' = $configuration;
     'target_environment' = $targetEnvironment 
