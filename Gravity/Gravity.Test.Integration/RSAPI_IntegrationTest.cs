@@ -216,7 +216,7 @@ namespace Gravity.Test.Integration
         [TestCase("CurrencyField", 5648.54)]
         [Test, Description("Verify Object Long Text Field Created")]
         //need object fields, could get a little more difficult
-        public void Valid_Gravity_Object_Create_Field_Type<T>(string objectPropertyName, T sampleData)
+        public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
         {
             Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
 
@@ -309,7 +309,7 @@ namespace Gravity.Test.Integration
         [TestCase("BoolField", true)]
         [TestCase("DecimalField", 123.45)]
         [TestCase("CurrencyField", 5648.54)]
-        public void Valid_Gravity_Object_Read_Field_Type<T>(string objectPropertyName, T sampleData)
+        public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
         {
             Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
 
