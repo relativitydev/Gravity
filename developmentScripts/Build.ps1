@@ -15,10 +15,10 @@ $BASE_DIR = Resolve-Path .
 Write-Verbose "BASE_DIR resolves to: $BASE_DIR"
 
 #VS 2017
-$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 
 #VS2015
-#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe"
+$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe"
 
 Write-Verbose "nuget URL: $NUGET_URL"
 
@@ -62,7 +62,7 @@ if ($LASTEXITCODE -ne 0) {
 Import-Module (Join-Path $TOOLS_DIR "psake.4.6.0\tools\psake.psm1") -ErrorAction Stop
 
 # Execute the build
-Invoke-PSake "default.ps1" `
+Invoke-PSake "defaultBuildTest.ps1" `
     -parameters @{	'root' = $BASE_DIR;
     'tools_dir' = $TOOLS_DIR;
     'nuget_exe' = $NUGET_EXE;  
