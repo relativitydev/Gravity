@@ -43,7 +43,7 @@ task Compile -Depends CompileInitialize, NuGetRestore -Description "Compile the 
             ("/flp1:warningsonly;LogFile=$build_logs\buildwarnings.log"),
             ("/flp2:errorsonly;LogFile=$build_logs\builderrors.log"),
             ("/logger:StructuredLogger,$logger;$build_logs\structured.buildlog"))
-    } -errorMessage "If Compile fails, check the registry HKEY_LOCAL_MACHINE -> SOFTWARE -->Microsoft --> MSBuild -->ToolsVersion and make sure it is set for Visual Studio 2017. Gravity runs on VS 2017! MSBuildToolsPath(VS2017) should be at C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\"
+    } -errorMessage "If Compile fails, check the registry HKEY_LOCAL_MACHINE -> SOFTWARE -->Microsoft --> MSBuild -->ToolsVersions -- > 14  --> MSBuildToolsPath and make sure it is set to the Visual Studio 2017 executable. Gravity runs on VS 2017! MSBuildToolsPath(VS2017) should be at C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\"
 }
 
 task UnitTest -Alias Test -Depends TestInitialize -Description "Run NUnit unit tests" {
