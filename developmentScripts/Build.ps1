@@ -14,7 +14,12 @@ param(
 $BASE_DIR = Resolve-Path .
 Write-Verbose "BASE_DIR resolves to: $BASE_DIR"
 
+#VS 2017
 $NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+
+#VS2015
+#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe"
+
 Write-Verbose "nuget URL: $NUGET_URL"
 
 $TOOLS_DIR = Join-Path $BASE_DIR "buildtools"
@@ -43,7 +48,7 @@ if (-Not (Test-Path $NUGET_EXE -Verbose:$VerbosePreference)) {
 }
 
 Write-Output "Restoring tools from NuGet..."
-Write-Verbose "Using $TOOLS_PACKAGES_FILE..."
+Write-Output "Using $TOOLS_PACKAGES_FILE..."
 & $NUGET_EXE install $TOOLS_PACKAGES_FILE -o $TOOLS_DIR
 
 if ($LASTEXITCODE -ne 0) {

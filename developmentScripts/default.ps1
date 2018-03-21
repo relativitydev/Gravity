@@ -7,13 +7,14 @@ properties {
     $build_artifacts = Join-Path $root "Artifacts"
     $test_logs = Join-Path $build_artifacts "TestLogs"
     $build_logs = Join-Path $build_artifacts "BuildLogs"
-    $solution = Join-Path $root "..\Gravity\Gravity.sln"  
+    $solution = Join-Path $root "..\Gravity\Gravity.sln" 
 }
 
 task default -Depends LocalBuild
 task LocalBuild -Depends Compile, IntegrationTest
 
 task NuGetRestore -Description "Restore NuGet packages for the solution" {
+	Write-Host "msbuild :  $msbuildExe"
     Write-Verbose "Solution :  $solution"
     exec { & $nuget_exe @('restore', $solution) }
 }
@@ -31,7 +32,7 @@ task Compile -Depends CompileInitialize, NuGetRestore -Description "Compile the 
     Write-Verbose "Verbosity: $verbosity"
 
     # https://msdn.microsoft.com/en-us/library/ms164311.aspx
-    exec { msbuild @($solution,
+    exec { msbuild  @($solution,
             ("/property:Configuration=$build_config")
             ("/verbosity:$verbosity"),
             ('/nologo'),
@@ -42,7 +43,7 @@ task Compile -Depends CompileInitialize, NuGetRestore -Description "Compile the 
             ("/flp1:warningsonly;LogFile=$build_logs\buildwarnings.log"),
             ("/flp2:errorsonly;LogFile=$build_logs\builderrors.log"),
             ("/logger:StructuredLogger,$logger;$build_logs\structured.buildlog"))
-    }
+    } -errorMessage "If Compile fails, check the registry HKEY_LOCAL_MACHINE -> SOFTWARE -->Microsoft --> MSBuild -->ToolsVersion and make sure it is set for Visual Studio 2017. Gravity runs on VS 2017! MSBuildToolsPath(VS2017) should be at C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\MSBuild\15.0\Bin\"
 }
 
 task UnitTest -Alias Test -Depends TestInitialize -Description "Run NUnit unit tests" {
@@ -69,3 +70,4 @@ Function InitializeDirectory($directory) {
     }
     New-Item -ItemType Directory -Force -Path $directory
 }
+
