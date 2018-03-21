@@ -70,4 +70,3 @@ Function InitializeDirectory($directory) {
     }
     New-Item -ItemType Directory -Force -Path $directory
 }
-
