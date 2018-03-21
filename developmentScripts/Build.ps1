@@ -15,10 +15,10 @@ $BASE_DIR = Resolve-Path .
 Write-Verbose "BASE_DIR resolves to: $BASE_DIR"
 
 #VS 2017
-#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
+$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/latest/nuget.exe"
 
 #VS2015
-$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe"
+#$NUGET_URL = "https://dist.nuget.org/win-x86-commandline/v3.4.4/nuget.exe"
 
 Write-Verbose "nuget URL: $NUGET_URL"
 
