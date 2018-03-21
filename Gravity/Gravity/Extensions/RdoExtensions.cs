@@ -91,7 +91,7 @@ namespace Gravity.Extensions
 						case (int)RdoFieldType.SingleChoice:
 							{
 
-								string choiceNameTrimmed = theFieldValue.ValueAsSingleChoice.Name.ChoiceTrim();
+								string choiceNameTrimmed = theFieldValue?.ValueAsSingleChoice?.Name.ChoiceTrim();
 
 								if (choiceNameTrimmed == null)
 									break;
