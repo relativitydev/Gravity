@@ -2,7 +2,7 @@ FormatTaskName "------- Executing Task: {0} -------"
 Framework "4.6" #.NET framework version
 
 properties {
-    $build_config = "Release"
+    $build_config = "Debug"
     $verbosity = "normal" # q[uiet], m[inimal], n[ormal], d[etailed], and diag[nostic]
     $build_artifacts = Join-Path $root "Artifacts"
     $test_logs = Join-Path $build_artifacts "TestLogs"
