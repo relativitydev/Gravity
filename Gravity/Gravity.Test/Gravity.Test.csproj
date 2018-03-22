@@ -68,7 +68,7 @@
     <Compile Include="TestClasses\GravityLevel2Child.cs" />
     <Compile Include="TestClasses\GravityLevelOne.cs" />
     <Compile Include="TestClasses\MultipleChoiceFieldChoices.cs" />
-    <Compile Include="TestClasses\SingleChoiceFiledChoices.cs" />
+    <Compile Include="TestClasses\SingleChoiceFieldChoices.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

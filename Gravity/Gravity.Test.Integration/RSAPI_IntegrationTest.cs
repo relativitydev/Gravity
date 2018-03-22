@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using kCura.Relativity.Client;
 using NUnit.Framework;
 using Relativity.API;
@@ -10,16 +7,14 @@ using Relativity.Test.Helpers;
 using Relativity.Test.Helpers.ServiceFactory.Extentions;
 using Relativity.Test.Helpers.SharedTestHelpers;
 using Relativity.Test.Helpers.WorkspaceHelpers;
-using Gravity.Test;
 using System.Configuration;
-using System.Diagnostics.Eventing.Reader;
 using Gravity.Base;
 using Gravity.Test.TestClasses;
 using kCura.Relativity.Client.DTOs;
+using kCura.Relativity.Client;
 using System.Reflection;
+using Gravity.Extensions;
 using Gravity.Test.Helpers;
-using System.Linq.Expressions;
-using System.Net.NetworkInformation;
 
 namespace Gravity.Test.Integration
 {
@@ -214,7 +209,8 @@ namespace Gravity.Test.Integration
         [TestCase("BoolField", true)]
         [TestCase("DecimalField", 123.45)]
         [TestCase("CurrencyField", 5648.54)]
-        [Test, Description("Verify Object Long Text Field Created")]
+        [TestCase("SingleChoice", SingleChoiceFieldChoices.SingleChoice2)]
+        [Test, Description("Verify RelativityObject field created correctly using Gravity")]
         //need object fields, could get a little more difficult
         public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
         {
@@ -231,6 +227,8 @@ namespace Gravity.Test.Integration
                 Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
                 //can get rid of cast once FieldType is created as RdoFieldType and not int
                 RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+
+                object expectedData = sampleData;
 
                 //need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
                 switch (fieldType)
@@ -280,7 +278,17 @@ namespace Gravity.Test.Integration
                     case RdoFieldType.Decimal:
                         newObjectValue = field.ValueAsDecimal;
                         break;
-
+                    case RdoFieldType.SingleChoice:
+                        int choiceArtifactId = field.ValueAsSingleChoice.ArtifactID;
+                        if (choiceArtifactId > 0)
+                        {
+                            kCura.Relativity.Client.DTOs.Choice choice = _client.Repositories.Choice.ReadSingle(choiceArtifactId);
+                            Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
+                            Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
+                            newObjectValue = choice.Guids.FirstOrDefault(x => x.Equals(singleChoiceGuid));
+                            expectedData = singleChoiceGuid;
+                        }
+                        break;
                 }
 
                 Console.WriteLine("Act Complete....");
@@ -289,7 +297,7 @@ namespace Gravity.Test.Integration
                 Console.WriteLine("Starting Assertion....");
 
                 //Assert
-                Assert.AreEqual(sampleData, newObjectValue);
+                Assert.AreEqual(expectedData, newObjectValue);
 
                 Console.WriteLine("Assertion Complete....");
             }
@@ -309,6 +317,7 @@ namespace Gravity.Test.Integration
         [TestCase("BoolField", true)]
         [TestCase("DecimalField", 123.45)]
         [TestCase("CurrencyField", 5648.54)]
+        [TestCase("SingleChoice", SingleChoiceFieldChoices.SingleChoice2)]
         public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
         {
             Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
@@ -332,7 +341,20 @@ namespace Gravity.Test.Integration
                 int newArtifactId = -1;
                 dto.ArtifactTypeGuids.Add(testObjectTypeGuid);
                 dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
-                dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
+
+                //need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
+                switch (fieldType)
+                {
+                    case RdoFieldType.SingleChoice:
+                        Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
+                        Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
+                        kCura.Relativity.Client.DTOs.Choice singleChoiceToAdd = new kCura.Relativity.Client.DTOs.Choice(singleChoiceGuid);
+                        dto.Fields.Add(new FieldValue(testFieldGuid, singleChoiceToAdd));
+                        break;
+                    default:
+                        dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
+                        break;
+                }
               
                 WriteResultSet<RDO> writeResults = _client.Repositories.RDO.Create(dto);
 
@@ -390,6 +412,5 @@ namespace Gravity.Test.Integration
             }
         }
         #endregion
-
     }
 }
