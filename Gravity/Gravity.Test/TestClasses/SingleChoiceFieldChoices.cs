@@ -1,6 +1,6 @@
 ﻿namespace Gravity.Test.TestClasses
 {
-	public enum SingleChoiceFiledChoices
+	public enum SingleChoiceFieldChoices
 	{
 		[RelativityObject("4F04381D-F3E3-4DEE-8EF9-11F27047D9B4")]
 		SingleChoice1 = 1,

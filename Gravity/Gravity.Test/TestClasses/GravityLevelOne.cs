@@ -48,8 +48,8 @@ namespace Gravity.Test.TestClasses
 		[RelativityObjectField("C3B2943D-C9C2-4C92-A88D-115B3F9ED64D", (int)RdoFieldType.MultipleChoice, typeof(MultipleChoiceFieldChoices))]
 		public IList<MultipleChoiceFieldChoices> MultipleChoiceFieldChoices { get; set; }
 
-		[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", (int)RdoFieldType.SingleChoice, typeof(SingleChoiceFiledChoices))]
-		public SingleChoiceFiledChoices SingleChoiceFiledChoices { get; set; }
+		[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", (int)RdoFieldType.SingleChoice, typeof(SingleChoiceFieldChoices))]
+		public SingleChoiceFieldChoices SingleChoice { get; set; }
 
 		[RelativityObjectField("48404771-DEA2-41AA-8FE6-217E6A04C8DC", (int)RdoFieldType.User, typeof(User))]
 		public User UserField { get; set; }
