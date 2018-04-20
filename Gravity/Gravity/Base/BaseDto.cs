@@ -36,13 +36,6 @@ namespace Gravity.Base
 				.ToDictionary(x => x.Item1, x => x.Item2);
 		}
 
-
-		public static Dictionary<PropertyInfo, Type> GetRelativityObjectChildrenPropertyInfos<T>()
-		{
-			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2.ChildType);
-		}
-
 		public static Dictionary<PropertyInfo, RelativityMultipleObjectAttribute> GetRelativityMultipleObjectPropertyInfos<T>()
 		{
 			return GetPropertyAttributes<T, RelativityMultipleObjectAttribute>()
@@ -55,10 +48,9 @@ namespace Gravity.Base
 				.ToDictionary(x => x.Item1, x => x.Item2);
 		}
 
-		public static Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> GetRelativityObjectChildrenListInfos<T>()
+		public static List<PropertyInfo> GetRelativityObjectChildrenListProperties<T>()
 		{
-			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2);
+			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>().Select(x => x.Item1).ToList();
 		}
 
 		public object GetPropertyValue(string propertyName)

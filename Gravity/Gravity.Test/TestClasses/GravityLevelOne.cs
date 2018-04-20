@@ -57,7 +57,7 @@ namespace Gravity.Test.TestClasses
 		[RelativityObjectField("AB5D53FB-9217-4633-A4F1-EF3536EDC8EC", (int)RdoFieldType.Currency)]
 		public decimal? CurrencyField { get; set; }
 
-		[RelativityObjectChildrenList(typeof(GravityLevel2Child))]
+		[RelativityObjectChildrenList]
 		public IList<GravityLevel2Child> GravityLevel2Childs { get; set; }
 	}
 }

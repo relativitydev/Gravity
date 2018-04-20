@@ -155,17 +155,15 @@ namespace Gravity.DAL.RSAPI
 				propertyInfo.SetValue(baseDto, singleObject);
 			}
 
-			foreach (var childPropertyInfo in BaseDto.GetRelativityObjectChildrenListInfos<T>())
+			foreach (var propertyInfo in BaseDto.GetRelativityObjectChildrenListProperties<T>())
 			{
-				var propertyInfo = childPropertyInfo.Key;
-				var theChildAttribute = childPropertyInfo.Value;
+				var childType = propertyInfo.PropertyType;
 
-				Type childType = childPropertyInfo.Value.ChildType;
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
 
-				var returnList = MakeGenericList(allChildObjects, theChildAttribute.ChildType);
+				var returnList = MakeGenericList(allChildObjects, childType);
 
 				propertyInfo.SetValue(baseDto, returnList);
 			}

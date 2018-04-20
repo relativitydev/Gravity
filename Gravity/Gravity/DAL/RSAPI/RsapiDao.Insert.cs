@@ -81,17 +81,13 @@ namespace Gravity.DAL.RSAPI
         }
 
 
-        private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, KeyValuePair<PropertyInfo, RelativityObjectChildrenListAttribute> childPropertyInfo)
+        private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
         {
-            var propertyInfo = childPropertyInfo.Key;
-            var theChildAttribute = childPropertyInfo.Value;
-
-            Type childType = theChildAttribute.ChildType;
             var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;
 
             if (childObjectsList?.Count != 0)
             {
-				this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
+				this.InvokeGenericMethod(propertyInfo.PropertyType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
             }
         }
 
@@ -113,7 +109,7 @@ namespace Gravity.DAL.RSAPI
 		public void InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)
 			where T : BaseDto, new()
 		{
-			Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
+			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 
 			bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile)));
 
@@ -152,7 +148,7 @@ namespace Gravity.DAL.RSAPI
 
 			InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
 
-			Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
+			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			foreach (var childPropertyInfo in childObjectsInfo)
             {
                 InsertChildListObjectsWithDynamicType(theObjectToInsert, resultArtifactId, childPropertyInfo);
