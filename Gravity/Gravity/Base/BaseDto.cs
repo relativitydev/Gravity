@@ -29,10 +29,9 @@ namespace Gravity.Base
 			return propertyInfo?.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid ?? new Guid();
 		}
 
-		public static Dictionary<PropertyInfo, RelativityObjectChildrenListAttribute> GetRelativityObjectChildrenListInfos<T>()
+		public static List<PropertyInfo> GetRelativityObjectChildrenListProperties<T>()
 		{
-			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>()
-				.ToDictionary(x => x.Item1, x => x.Item2);
+			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>().Select(x => x.Item1).ToList();
 		}
 
 		public object GetPropertyValue(string propertyName)

@@ -159,9 +159,9 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			//child object
-			var childType = property.GetCustomAttribute<RelativityObjectChildrenListAttribute>()?.ChildType;
-			if (childType != null)
+			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
 			{
+				var childType = property.GetType().GetEnumerableInnerType();
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;

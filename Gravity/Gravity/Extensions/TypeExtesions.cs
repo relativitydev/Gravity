@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Gravity.Base;
 
@@ -34,6 +36,15 @@ namespace Gravity.Extensions
 				.MakeGenericMethod(new Type[] { typeArgument });
 
 			return method.Invoke(obj, args);
+		}
+
+		// performance boost option: cache results of these
+		public static Type GetEnumerableInnerType(this Type type)
+		{
+			return 
+				type.GetInterfaces()
+				.First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+				.GetGenericArguments()[0];
 		}
 	}
 }
