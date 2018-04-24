@@ -42,7 +42,7 @@ namespace Gravity.Test.TestClasses
 		[RelativityObjectField("C3336C2C-5A97-4EB1-A3A4-929D79658B8D", (int)RdoFieldType.SingleObject, typeof(GravityLevel2))]
 		public int GravityLevel2ArtifactId { get; set; }
 
-		[RelativitySingleObject("C3336C2C-5A97-4EB1-A3A4-929D79658B8D", typeof(GravityLevel2))]
+		[RelativitySingleObject("C3336C2C-5A97-4EB1-A3A4-929D79658B8D")]
 		public GravityLevel2 GravityLevel2Obj { get; set; }
 
 		[RelativityObjectField("C3B2943D-C9C2-4C92-A88D-115B3F9ED64D", (int)RdoFieldType.MultipleChoice, typeof(MultipleChoiceFieldChoices))]

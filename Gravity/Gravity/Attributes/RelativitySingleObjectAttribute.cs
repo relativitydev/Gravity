@@ -5,11 +5,8 @@ public class RelativitySingleObjectAttribute : Attribute
 {
 	public Guid FieldGuid { get; set; }
 
-	public Type ChildType { get; set; }
-
-	public RelativitySingleObjectAttribute(string fieldGuid,Type childType)
+	public RelativitySingleObjectAttribute(string fieldGuid)
 	{
 		this.FieldGuid = new Guid(fieldGuid);
-		this.ChildType = childType;
 	}
 }

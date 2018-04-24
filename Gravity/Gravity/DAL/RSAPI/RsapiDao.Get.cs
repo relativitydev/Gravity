@@ -151,7 +151,7 @@ namespace Gravity.DAL.RSAPI
 			var singleObjectAttribute = property.GetCustomAttribute<RelativitySingleObjectAttribute>();
 			if (singleObjectAttribute != null)
 			{
-				var objectType = singleObjectAttribute.ChildType;
+				var objectType = property.GetType();
 				int childArtifactId = objectRdo[singleObjectAttribute.FieldGuid].ValueAsSingleObject.ArtifactID;
 				return childArtifactId == 0
 					? Activator.CreateInstance(objectType)
