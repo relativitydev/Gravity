@@ -57,7 +57,7 @@ public class DemoPurchaseOrder : BaseDto
 	[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", (int)RdoFieldType.SingleChoice, typeof(OrderType))]
 	public OrderType OrderType { get; set; }
 
-	[RelativityObjectChildrenList(typeof(RelatedPurchase))]
+	[RelativityObjectChildrenList]
 	public IList<RelatedPurchase> RelatedPurchases { get; set; }
 }
 ```
