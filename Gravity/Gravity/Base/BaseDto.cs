@@ -94,7 +94,7 @@ namespace Gravity.Base
 		{
 			RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
-			if (fieldAttribute == null || fieldAttribute.FieldType == (int)RdoFieldType.File)
+			if (fieldAttribute == null || fieldAttribute.FieldType == RdoFieldType.File)
 			{
 				return false;
 			}
@@ -153,24 +153,24 @@ namespace Gravity.Base
 			return true;
 		}
 
-		private static object ConvertPropertyValue(PropertyInfo property, int fieldType, object propertyValue)
+		private static object ConvertPropertyValue(PropertyInfo property, RdoFieldType fieldType, object propertyValue)
 		{
 			switch (fieldType)
 			{
-				case (int)RdoFieldType.Currency:
-				case (int)RdoFieldType.Date:
-				case (int)RdoFieldType.Decimal:
-				case (int)RdoFieldType.Empty:
-				case (int)RdoFieldType.LongText:
-				case (int)RdoFieldType.WholeNumber:
-				case (int)RdoFieldType.YesNo:
-				case (int)RdoFieldType.User:
+				case RdoFieldType.Currency:
+				case RdoFieldType.Date:
+				case RdoFieldType.Decimal:
+				case RdoFieldType.Empty:
+				case RdoFieldType.LongText:
+				case RdoFieldType.WholeNumber:
+				case RdoFieldType.YesNo:
+				case RdoFieldType.User:
 					{
 						return propertyValue;
 					}
 
 				//truncate fixed-length text
-				case (int)RdoFieldType.FixedLengthText:
+				case RdoFieldType.FixedLengthText:
 					{
 						int stringLength = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length ?? 3000;
 
@@ -183,7 +183,7 @@ namespace Gravity.Base
 						return theString;
 					}
 
-				case (int)RdoFieldType.MultipleChoice:
+				case RdoFieldType.MultipleChoice:
 					{
 						var multiChoiceFieldValueEnumerable = ((IEnumerable)propertyValue)
 							.Cast<Enum>()
@@ -193,13 +193,13 @@ namespace Gravity.Base
 						return new MultiChoiceFieldValueList(multiChoiceFieldValueEnumerable);
 					}
 
-				case (int)RdoFieldType.MultipleObject:
+				case RdoFieldType.MultipleObject:
 					{
 						return new FieldValueList<Artifact>(
 							((IList<int>)propertyValue).Select(x => new Artifact(x)));
 					}
 
-				case (int)RdoFieldType.SingleChoice:
+				case RdoFieldType.SingleChoice:
 					{
 						if (Enum.IsDefined(propertyValue.GetType(), propertyValue))
 						{
@@ -209,23 +209,13 @@ namespace Gravity.Base
 						break;
 					}
 
-				case (int)RdoFieldType.SingleObject:
+				case RdoFieldType.SingleObject:
 					{
 						if ((int)propertyValue > 0)
 						{
 							return new Artifact((int)propertyValue);
 						}
 						break;
-					}
-
-				case SharedConstants.FieldTypeCustomListInt:
-					{
-						return ((IList<int>)propertyValue).ToSeparatedString(SharedConstants.ListIntSeparatorChar);
-					}
-
-				case SharedConstants.FieldTypeByteArray:
-					{
-						return Convert.ToBase64String((byte[])propertyValue);
 					}
 			}
 

@@ -30,19 +30,19 @@ The following example demonstrates a RDO represented as a Model:
 [RelativityObject("0B5C62E0-2AFA-4408-B7FF-789351C9BEDC")]
 public class DemoPurchaseOrder : BaseDto
 {
-	[RelativityObjectField("E1FA93B9-C2DB-442A-9978-84EEB6B61A3F", (int)RdoFieldType.FixedLengthText, 255)]
+	[RelativityObjectField("E1FA93B9-C2DB-442A-9978-84EEB6B61A3F", RdoFieldType.FixedLengthText, 255)]
 	public override string Name { get; set; }
 
-	[RelativityObjectField("37159592-B5B6-4405-AF74-10B5728890B4", (int)RdoFieldType.WholeNumber)]
+	[RelativityObjectField("37159592-B5B6-4405-AF74-10B5728890B4", RdoFieldType.WholeNumber)]
 	public int OrderNumber { get; set; }
 
-	[RelativityObjectField("37159592-B5B6-4405-AF74-10B5728890B4", (int)RdoFieldType.FixedLengthText, 100)]
+	[RelativityObjectField("37159592-B5B6-4405-AF74-10B5728890B4", RdoFieldType.FixedLengthText, 100)]
 	public string CustomerName { get; set; }
 
-	[RelativityObjectField("3BDC0971-A87C-414E-9A37-FC477279BBAD", (int)RdoFieldType.FixedLengthText, 100)]
+	[RelativityObjectField("3BDC0971-A87C-414E-9A37-FC477279BBAD", RdoFieldType.FixedLengthText, 100)]
 	public string CustomerEmail { get; set; }
 
-	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", (int)RdoFieldType.MultipleObject, typeof(Items))]
+	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject, typeof(Items))]
 	public IList<Items> ItemIds { get; set; }
 
 	[RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Items))]
@@ -51,10 +51,10 @@ public class DemoPurchaseOrder : BaseDto
 	[RelativitySingleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Address))]
 	public Address Address { get; set; }
 
-	[RelativityObjectField("4501A308-5E68-4314-AEDC-4DEB527F12A8", (int)RdoFieldType.Decimal)]
+	[RelativityObjectField("4501A308-5E68-4314-AEDC-4DEB527F12A8", RdoFieldType.Decimal)]
 	public decimal Total { get; set; }
 
-	[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", (int)RdoFieldType.SingleChoice, typeof(OrderType))]
+	[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", RdoFieldType.SingleChoice, typeof(OrderType))]
 	public OrderType OrderType { get; set; }
 
 	[RelativityObjectChildrenList(typeof(RelatedPurchase))]
