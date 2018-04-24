@@ -135,7 +135,7 @@ namespace Gravity.DAL.RSAPI
 			var multiObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
 			if (multiObjectAttribute != null)
 			{
-				Type objectType = multiObjectAttribute.ChildType;
+				Type objectType = property.GetType().GetEnumerableInnerType();
 
 				int[] childArtifactIds = objectRdo[multiObjectAttribute.FieldGuid]
 					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()

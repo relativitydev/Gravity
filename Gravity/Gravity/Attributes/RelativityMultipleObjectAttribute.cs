@@ -5,11 +5,8 @@ public class RelativityMultipleObjectAttribute : Attribute
 {
 	public Guid FieldGuid { get; set; }
 
-	public Type ChildType { get; set; }
-
-	public RelativityMultipleObjectAttribute(string fieldGuid,Type childType)
+	public RelativityMultipleObjectAttribute(string fieldGuid)
 	{
 		this.FieldGuid = new Guid(fieldGuid);
-		this.ChildType = childType;
 	}
 }

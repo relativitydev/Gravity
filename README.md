@@ -43,9 +43,9 @@ public class DemoPurchaseOrder : BaseDto
 	public string CustomerEmail { get; set; }
 
 	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", (int)RdoFieldType.MultipleObject, typeof(Items))]
-	public IList<Items> ItemIds { get; set; }
+	public IList<int> ItemIds { get; set; }
 
-	[RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Items))]
+	[RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E")]
 	public List<Items> Items { get; set; }
 
 	[RelativitySingleObject("D0770889-8A4D-436A-9647-33419B96E37E", typeof(Address))]
