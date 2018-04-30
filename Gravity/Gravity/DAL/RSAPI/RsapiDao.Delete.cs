@@ -31,7 +31,7 @@ namespace Gravity.DAL.RSAPI
 
 		internal void DeleteChildObjects<T>(IList<T> parentObjectList, List<int> artifactIds) where T : BaseDto, new()
 		{
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
+			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 
 			foreach (var parentObject in parentObjectList)
 			{
@@ -43,7 +43,7 @@ namespace Gravity.DAL.RSAPI
 
 		public void DeleteRelativityObjectRecusively<T>(T theObjectToDelete) where T : BaseDto, new()
 		{
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
+			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			DeleteChildObjectsInner(theObjectToDelete, childObjectsInfo);
 			DeleteRDO(theObjectToDelete.ArtifactId);
 		}
@@ -54,17 +54,11 @@ namespace Gravity.DAL.RSAPI
 			DeleteRelativityObjectRecusively(theObjectToDelete);
 		}
 
-		private void DeleteChildObjectsInner<T>(
-				T theObjectToDelete, 
-				IEnumerable<KeyValuePair<PropertyInfo, RelativityObjectChildrenListAttribute>> childObjectsInfo) 
+		private void DeleteChildObjectsInner<T>(T theObjectToDelete, IEnumerable<PropertyInfo> childProperties) 
 			where T : BaseDto, new()
 		{
-			foreach (var childPropertyInfo in childObjectsInfo)
+			foreach (var propertyInfo in childProperties)
 			{
-				PropertyInfo propertyInfo = childPropertyInfo.Key;
-				RelativityObjectChildrenListAttribute theChildAttribute = childPropertyInfo.Value;
-
-				Type childType = childPropertyInfo.Value.ChildType;
 
 				var thisChildTypeObj = propertyInfo.GetValue(theObjectToDelete, null) as IList;
 
@@ -74,6 +68,7 @@ namespace Gravity.DAL.RSAPI
 
 				if (thisArtifactIDs.Count != 0)
 				{
+					Type childType = propertyInfo.PropertyType.GetEnumerableInnerType();
 					this.InvokeGenericMethod(childType, nameof(DeleteChildObjects), thisChildTypeObj, thisArtifactIDs);
 				}
 			}
