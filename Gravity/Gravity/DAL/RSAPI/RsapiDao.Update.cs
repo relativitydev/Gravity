@@ -40,7 +40,7 @@ namespace Gravity.DAL.RSAPI
 			if (!objectsToBeUpdated.Any())
 				return;
 
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
+			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 
 			//if do not have child objects in turn, we can take a shortcut
 			//and batch update all the items at once
@@ -74,13 +74,11 @@ namespace Gravity.DAL.RSAPI
 		public void UpdateRelativityObject<T>(BaseDto theObjectToUpdate)
 			where T : BaseDto , new()
 		{
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListInfos<T>();
+			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			UpdateRelativityObject(theObjectToUpdate, childObjectsInfo);
 		}
 
-		private void UpdateRelativityObject(
-			BaseDto theObjectToUpdate, 
-			IEnumerable<KeyValuePair<PropertyInfo, RelativityObjectChildrenListAttribute>> childObjectsInfo)
+		private void UpdateRelativityObject(BaseDto theObjectToUpdate, IEnumerable<PropertyInfo> childObjectsInfo)
 		{
 			//update root object
 			UpdateRdo(theObjectToUpdate.ToRdo());
@@ -91,11 +89,11 @@ namespace Gravity.DAL.RSAPI
 			//loop through each child object property
 			foreach (var childPropertyInfo in childObjectsInfo)
 			{
-				var childObjectsList = childPropertyInfo.Key.GetValue(theObjectToUpdate, null) as IList;
+				var childObjectsList = childPropertyInfo.GetValue(theObjectToUpdate, null) as IList;
 
 				if (childObjectsList != null && childObjectsList.Count > 0)
 				{
-					Type childType = childPropertyInfo.Value.ChildType;
+					Type childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
 					this.InvokeGenericMethod(childType, nameof(UpdateChildListObjects), childObjectsList, theObjectToUpdate.ArtifactId);
 				}
 			}
