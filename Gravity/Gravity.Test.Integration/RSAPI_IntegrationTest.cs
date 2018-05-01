@@ -11,7 +11,6 @@ using System.Configuration;
 using Gravity.Base;
 using Gravity.Test.TestClasses;
 using kCura.Relativity.Client.DTOs;
-using kCura.Relativity.Client;
 using System.Reflection;
 using Gravity.Extensions;
 using Gravity.Test.Helpers;
@@ -226,7 +225,7 @@ namespace Gravity.Test.Integration
 
                 Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
                 //can get rid of cast once FieldType is created as RdoFieldType and not int
-                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+                RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
                 object expectedData = sampleData;
 
@@ -333,7 +332,7 @@ namespace Gravity.Test.Integration
                 Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
                 Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
                 Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
-                RdoFieldType fieldType = (RdoFieldType)testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+                RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
                 _client.APIOptions.WorkspaceID = _workspaceId;
 

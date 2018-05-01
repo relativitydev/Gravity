@@ -31,31 +31,31 @@ namespace Gravity.Extensions
 
 					switch (fieldAttribute.FieldType)
 					{
-						case (int)RdoFieldType.Currency:
+						case RdoFieldType.Currency:
 							newValueObject = theFieldValue.ValueAsCurrency;
 							break;
-						case (int)RdoFieldType.Date:
+						case RdoFieldType.Date:
 							newValueObject = theFieldValue.ValueAsDate;
 							break;
-						case (int)RdoFieldType.Decimal:
+						case RdoFieldType.Decimal:
 							newValueObject = theFieldValue.ValueAsDecimal;
 							break;
-						case (int)RdoFieldType.Empty:
+						case RdoFieldType.Empty:
 							newValueObject = null;
 							break;
-						case (int)RdoFieldType.File:
+						case RdoFieldType.File:
 							if (theFieldValue.Value != null)
 							{
 								newValueObject = new RelativityFile(theFieldValue.ArtifactID);
 							}
 							break;
-						case (int)RdoFieldType.FixedLengthText:
+						case RdoFieldType.FixedLengthText:
 							newValueObject = theFieldValue.ValueAsFixedLengthText;
 							break;
-						case (int)RdoFieldType.LongText:
+						case RdoFieldType.LongText:
 							newValueObject = theFieldValue.ValueAsLongText;
 							break;
-						case (int)RdoFieldType.MultipleChoice:
+						case RdoFieldType.MultipleChoice:
 							{
 								var valueAsMultipleChoice = theFieldValue.ValueAsMultipleChoice;
 								if (valueAsMultipleChoice == null)
@@ -84,11 +84,11 @@ namespace Gravity.Extensions
 								newValueObject = listOfEnumValuesInstance;
 							}
 							break;
-						case (int)RdoFieldType.MultipleObject:
+						case RdoFieldType.MultipleObject:
 							newValueObject = theFieldValue.GetValueAsMultipleObject<Artifact>()
 								.Select(artifact => artifact.ArtifactID).ToList();
 							break;
-						case (int)RdoFieldType.SingleChoice:
+						case RdoFieldType.SingleChoice:
 							{
 
 								string choiceNameTrimmed = theFieldValue?.ValueAsSingleChoice?.Name.ChoiceTrim();
@@ -101,32 +101,23 @@ namespace Gravity.Extensions
 									.FirstOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
 							}
 							break;
-						case (int)RdoFieldType.SingleObject:
+						case RdoFieldType.SingleObject:
 							if (theFieldValue?.ValueAsSingleObject?.ArtifactID > 0)
 							{
 								newValueObject = theFieldValue.ValueAsSingleObject.ArtifactID;
 							}
 							break;
-						case (int)RdoFieldType.User:
+						case RdoFieldType.User:
 							if (theFieldValue.Value != null && property.PropertyType == typeof(User))
 							{
 								newValueObject = theFieldValue.Value as User;
 							}
 							break;
-						case (int)RdoFieldType.WholeNumber:
+						case RdoFieldType.WholeNumber:
 							newValueObject = theFieldValue.ValueAsWholeNumber;
 							break;
-						case (int)RdoFieldType.YesNo:
+						case RdoFieldType.YesNo:
 							newValueObject = theFieldValue.ValueAsYesNo;
-							break;
-						case SharedConstants.FieldTypeCustomListInt:
-							newValueObject = theFieldValue.ValueAsLongText.ToListInt(SharedConstants.ListIntSeparatorChar);
-							break;
-						case SharedConstants.FieldTypeByteArray:
-							if (theFieldValue.ValueAsLongText != null)
-							{
-								newValueObject = Convert.FromBase64String(theFieldValue.ValueAsLongText);
-							}
 							break;
 					}
 
