@@ -31,7 +31,7 @@ namespace Gravity.DAL.RSAPI
 		{
 			foreach (var propertyInfo in objectToInsert.GetType()
                 .GetProperties()
-                .Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == (int)RdoFieldType.File))
+                .Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
 			{
                 RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
                 InsertUpdateFileField(relativityFile, parentId);

@@ -189,13 +189,13 @@ namespace Gravity.DAL.RSAPI
 				return false;
 			}
 
-			if ((fieldAttributeValue.FieldType == (int)RdoFieldType.File)
+			if ((fieldAttributeValue.FieldType == RdoFieldType.File)
 				&& value.GetType().BaseType?.IsAssignableFrom(typeof(RelativityFile)) == true)
 			{
 				rdoValue = value; return true;
 			}
 
-			if ((fieldAttributeValue.FieldType == (int)RdoFieldType.User)
+			if ((fieldAttributeValue.FieldType == RdoFieldType.User)
 				&& (value.GetType() == typeof(User)))
 			{
 				rdoValue = value; return true;

@@ -3,8 +3,6 @@
 	public static class SharedConstants
 	{
 		public static readonly char ListIntSeparatorChar = ',';
-		public const int FieldTypeCustomListInt = -2;
-		public const int FieldTypeByteArray = -3;
 
 		public static decimal KBFactorOfBytes = 1024m;
 		public static decimal MBFactorOfBytes = 1048576m;
