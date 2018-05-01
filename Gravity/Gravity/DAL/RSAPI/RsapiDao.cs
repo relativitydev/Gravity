@@ -1,23 +1,46 @@
 ﻿using System;
+using Gravity.Globals;
 using Gravity.Utils;
 using Relativity.API;
 
 namespace Gravity.DAL.RSAPI
 {
-	public partial class RsapiDao : RsapiDaoBase
+	public partial class RsapiDao
 	{
 		private const int DefaultBatchSize = 1000;
 
-		private readonly int BatchSize;
-	
+		protected InvokeWithRetryService invokeWithRetryService;
+		protected IRsapiProvider rsapiProvider;
+
 		public RsapiDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity,
 				InvokeWithRetrySettings invokeWithRetrySettings = null, 
 				int batchSize = DefaultBatchSize)
-			: base(servicesManager, workspaceId, executionIdentity)
+			: this(servicesManager, workspaceId, executionIdentity, GetInvokeWithRetryService(invokeWithRetrySettings), batchSize)
 
 		{
-			this.BatchSize = batchSize;
 		}
 
-    }
+		private RsapiDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity,
+				InvokeWithRetryService invokeWithRetryService,
+				int batchSize = DefaultBatchSize)
+			: this(new RsapiProvider(servicesManager, executionIdentity, invokeWithRetryService, workspaceId, batchSize))
+		{
+			this.invokeWithRetryService = invokeWithRetryService;
+		}
+
+		public RsapiDao(IRsapiProvider rsapiProvider)
+		{
+			this.rsapiProvider = rsapiProvider;
+		}
+
+		private static InvokeWithRetryService GetInvokeWithRetryService(InvokeWithRetrySettings invokeWithRetrySettings)
+		{
+			if (invokeWithRetrySettings == null)
+			{
+				invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts, SharedConstants.sleepTimeInMiliseconds);
+			}
+
+			return new InvokeWithRetryService(invokeWithRetrySettings);
+		}
+	}
 }

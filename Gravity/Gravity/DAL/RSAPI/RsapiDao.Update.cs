@@ -15,12 +15,12 @@ namespace Gravity.DAL.RSAPI
 		#region UPDATE Protected Stuff
 		protected void UpdateRdos(params RDO[] rdos)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Update(rdos)).GetResultData();
+			rsapiProvider.Update(rdos).GetResultData();
 		}
 
 		protected void UpdateRdo(RDO theRdo)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.UpdateSingle(theRdo));
+			rsapiProvider.UpdateSingle(theRdo);
 		}
 
 		//inserts *child* lists of a parent artifact ID (not associated artifacts)
