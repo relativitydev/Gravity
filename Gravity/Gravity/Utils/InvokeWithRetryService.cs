@@ -24,8 +24,8 @@ namespace Gravity.Utils
 					result = f();
 					break;
 				}
-				catch (Exception ex)
-				{
+				catch
+				{ 
 					if (retryCount == settings.RetryAttempts)
 					{
 						throw;
@@ -49,7 +49,7 @@ namespace Gravity.Utils
 					action();
 					break;
 				}
-				catch (Exception ex)
+				catch
 				{
 					if (retryCount == settings.RetryAttempts)
 					{

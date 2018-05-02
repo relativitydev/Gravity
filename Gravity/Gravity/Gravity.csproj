@@ -51,7 +51,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\IncludeAllPropertiesInMappingAttribute.cs" />
     <Compile Include="Attributes\RelativitySingleObjectAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectAttribute.cs" />
     <Compile Include="Attributes\RelativityMultipleObjectAttribute.cs" />
@@ -59,19 +58,15 @@
     <Compile Include="Attributes\RelativityObjectFieldAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
     <Compile Include="Base\RelativityFile.cs" />
-    <Compile Include="Base\AppConfigConnectionHelper.cs" />
     <Compile Include="DAL\RSAPI\RsapiDocumentDao.cs" />
     <Compile Include="DAL\RSAPI\RsapiDaoBase.cs" />
-    <Compile Include="Extensions\BaseDtoExtensions.cs" />
     <Compile Include="Extensions\CollectionsExtensions.cs" />
     <Compile Include="Extensions\ResultSetExtensions.cs" />
     <Compile Include="Extensions\EnumHelpers.cs" />
-    <Compile Include="Globals\SQLConstants.cs" />
     <Compile Include="Utils\InvokeWithRetrySettings.cs" />
     <Compile Include="Utils\InvokeWithRetryService.cs" />
     <Compile Include="Base\BaseDto.cs" />
     <Compile Include="Base\BaseExtensionMethods.cs" />
-    <Compile Include="Base\BaseMasterDto.cs" />
     <Compile Include="Base\ObjectFieldsDepthLevel.cs" />
     <Compile Include="Base\RdoFieldType.cs" />
     <Compile Include="DAL\RSAPI\RsapiDao.cs" />
@@ -79,9 +74,7 @@
     <Compile Include="DAL\RSAPI\RsapiDao.Get.cs" />
     <Compile Include="DAL\RSAPI\RsapiDao.Insert.cs" />
     <Compile Include="DAL\RSAPI\RsapiDao.Update.cs" />
-    <Compile Include="Extensions\IntExtensions.cs" />
     <Compile Include="Extensions\RdoExtensions.cs" />
-    <Compile Include="Extensions\StringExtensions.cs" />
     <Compile Include="Extensions\TypeExtesions.cs" />
     <Compile Include="Globals\SharedConstants.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -21,14 +21,6 @@ namespace Gravity.Base
 			return attribute.ObjectTypeGuid;
 		}
 
-		public static Guid GetParentArtifactIdFieldGuid<T>()
-		{
-			var propertyInfo = GetPropertyAttributes<T, RelativityObjectFieldParentArtifactIdAttribute>()
-				.FirstOrDefault()?
-				.Item1;
-			return propertyInfo?.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid ?? new Guid();
-		}
-
 		public static List<PropertyInfo> GetRelativityObjectChildrenListProperties<T>()
 		{
 			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>().Select(x => x.Item1).ToList();
@@ -222,17 +214,6 @@ namespace Gravity.Base
 		}
 
 		#endregion
-
-		public T DeepClone<T>()
-		{
-			using (MemoryStream stream = new MemoryStream())
-			{
-				BinaryFormatter formatter = new BinaryFormatter();
-				formatter.Serialize(stream, this);
-				stream.Position = 0;
-				return (T)formatter.Deserialize(stream);
-			}
-		}
 
 		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<T, A>() where A : Attribute
 			=> GetPropertyAttributes<A>(typeof(T));
