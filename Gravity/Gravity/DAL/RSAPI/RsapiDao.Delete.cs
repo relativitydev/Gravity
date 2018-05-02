@@ -14,17 +14,17 @@ namespace Gravity.DAL.RSAPI
 		#region RDO DELETE Protected stuff
 		protected void DeleteRDO(int artifactId)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.DeleteSingle(artifactId));
+			rsapiProvider.DeleteSingle(artifactId);
 		}
 
 		protected void DeleteRDO(Guid artifactGuid)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.DeleteSingle(artifactGuid));
+			rsapiProvider.DeleteSingle(artifactGuid);
 		}
 
 		protected void DeleteRDOs(List<int> artifactIds)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Delete(artifactIds))
+			rsapiProvider.Delete(artifactIds)
 				.GetResultData(); //ensure no exceptions
 		}
 		#endregion

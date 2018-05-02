@@ -17,7 +17,7 @@ namespace Gravity.DAL.RSAPI
 		#region RDO INSERT Protected Stuff
 		protected int InsertRdo(RDO newRdo)
 		{
-			var resultArtifactId = InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.CreateSingle(newRdo));
+			var resultArtifactId = rsapiProvider.CreateSingle(newRdo);
 
 			if (resultArtifactId <= 0)
 			{
@@ -47,8 +47,8 @@ namespace Gravity.DAL.RSAPI
 
             if (relativityFile.FileValue.Path != null)
             {
-                UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
-            }
+                rsapiProvider.UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
+			}
             else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
             {
                 string fileName = Path.GetTempPath() + relativityFile.FileMetadata.FileName;
@@ -56,30 +56,15 @@ namespace Gravity.DAL.RSAPI
 
                 try
                 {
-                    UploadFile(relativityFile, parentId, fileName);
-                }
+                    rsapiProvider.UploadFile(relativityFile, parentId, fileName);
+				}
                 finally
                 {
                     invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(fileName));
                 }
                 
             }
-        }
-
-        private void UploadFile(RelativityFile relativityFile, int parentId, string fileName)
-        {
-            using (IRSAPIClient proxyToWorkspace = CreateProxy())
-            {
-                var uploadRequest = new UploadRequest(proxyToWorkspace.APIOptions);
-                uploadRequest.Metadata.FileName = fileName;
-                uploadRequest.Metadata.FileSize = new FileInfo(uploadRequest.Metadata.FileName).Length;
-                uploadRequest.Overwrite = true;
-                uploadRequest.Target.FieldId = relativityFile.ArtifactTypeId;
-                uploadRequest.Target.ObjectArtifactId = parentId;
-                InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Upload(uploadRequest));
-            }
-        }
-
+        }        
 
         private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
         {
@@ -138,7 +123,7 @@ namespace Gravity.DAL.RSAPI
 
 				var rdosToBeInserted = objectsToInserted.Select(x => x.ToRdo()).ToArray();
 
-				InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Create(rdosToBeInserted));
+				rsapiProvider.Create(rdosToBeInserted);
 			}			
 		}
 
