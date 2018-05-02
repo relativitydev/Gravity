@@ -96,23 +96,19 @@ namespace Gravity.DAL.RSAPI
 		/// <returns>An enumerable that yields each batch result set</returns>
 		public IEnumerable<QueryResultSet<RDO>> Query(Query<RDO> query)
 		{
-			using (var proxyToWorkspace = CreateProxy())
+			var initialResultSet = InvokeRepositoryWithRetry(x => x.Query(query));
+			yield return initialResultSet;
+
+			string queryToken = initialResultSet.QueryToken;
+
+			// Iterate though all remaining pages 
+			var totalCount = initialResultSet.TotalCount;
+			int currentPosition = batchSize + 1;
+
+			while (currentPosition <= totalCount)
 			{
-				var initialResultSet = InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Repositories.RDO.Query(query));
-				yield return initialResultSet;
-
-				string queryToken = initialResultSet.QueryToken;
-
-				// Iterate though all remaining pages 
-				var totalCount = initialResultSet.TotalCount;
-				int currentPosition = batchSize + 1;
-
-				while (currentPosition <= totalCount)
-				{
-					yield return InvokeProxyWithRetry(proxyToWorkspace,
-						proxy => proxy.Repositories.RDO.QuerySubset(queryToken, currentPosition, batchSize));
-					currentPosition += batchSize;
-				}
+				yield return InvokeRepositoryWithRetry(x => x.QuerySubset(queryToken, currentPosition, batchSize));
+				currentPosition += batchSize;
 			}
 		}
 
