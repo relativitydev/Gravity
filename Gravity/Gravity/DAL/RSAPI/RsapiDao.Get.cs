@@ -122,7 +122,7 @@ namespace Gravity.DAL.RSAPI
 			var multiObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
 			if (multiObjectAttribute != null)
 			{
-				Type objectType = property.GetType().GetEnumerableInnerType();
+				Type objectType = property.PropertyType.GetEnumerableInnerType();
 
 				int[] childArtifactIds = objectRdo[multiObjectAttribute.FieldGuid]
 					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
@@ -138,7 +138,7 @@ namespace Gravity.DAL.RSAPI
 			var singleObjectAttribute = property.GetCustomAttribute<RelativitySingleObjectAttribute>();
 			if (singleObjectAttribute != null)
 			{
-				var objectType = property.GetType();
+				var objectType = property.PropertyType;
 				int childArtifactId = objectRdo[singleObjectAttribute.FieldGuid].ValueAsSingleObject.ArtifactID;
 				return childArtifactId == 0
 					? Activator.CreateInstance(objectType)
@@ -148,7 +148,7 @@ namespace Gravity.DAL.RSAPI
 			//child object
 			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
 			{
-				var childType = property.GetType().GetEnumerableInnerType();
+				var childType = property.PropertyType.GetEnumerableInnerType();
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
