@@ -82,12 +82,15 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Gravity\Gravity\Gravity.Test\Gravity.Test.csproj">
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Gravity.Test\Gravity.Test.csproj">
       <Project>{5a30bd81-511e-40d3-ba48-08399ae61a7b}</Project>
       <Name>Gravity.Test</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Gravity\Gravity\Gravity\Gravity.csproj">
-      <Project>{CFA21C47-85E1-47B9-A824-7CD3989C9998}</Project>
+    <ProjectReference Include="..\Gravity\Gravity.csproj">
+      <Project>{cfa21c47-85e1-47b9-a824-7cd3989c9998}</Project>
       <Name>Gravity</Name>
     </ProjectReference>
   </ItemGroup>
