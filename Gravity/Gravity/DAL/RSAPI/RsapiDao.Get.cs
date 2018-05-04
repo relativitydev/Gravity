@@ -17,13 +17,12 @@ namespace Gravity.DAL.RSAPI
 		#region RDO GET Protected stuff		
 		protected RDO GetRdo(int artifactId)
 		{
-			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.ReadSingle(artifactId));
+			return rsapiProvider.ReadSingle(artifactId);
 		}
 
 		protected List<RDO> GetRdos(int[] artifactIds)
 		{
-			return InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Read(artifactIds))
-				.GetResultData();
+			return rsapiProvider.Read(artifactIds).GetResultData();
 		}
 
 		protected IEnumerable<RDO> GetRdos<T>(Condition queryCondition = null)
@@ -36,31 +35,19 @@ namespace Gravity.DAL.RSAPI
 				Fields = FieldValue.AllFields
 			};
 
-			return QueryWithPaging(query).SelectMany(x => x.GetResultData());
+			return rsapiProvider.Query(query).SelectMany(x => x.GetResultData());
 		}
 
 		protected RelativityFile GetFile(int fileFieldArtifactId, int ourFileContainerInstanceArtifactId)
 		{
-			using (IRSAPIClient proxyToWorkspace = CreateProxy())
+			var fileData = rsapiProvider.DownloadFile(fileFieldArtifactId, ourFileContainerInstanceArtifactId);
+
+			using (MemoryStream ms = (MemoryStream)fileData.Value)
 			{
-				var fileRequest = new FileRequest(proxyToWorkspace.APIOptions)
-				{
-					Target =
-					{
-						FieldId = fileFieldArtifactId,
-						ObjectArtifactId = ourFileContainerInstanceArtifactId
-					}
-				};
+				FileValue fileValue = new FileValue(null, ms.ToArray());
+				FileMetadata fileMetadata = fileData.Key.Metadata;
 
-				var fileData = InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Download(fileRequest));
-
-				using (MemoryStream ms = (MemoryStream)fileData.Value)
-				{
-					FileValue fileValue = new FileValue(null, ms.ToArray());
-					FileMetadata fileMetadata = fileData.Key.Metadata;
-
-					return new RelativityFile(fileFieldArtifactId, fileValue, fileMetadata);
-				}
+				return new RelativityFile(fileFieldArtifactId, fileValue, fileMetadata);
 			}
 		}
 
@@ -135,7 +122,7 @@ namespace Gravity.DAL.RSAPI
 			var multiObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
 			if (multiObjectAttribute != null)
 			{
-				Type objectType = property.GetType().GetEnumerableInnerType();
+				Type objectType = property.PropertyType.GetEnumerableInnerType();
 
 				int[] childArtifactIds = objectRdo[multiObjectAttribute.FieldGuid]
 					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
@@ -151,7 +138,7 @@ namespace Gravity.DAL.RSAPI
 			var singleObjectAttribute = property.GetCustomAttribute<RelativitySingleObjectAttribute>();
 			if (singleObjectAttribute != null)
 			{
-				var objectType = property.GetType();
+				var objectType = property.PropertyType;
 				int childArtifactId = objectRdo[singleObjectAttribute.FieldGuid].ValueAsSingleObject.ArtifactID;
 				return childArtifactId == 0
 					? Activator.CreateInstance(objectType)
@@ -161,7 +148,7 @@ namespace Gravity.DAL.RSAPI
 			//child object
 			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
 			{
-				var childType = property.GetType().GetEnumerableInnerType();
+				var childType = property.PropertyType.GetEnumerableInnerType();
 				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
@@ -184,33 +171,6 @@ namespace Gravity.DAL.RSAPI
 			var listType = typeof(List<>).MakeGenericType(type);
 			IList returnList = (IList)Activator.CreateInstance(listType, items);
 			return returnList;
-		}
-
-		/// <summary>
-		/// Runs an RSAPI Query in pages.
-		/// </summary>
-		/// <param name="query">The query.</param>
-		/// <returns>An enumerable that yields each batch result set</returns>
-		private IEnumerable<QueryResultSet<RDO>> QueryWithPaging(Query<RDO> query)
-		{
-			using (var proxyToWorkspace = CreateProxy())
-			{ 
-				var initialResultSet = InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Repositories.RDO.Query(query));
-				yield return initialResultSet;
-
-				string queryToken = initialResultSet.QueryToken;
-
-				// Iterate though all remaining pages 
-				var totalCount = initialResultSet.TotalCount;
-				int currentPosition = BatchSize + 1;
-
-				while (currentPosition <= totalCount)
-				{
-					yield return InvokeProxyWithRetry(proxyToWorkspace, 
-						proxy => proxy.Repositories.RDO.QuerySubset(queryToken, currentPosition, BatchSize));
-					currentPosition += BatchSize;
-				}
-			}
 		}
 	}
 }

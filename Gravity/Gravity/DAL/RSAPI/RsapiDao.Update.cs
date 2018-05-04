@@ -15,12 +15,12 @@ namespace Gravity.DAL.RSAPI
 		#region UPDATE Protected Stuff
 		protected void UpdateRdos(params RDO[] rdos)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.Update(rdos)).GetResultData();
+			rsapiProvider.Update(rdos).GetResultData();
 		}
 
 		protected void UpdateRdo(RDO theRdo)
 		{
-			InvokeProxyWithRetry(proxyToWorkspace => proxyToWorkspace.Repositories.RDO.UpdateSingle(theRdo));
+			rsapiProvider.UpdateSingle(theRdo);
 		}
 
 		//inserts *child* lists of a parent artifact ID (not associated artifacts)
@@ -189,13 +189,13 @@ namespace Gravity.DAL.RSAPI
 				return false;
 			}
 
-			if ((fieldAttributeValue.FieldType == (int)RdoFieldType.File)
+			if ((fieldAttributeValue.FieldType == RdoFieldType.File)
 				&& value.GetType().BaseType?.IsAssignableFrom(typeof(RelativityFile)) == true)
 			{
 				rdoValue = value; return true;
 			}
 
-			if ((fieldAttributeValue.FieldType == (int)RdoFieldType.User)
+			if ((fieldAttributeValue.FieldType == RdoFieldType.User)
 				&& (value.GetType() == typeof(User)))
 			{
 				rdoValue = value; return true;

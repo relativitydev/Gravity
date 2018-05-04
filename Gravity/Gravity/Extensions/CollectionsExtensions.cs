@@ -23,22 +23,5 @@ namespace Gravity.Extensions
 
 			return myList[0].GetType();
 		}
-
-		public static bool IsSameAs<T>(this IEnumerable<T> listA, IEnumerable<T> listB)
-		{
-			if (listA == null)
-			{
-				listA = new List<T>();
-			}
-
-			if (listB == null)
-			{
-				listB = new List<T>();
-			}
-
-			return listA.Except(listB).Any() == false
-				&& listB.Except(listA).Any() == false
-				&& listA.Count() == listB.Count();
-		}
 	}
 }

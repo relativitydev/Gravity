@@ -6,7 +6,7 @@ using Gravity.Base;
 
 namespace Gravity.Extensions
 {
-	public static class TypeExtesions
+	public static class TypeExtensions
 	{
 		public static Guid GetRelativityObjectGuidForParentField(this Type type)
 		{

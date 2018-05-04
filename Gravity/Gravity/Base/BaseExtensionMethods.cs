@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using Gravity.Attributes;
 
 namespace Gravity.Base
 {
@@ -20,32 +19,6 @@ namespace Gravity.Base
 			return (new Type[] { type })
 				   .Concat(type.GetInterfaces())
 				   .SelectMany(i => i.GetProperties());
-		}
-
-		// Get all classes and interfaces that this type implements
-		// And take the ones that have IncludeAllPropertiesInBaseObjectComparsionAttribute
-		// Then return all the public properties for those classes and interfaces
-		public static IEnumerable<PropertyInfo> GetAllPropertiesForMapping(this Type type)
-		{
-			List<PropertyInfo> allPropertiesForMapping = new List<PropertyInfo>();
-
-			List<Type> allImplementedInterfacesIncludingSelf = new List<Type>();
-			allImplementedInterfacesIncludingSelf.AddRange(type.GetInterfaces());
-
-			if (type.IsInterface == true)
-			{
-				allImplementedInterfacesIncludingSelf.Add(type);
-			}
-
-			foreach (Type theInterfaceThaContainsPropertiesForMapping in allImplementedInterfacesIncludingSelf)
-			{
-				if (theInterfaceThaContainsPropertiesForMapping.GetCustomAttribute<IncludeAllPropertiesInMappingAttribute>(true) != null)
-				{
-					allPropertiesForMapping.AddRange(theInterfaceThaContainsPropertiesForMapping.GetProperties());
-				}
-			}
-
-			return allPropertiesForMapping;
 		}
 
 		public static Expected GetAttributeValue<T, Expected>(this Enum enumeration, Func<T, Expected> expression)
