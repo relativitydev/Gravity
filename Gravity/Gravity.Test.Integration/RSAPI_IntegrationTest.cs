@@ -203,7 +203,7 @@ namespace Gravity.Test.Integration
         }
 
         [Test, Description("Verify RelativityObject field created correctly using Gravity"),
-         TestCaseSource(typeof(TestCaseDefenition), "SimpleFieldReadWriteTestCases")]
+         TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
         //need object fields, could get a little more difficult
         public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
         {
@@ -305,7 +305,7 @@ namespace Gravity.Test.Integration
         }
 
         [Test, Description("Verify RelativityObject field read correctly using Gravity"),
-         TestCaseSource(typeof(TestCaseDefenition), "SimpleFieldReadWriteTestCases")]
+         TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
         public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
         {
             Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
