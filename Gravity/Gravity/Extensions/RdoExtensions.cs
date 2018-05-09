@@ -14,7 +14,6 @@ namespace Gravity.Extensions
 		private static string ChoiceTrim(this string str)
 			=> new[] { " ", "-", "(", ")" }.Aggregate(str, (s, c) => s.Replace(c, ""));
 
-		// TODO: Scope a US to replace the usage of kCura.Relativity.Client.FieldType with our own enum for only our usages
 		public static T ToHydratedDto<T>(this RDO rdo)
 			where T : BaseDto, new()
 		{
