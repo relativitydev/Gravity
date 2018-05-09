@@ -97,7 +97,7 @@ namespace Gravity.Extensions
 
 								newValueObject = Enum.GetValues(fieldAttribute.ObjectFieldDTOType)
 									.Cast<object>()
-									.FirstOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
+									.SingleOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
 							}
 							break;
 						case RdoFieldType.SingleObject:

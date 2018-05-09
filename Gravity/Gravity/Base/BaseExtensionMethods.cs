@@ -54,14 +54,14 @@ namespace Gravity.Base
 		public static TAttribute GetCustomAttribute<TAttribute>(this BaseDto obj, string propertyName) where TAttribute : Attribute
 		{
 			TAttribute fieldAttribute = obj.GetType().GetPublicProperties()
-	            .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+	            .SingleOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
 	            .GetCustomAttribute<TAttribute>();
 	        return fieldAttribute;
 	    }
 
 		public static TAttribute GetObjectLevelCustomAttribute<TAttribute>(this BaseDto obj) where TAttribute : Attribute
 		{
-			TAttribute fieldAttribute = obj.GetType().GetCustomAttributes<TAttribute>().FirstOrDefault();
+			TAttribute fieldAttribute = obj.GetType().GetCustomAttribute<TAttribute>();
 	        return fieldAttribute;
 	    }
        
