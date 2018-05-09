@@ -25,7 +25,7 @@ namespace Gravity.Extensions
 		{
 			return propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid
 				?? propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid
-				?? propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid
+				?? propertyInfo.GetCustomAttribute<RelativitySingleObjectAttribute>()?.FieldGuid
 				?? new Guid();
 		}
 
