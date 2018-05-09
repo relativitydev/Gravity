@@ -74,6 +74,7 @@
   <ItemGroup>
     <Compile Include="RSAPI_IntegrationTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestCaseDefenition.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
