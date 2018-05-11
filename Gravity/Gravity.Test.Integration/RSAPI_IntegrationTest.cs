@@ -278,7 +278,7 @@ namespace Gravity.Test.Integration
                             kCura.Relativity.Client.DTOs.Choice choice = _client.Repositories.Choice.ReadSingle(choiceArtifactId);
                             Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
                             Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
-                            newObjectValue = choice.Guids.FirstOrDefault(x => x.Equals(singleChoiceGuid));
+                            newObjectValue = choice.Guids.SingleOrDefault(x => x.Equals(singleChoiceGuid));
                             expectedData = singleChoiceGuid;
                         }
                         break;
