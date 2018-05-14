@@ -31,7 +31,10 @@ namespace Gravity.Extensions
 
 					switch (fieldAttribute.FieldType)
 					{
-						case RdoFieldType.Currency:
+					    case RdoFieldType.SingleObject:
+                        case RdoFieldType.MultipleObject:
+					        break;
+                        case RdoFieldType.Currency:
 							newValueObject = theFieldValue.ValueAsCurrency;
 							break;
 						case RdoFieldType.Date:
@@ -84,10 +87,6 @@ namespace Gravity.Extensions
 								newValueObject = listOfEnumValuesInstance;
 							}
 							break;
-						case RdoFieldType.MultipleObject:
-							newValueObject = theFieldValue.GetValueAsMultipleObject<Artifact>()
-								.Select(artifact => artifact.ArtifactID).ToList();
-							break;
 						case RdoFieldType.SingleChoice:
 							{
 
@@ -99,12 +98,6 @@ namespace Gravity.Extensions
 								newValueObject = Enum.GetValues(fieldAttribute.ObjectFieldDTOType)
 									.Cast<object>()
 									.FirstOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
-							}
-							break;
-						case RdoFieldType.SingleObject:
-							if (theFieldValue?.ValueAsSingleObject?.ArtifactID > 0)
-							{
-								newValueObject = theFieldValue.ValueAsSingleObject.ArtifactID;
 							}
 							break;
 						case RdoFieldType.User:

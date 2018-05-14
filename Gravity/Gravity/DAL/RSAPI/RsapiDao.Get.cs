@@ -3,9 +3,11 @@ using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Gravity.Base;
 using Gravity.Exceptions;
 using Gravity.Extensions;
@@ -74,7 +76,7 @@ namespace Gravity.DAL.RSAPI
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
 		}
 
-		public T GetRelativityObject<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
+        public T GetRelativityObject<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			RDO objectRdo = GetRdo(artifactID);
@@ -86,8 +88,63 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			T dto = objectRdo.ToHydratedDto<T>();
+            
+		    IEnumerable<PropertyInfo> singleObjectFields = typeof(T).GetPublicProperties().Where(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>() != null && x.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldType == RdoFieldType.SingleObject);
 
-			switch (depthLevel)
+            foreach (PropertyInfo property in singleObjectFields)
+            {
+                RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
+                object newValueObject = null;
+                object newObject = null;
+
+                if (fieldAttribute != null)
+                {
+                    FieldValue theFieldValue = objectRdo[fieldAttribute.FieldGuid];
+                    if (theFieldValue != null)
+                    {
+                        switch (fieldAttribute.FieldType)
+                        {
+                            case RdoFieldType.SingleObject:
+                                MethodInfo method = this.GetType().GetMethod("GetRelativityObject")
+                                    .MakeGenericMethod(new Type[]
+                                    {
+                                        property.GetCustomAttribute<RelativityObjectFieldAttribute>().ObjectFieldDTOType
+                                    });
+
+                                switch (depthLevel)
+                                {
+                                    case ObjectFieldsDepthLevel.OnlyParentObject:
+                                        //create new instance and only get artifact ID
+                                        newObject = Activator.CreateInstance(property
+                                            .GetCustomAttribute<RelativityObjectFieldAttribute>().ObjectFieldDTOType);
+                                        (newObject as BaseDto).ArtifactId =
+                                            theFieldValue.ValueAsSingleObject.ArtifactID;
+                                        break;
+                                    case ObjectFieldsDepthLevel.FirstLevelOnly:
+                                        newObject = method.Invoke(this,
+                                            new object[]
+                                            {
+                                                theFieldValue.ValueAsSingleObject.ArtifactID,
+                                                ObjectFieldsDepthLevel.OnlyParentObject
+                                            });
+                                        break;
+                                    case ObjectFieldsDepthLevel.FullyRecursive:
+                                        newObject = method.Invoke(this,
+                                            new object[] {theFieldValue.ValueAsSingleObject.ArtifactID, depthLevel});
+                                        break;
+                                    default:
+                                        throw new ArgumentOutOfRangeException(nameof(depthLevel));
+                                }
+                                property.SetValue(dto, newObject);
+                                break;
+                        }
+                    }
+                }
+            }
+
+
+
+            switch (depthLevel)
 			{
 				case ObjectFieldsDepthLevel.OnlyParentObject:
 					break;

@@ -70,7 +70,7 @@ namespace Gravity.DAL.RSAPI
         {
 			var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;
 
-            if (childObjectsList?.Count != 0)
+            if (childObjectsList != null && childObjectsList?.Count != 0)
             {
 				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
 				this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
