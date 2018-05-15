@@ -14,7 +14,7 @@ namespace Gravity.Base
 	[Serializable]
 	public abstract class BaseDto
 	{
-        public static Guid GetObjectTypeGuid<T>()
+		public static Guid GetObjectTypeGuid<T>()
 			where T : BaseDto
 		{
 			RelativityObjectAttribute attribute = typeof(T).GetCustomAttribute<RelativityObjectAttribute>(false);
@@ -31,7 +31,7 @@ namespace Gravity.Base
 			return this.GetType().GetProperty(propertyName).GetValue(this, null);
 		}
 
-        public PropertyInfo GetParentArtifactIdProperty()
+		public PropertyInfo GetParentArtifactIdProperty()
 		{
 			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())
 				.FirstOrDefault()?
