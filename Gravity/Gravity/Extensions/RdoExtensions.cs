@@ -31,10 +31,10 @@ namespace Gravity.Extensions
 
 					switch (fieldAttribute.FieldType)
 					{
-		                case RdoFieldType.SingleObject:
-                        case RdoFieldType.MultipleObject:
-					        break;
-                        case RdoFieldType.Currency:
+										case RdoFieldType.SingleObject:
+												case RdoFieldType.MultipleObject:
+									break;
+												case RdoFieldType.Currency:
 							newValueObject = theFieldValue.ValueAsCurrency;
 							break;
 						case RdoFieldType.Date:

@@ -137,10 +137,10 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			//single object
-		    var fieldType = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType;
-            var fieldGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+				var fieldType = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType;
+						var fieldGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
 
-            if (fieldType == RdoFieldType.SingleObject && fieldGuid != null)
+						if (fieldType == RdoFieldType.SingleObject && fieldGuid != null)
 			{
 				var objectType = property.PropertyType;
 				int childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
