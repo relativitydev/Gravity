@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace Gravity.Test.Integration
 {
-    public static class TestCaseDefenition
+    public static class TestCaseDefinition
     {
         public static IEnumerable<TestCaseData> SimpleFieldReadWriteTestCases
         {

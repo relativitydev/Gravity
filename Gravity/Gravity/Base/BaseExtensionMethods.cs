@@ -28,8 +28,7 @@ namespace Gravity.Base
 			  enumeration
 				.GetType()
 				.GetMember(enumeration.ToString())
-				.Where(member => member.MemberType == MemberTypes.Field)
-				.FirstOrDefault()
+				.FirstOrDefault(member => member.MemberType == MemberTypes.Field)
 				.GetCustomAttributes(typeof(T), false)
 				.Cast<T>()
 				.SingleOrDefault();
@@ -45,24 +44,24 @@ namespace Gravity.Base
 			return enumeration.GetAttributeValue<DescriptionAttribute, String>(x => x.Description); 
 		}
 
-		public static string GetPropertyName<T, TReturn>(this T obj, Expression<Func<T, TReturn>> expression)
+		public static string GetPropertyName<T>(Expression<Func<T, object>> expression)
 			where T : class
 		{
 			MemberExpression body = (MemberExpression)expression.Body;
 			return body.Member.Name;
 		}
 
-	    public static TAttribute GetCustomAttribute<TAttribute>(this object obj, string propertyName) where TAttribute : Attribute
-	    {
-	        TAttribute fieldAttribute = obj.GetType().GetPublicProperties()
-	            .FirstOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+		public static TAttribute GetCustomAttribute<TAttribute>(this BaseDto obj, string propertyName) where TAttribute : Attribute
+		{
+			TAttribute fieldAttribute = obj.GetType().GetPublicProperties()
+	            .SingleOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
 	            .GetCustomAttribute<TAttribute>();
 	        return fieldAttribute;
 	    }
 
-	    public static TAttribute GetObjectLevelCustomAttribute<TAttribute>(this object obj) where TAttribute : Attribute
-	    {
-	        TAttribute fieldAttribute = obj.GetType().GetCustomAttributes<TAttribute>().FirstOrDefault();
+		public static TAttribute GetObjectLevelCustomAttribute<TAttribute>(this BaseDto obj) where TAttribute : Attribute
+		{
+			TAttribute fieldAttribute = obj.GetType().GetCustomAttribute<TAttribute>();
 	        return fieldAttribute;
 	    }
        
