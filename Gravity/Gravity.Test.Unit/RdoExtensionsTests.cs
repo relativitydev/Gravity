@@ -144,18 +144,24 @@ namespace Gravity.Test.Unit
 			throw new NotImplementedException();
 		}
 
-		{
-
-
-
-		[Test]
-		public void ToHydratedDto_File()
+		[TestCase("File.doc")]
+		[TestCase(null, TestName = "{m}_NoFile")]
+		public void ToHydratedDto_File(string fileName)
 		{
 			//generates file
-			throw new NotImplementedException();
-		}
+			var propertyGuid = typeof(GravityLevelOne)
+				.GetProperty(nameof(GravityLevelOne.FileField))
+				.GetFieldGuidValueFromAttribute();
 
-		
+			var fieldId = 2;
+
+			var fieldValue = new FieldValue(propertyGuid, fileName) { ArtifactID = fieldId };
+
+			var dto = GetRdoWithField(propertyGuid, fieldValue);
+
+			var expectedValue = fileName == null ? (int?)null : fieldId;
+			Assert.AreEqual(expectedValue, dto.FileField?.ArtifactTypeId);
+		}
 
 		public static GravityLevelOne GetRdoWithField(Guid propertyGuid, FieldValue fieldValue)
 		{
