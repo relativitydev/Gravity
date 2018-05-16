@@ -118,7 +118,7 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		private object GetChildObjectRecursively(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
+		{
 		{
 			//multiple object
 			var multiObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
