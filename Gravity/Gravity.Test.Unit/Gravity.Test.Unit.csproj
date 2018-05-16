@@ -71,8 +71,6 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RdoExtensionsTests.cs" />
-    <Compile Include="RsapiDaoDeleteTests.cs" />
-    <Compile Include="RsapiDaoGetTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

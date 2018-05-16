@@ -17,7 +17,6 @@ namespace Gravity.Test.Unit
 			//write a class with nested child objects
 			// DeleteRDO should be called on the root only
 			// Each other level should have DeleteRDOs called on the whole child collection (recursively)
-			// TO INVESTIGATE: Do you even need to do a recursive delete, or can you just delete the root?
 			throw new NotImplementedException();
 		}
 	}
