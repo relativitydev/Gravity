@@ -120,13 +120,15 @@ namespace Gravity.DAL.RSAPI
 
 		private object GetChildObjectRecursively(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
 		{
+			var fieldType = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType;
+			var fieldGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+
 			//multiple object
-			var multiObjectAttribute = property.GetCustomAttribute<RelativityMultipleObjectAttribute>();
-			if (multiObjectAttribute != null)
+			if (fieldType == RdoFieldType.MultipleObject && fieldGuid != null)
 			{
 				Type objectType = property.PropertyType.GetEnumerableInnerType();
 
-				int[] childArtifactIds = objectRdo[multiObjectAttribute.FieldGuid]
+				int[] childArtifactIds = objectRdo[(Guid)fieldGuid]
 					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
 					.Select(artifact => artifact.ArtifactID)
 					.ToArray();
@@ -137,8 +139,7 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			//single object
-			var fieldType = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType;
-			var fieldGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+			
 
 			if (fieldType == RdoFieldType.SingleObject && fieldGuid != null)
 			{
