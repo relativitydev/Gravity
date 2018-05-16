@@ -202,14 +202,8 @@ namespace Gravity.Test.Integration
             }
         }
 
-        [TestCase("LongTextField", TestValues.LongTextFieldValue)]
-        [TestCase("FixedTextField", TestValues.String100Length)]
-        [TestCase("IntegerField", -1)]
-        [TestCase("BoolField", true)]
-        [TestCase("DecimalField", 123.45)]
-        [TestCase("CurrencyField", 5648.54)]
-        [TestCase("SingleChoice", SingleChoiceFieldChoices.SingleChoice2)]
-        [Test, Description("Verify RelativityObject field created correctly using Gravity")]
+        [Test, Description("Verify RelativityObject field created correctly using Gravity"),
+         TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
         //need object fields, could get a little more difficult
         public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
         {
@@ -284,7 +278,7 @@ namespace Gravity.Test.Integration
                             kCura.Relativity.Client.DTOs.Choice choice = _client.Repositories.Choice.ReadSingle(choiceArtifactId);
                             Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
                             Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
-                            newObjectValue = choice.Guids.FirstOrDefault(x => x.Equals(singleChoiceGuid));
+                            newObjectValue = choice.Guids.SingleOrDefault(x => x.Equals(singleChoiceGuid));
                             expectedData = singleChoiceGuid;
                         }
                         break;
@@ -310,13 +304,8 @@ namespace Gravity.Test.Integration
             }
         }
 
-        [TestCase("LongTextField", TestValues.LongTextFieldValue)]
-        [TestCase("FixedTextField", TestValues.String100Length)]
-        [TestCase("IntegerField", -1)]
-        [TestCase("BoolField", true)]
-        [TestCase("DecimalField", 123.45)]
-        [TestCase("CurrencyField", 5648.54)]
-        [TestCase("SingleChoice", SingleChoiceFieldChoices.SingleChoice2)]
+        [Test, Description("Verify RelativityObject field read correctly using Gravity"),
+         TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
         public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
         {
             Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
