@@ -8,6 +8,7 @@ using Gravity.Extensions;
 using Gravity.Test.TestClasses;
 using kCura.Relativity.Client.DTOs;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace Gravity.Test.Unit
 {
@@ -17,15 +18,11 @@ namespace Gravity.Test.Unit
 		[TestCaseSource(nameof(ToHydratedDto_SimpleTypesFields_TestCases))]
 		public void ToHydratedDto_SimpleTypesFields(string fieldName, object value)
 		{
-			var rdo = GetStub<GravityLevelOne>(1);
 			var property = typeof(GravityLevelOne).GetProperty(fieldName);
 			var propertyGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 
 			//make sure what you put into the RDO gets copied to the DTO
-
-			rdo[propertyGuid] = new FieldValue(propertyGuid, value);
-
-			var dto = rdo.ToHydratedDto<GravityLevelOne>();
+			var dto = GetRdoWithField(propertyGuid, new FieldValue() { Value = value });
 
 			Assert.AreEqual(value, property.GetValue(dto));
 		}
@@ -46,20 +43,32 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
-		[Ignore("Not worth investing in checking failure behavior before working on success behavior ")]
-		// [TestCaseSource(nameof(ToHydratedDto_TypeMismatch_TestCases))]
+		[TestCaseSource(nameof(ToHydratedDto_TypeMismatch_TestCases))]
 		public void ToHydratedDto_TypeMismatch(string fieldName, object value)
 		{
-			var rdo = GetStub<GravityLevelOne>(1);
+			Exception AssertThrowsAny(TestDelegate code)
+			{
+				return Assert.Throws<Exception>(() =>
+				{
+					try { code(); }
+					catch { throw new Exception(); }
+				});
+			}
+
 			var property = typeof(GravityLevelOne).GetProperty(fieldName);
 			var propertyGuid = property.GetFieldGuidValueFromAttribute();
 
-			rdo[propertyGuid] = new FieldValue(propertyGuid, value);
-			AssertThrowsAny(() => rdo.ToHydratedDto<GravityLevelOne>());
+			AssertThrowsAny(() => GetRdoWithField(propertyGuid, new FieldValue() { Value = value }));
 		}
 
 		public static IEnumerable<TestCaseData> ToHydratedDto_TypeMismatch_TestCases()
 		{
+			return new[]
+			{
+				new TestCaseData(null, null)
+					.Ignore("Not worth investing in checking failure behavior before working on success behavior ")
+			};
+
 			return typeof(GravityLevelOne)
 				.GetPublicProperties()
 				.Where(x => x.GetFieldGuidValueFromAttribute() != new Guid())
@@ -72,19 +81,18 @@ namespace Gravity.Test.Unit
 		[TestCase("SingleChoice2")]
 		public void ToHydratedDto_SingleChoice_InEnum(string choiceName)
 		{
-			var rdo = GetStub<GravityLevelOne>(1);
 			var propertyGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.SingleChoice))
-				.GetCustomAttribute<RelativityObjectFieldAttribute>()
-				.FieldGuid;
+				.GetFieldGuidValueFromAttribute();
 
-
-			rdo[propertyGuid] = new FieldValue(propertyGuid)
+			var fieldValue = new FieldValue()
 			{
 				ValueAsSingleChoice = new Choice() { Name = choiceName }
 			};
 
-			Assert.AreEqual(SingleChoiceFieldChoices.SingleChoice2, rdo.ToHydratedDto<GravityLevelOne>().SingleChoice);
+			var dto = GetRdoWithField(propertyGuid, fieldValue);
+
+			Assert.AreEqual(SingleChoiceFieldChoices.SingleChoice2, dto.SingleChoice);
 		}
 
 		[Test]
@@ -98,22 +106,22 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void ToHydratedDto_MultipleChoice_AllInEnum()
 		{
-			var rdo = GetStub<GravityLevelOne>(1);
 			var propertyGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.MultipleChoiceFieldChoices))
-				.GetCustomAttribute<RelativityObjectFieldAttribute>()
-				.FieldGuid;
+				.GetFieldGuidValueFromAttribute();
 
-			rdo[propertyGuid] = new FieldValue(propertyGuid)
+			var fieldValue = new FieldValue(propertyGuid)
 			{
 				ValueAsMultipleChoice = new[] { " multiple choice 2", "MultipleChoice3" } //ignore case, whitespace
 					.Select(x => new Choice { Name = x })
 					.ToList()
 			};
 
+			var dto = GetRdoWithField(propertyGuid, fieldValue);
+
 			CollectionAssert.AreEquivalent(
 				new[] { MultipleChoiceFieldChoices.MultipleChoice2, MultipleChoiceFieldChoices.MultipleChoice3 }, 
-				rdo.ToHydratedDto<GravityLevelOne>().MultipleChoiceFieldChoices);
+				dto.MultipleChoiceFieldChoices);
 		}
 
 		[Test]
@@ -136,24 +144,9 @@ namespace Gravity.Test.Unit
 			throw new NotImplementedException();
 		}
 
-		[Test]
-		public void ToHydratedDto_MultipleObject_PopulatesIntegerListField()
 		{
-			throw new NotImplementedException();
-		}
 
-		[Test]
-		public void ToHydratedDto_SingleObject_PopulatesIntegerField()
-		{
-			throw new NotImplementedException();
-		}
 
-		[Test]
-		public void ToHydratedDto_User()
-		{
-			//this is going to be a problem in the long run as we will not always be using RSAPI types
-			throw new NotImplementedException();
-		}
 
 		[Test]
 		public void ToHydratedDto_File()
@@ -162,29 +155,32 @@ namespace Gravity.Test.Unit
 			throw new NotImplementedException();
 		}
 
-		private static RDO GetStub<T>(int artifactId) where T : BaseDto, new()
+		
+
+		public static GravityLevelOne GetRdoWithField(Guid propertyGuid, FieldValue fieldValue)
 		{
-			RelativityObjectAttribute objectTypeAttribute = typeof(T).GetCustomAttribute<RelativityObjectAttribute>(false);
-			RDO rdo = new RDO(objectTypeAttribute.ObjectTypeGuid, artifactId);
-
-			var fieldValues = typeof(T)
-				.GetPublicProperties()
-				.Select(x => x.GetFieldGuidValueFromAttribute())
-				.Where(x => x != new Guid())
-				.Distinct()
-				.Select(x => new FieldValue(x, null));
-			rdo.Fields.AddRange(fieldValues);
-
-			return rdo;
-		}
-
-		private static Exception AssertThrowsAny(TestDelegate code)
-		{
-			return Assert.Throws<Exception>(() =>
+			RDO GetStub<T>(int artifactId) where T : BaseDto, new()
 			{
-				try { code(); }
-				catch { throw new Exception(); }
-			});
+				RelativityObjectAttribute objectTypeAttribute = typeof(T).GetCustomAttribute<RelativityObjectAttribute>(false);
+				RDO stubRdo = new RDO(objectTypeAttribute.ObjectTypeGuid, artifactId);
+
+				var fieldValues = typeof(T)
+					.GetPublicProperties()
+					.Select(x => x.GetFieldGuidValueFromAttribute())
+					.Where(x => x != new Guid())
+					.Distinct()
+					.Select(x => new FieldValue(x, null));
+				stubRdo.Fields.AddRange(fieldValues);
+
+				return stubRdo;
+			}
+
+			fieldValue.Guids = new List<Guid> { propertyGuid };
+
+			var rdo = GetStub<GravityLevelOne>(1);
+			rdo[propertyGuid] = fieldValue;
+
+			return rdo.ToHydratedDto<GravityLevelOne>();
 		}
 	}
 }
