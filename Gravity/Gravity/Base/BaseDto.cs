@@ -72,8 +72,8 @@ namespace Gravity.Base
 				}
 
 				if (TryAddSimplePropertyValue(rdo, property, propertyValue)) { continue; }
-				if (TryAddObjectPropertyValue(rdo, property, propertyValue)) { continue; }
-				if (TryAddMultipleObjectPropertyValue(rdo, property, propertyValue)) { continue; }
+				//if (TryAddObjectPropertyValue(rdo, property, propertyValue)) { continue; }
+				//if (TryAddMultipleObjectPropertyValue(rdo, property, propertyValue)) { continue; }
 			}
 
 			return rdo;
@@ -85,6 +85,7 @@ namespace Gravity.Base
 		{
 			RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
+			//if (fieldAttribute == null || fieldAttribute.FieldType == RdoFieldType.File || fieldAttribute.FieldType == RdoFieldType.SingleObject)
 			if (fieldAttribute == null || fieldAttribute.FieldType == RdoFieldType.File)
 			{
 				return false;
@@ -98,6 +99,7 @@ namespace Gravity.Base
 
 		private bool TryAddObjectPropertyValue(RDO rdo, PropertyInfo property, object propertyValue)
 		{
+
 			var singleObjectAttributeGuid = property.GetCustomAttribute<RelativitySingleObjectAttribute>()?.FieldGuid;
 
 			if (singleObjectAttributeGuid == null)
@@ -202,9 +204,11 @@ namespace Gravity.Base
 
 				case RdoFieldType.SingleObject:
 					{
-						if ((int)propertyValue > 0)
+						int artifactId = (int)propertyValue.GetType().GetProperty("ArtifactId")?.GetValue(propertyValue, null);
+					
+						if (artifactId > 0)
 						{
-							return new Artifact((int)propertyValue);
+							return new Artifact(artifactId);
 						}
 						break;
 					}
