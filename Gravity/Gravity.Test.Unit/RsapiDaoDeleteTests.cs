@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Gravity.Test.Unit
 {
+	[Ignore("TODO: Implement")]
     public class RsapiDaoDeleteTests
     {
 		[Test]

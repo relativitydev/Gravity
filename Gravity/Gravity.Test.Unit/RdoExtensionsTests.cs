@@ -63,16 +63,19 @@ namespace Gravity.Test.Unit
 
 		public static IEnumerable<TestCaseData> ToHydratedDto_TypeMismatch_TestCases()
 		{
+			// Ignore the tests for now, for the given reason.
 			return new[]
 			{
 				new TestCaseData(null, null)
 					.Ignore("Not worth investing in checking failure behavior before working on success behavior ")
 			};
 
-			return typeof(GravityLevelOne)
-				.GetPublicProperties()
-				.Where(x => x.GetFieldGuidValueFromAttribute() != new Guid())
-				.Select(x => new TestCaseData(x.Name, new { Foo = "Bar" }).SetName("{m}(" + x.Name + ")"));
+			// To implement tests, remove the ignore block above and uncomment below
+			//
+			//return typeof(GravityLevelOne)
+			//	.GetPublicProperties()
+			//	.Where(x => x.GetFieldGuidValueFromAttribute() != new Guid())
+			//	.Select(x => new TestCaseData(x.Name, new { Foo = "Bar" }).SetName("{m}(" + x.Name + ")"));
 		}
 
 
