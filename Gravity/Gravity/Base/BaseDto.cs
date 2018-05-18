@@ -31,7 +31,7 @@ namespace Gravity.Base
 			return this.GetType().GetProperty(propertyName).GetValue(this, null);
 		}
 
-        public PropertyInfo GetParentArtifactIdProperty()
+		public PropertyInfo GetParentArtifactIdProperty()
 		{
 			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())
 				.FirstOrDefault()?
