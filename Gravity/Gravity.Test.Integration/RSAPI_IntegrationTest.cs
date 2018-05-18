@@ -40,7 +40,7 @@ namespace Gravity.Test.Integration
         #endregion
 
         #region Setup
-        [TestFixtureSetUp]
+        [OneTimeSetUp]
         public void Execute_TestFixtureSetup()
         {
             try
@@ -126,7 +126,7 @@ namespace Gravity.Test.Integration
         #endregion
 
         #region "Teardown"
-        [TestFixtureTearDown]
+        [OneTimeTearDown]
         public void Execute_TestFixtureTeardown()
         {
             try
