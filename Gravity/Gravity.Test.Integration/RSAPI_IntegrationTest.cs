@@ -223,7 +223,7 @@ namespace Gravity.Test.Integration
 				RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
 				object expectedData = sampleData;
-
+				
 				//need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
 				switch (fieldType)
 				{
@@ -293,6 +293,26 @@ namespace Gravity.Test.Integration
 						{
 							expectedData = null;
 						}
+
+						break;
+					case RdoFieldType.MultipleObject:
+						newObjectValue = field.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>();
+						List<GravityLevel2> resultData = new List<GravityLevel2>();
+						GravityLevel2 g2 = new GravityLevel2();
+						Guid childFieldNameGuid = g2.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+
+						foreach (kCura.Relativity.Client.DTOs.Artifact child in (kCura.Relativity.Client.DTOs.FieldValueList<kCura.Relativity.Client.DTOs.Artifact>)newObjectValue)
+						{
+							//'Read' - need to get name.
+							kCura.Relativity.Client.DTOs.RDO childRdo = new kCura.Relativity.Client.DTOs.RDO();
+							childRdo.Fields = new List<FieldValue>() {new FieldValue(childFieldNameGuid) };
+							childRdo = _client.Repositories.RDO.ReadSingle(child.ArtifactID);
+							string childNameValue = childRdo.Fields.Where(x => x.Guids.Contains(childFieldNameGuid)).FirstOrDefault().ToString();
+
+							resultData.Add(new GravityLevel2() { ArtifactId = child.ArtifactID, Name = childNameValue});
+						}
+						expectedData = (expectedData as IEnumerable<GravityLevel2>).ToDictionary(x => x.ArtifactId, x => x.Name);
+						newObjectValue = (resultData).ToDictionary(x => x.ArtifactId, x => x.Name); 
 
 						break;
 				}

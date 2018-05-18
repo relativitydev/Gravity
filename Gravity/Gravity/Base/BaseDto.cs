@@ -97,55 +97,6 @@ namespace Gravity.Base
 			return true;
 		}
 
-		private bool TryAddObjectPropertyValue(RDO rdo, PropertyInfo property, object propertyValue)
-		{
-
-			var singleObjectAttributeGuid = property.GetCustomAttribute<RelativitySingleObjectAttribute>()?.FieldGuid;
-
-			if (singleObjectAttributeGuid == null)
-			{
-				return false;
-			}
-
-			// skip if field already exists
-			if (rdo.Fields.Any(c => c.Guids.Contains(singleObjectAttributeGuid.Value)))
-			{
-				return false;
-			}
-
-			//Note that this isn't recursive (only ArtifactIDs are set), because recursive inserts, etc. are handled separately anyways.
-			int artifactId = (int)propertyValue.GetType().GetProperty(nameof(ArtifactId)).GetValue(propertyValue, null);
-			var relativityValue = artifactId == 0 ? null : new Artifact(artifactId);
-
-			rdo.Fields.Add(new FieldValue(singleObjectAttributeGuid.Value, relativityValue));
-			return true;
-		}
-
-		private bool TryAddMultipleObjectPropertyValue(RDO rdo, PropertyInfo property, object propertyValue)
-		{
-			var multipleObjectAttributeGuid = property.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid;
-
-			if (multipleObjectAttributeGuid == null)
-			{
-				return false;
-			}
-
-			// skip if field already exists
-			if (rdo.Fields.Any(c => c.Guids.Contains(multipleObjectAttributeGuid.Value)))
-			{
-				return false;
-			}
-
-			var enumerableOfObjects = ((IList)propertyValue)
-				.Cast<object>()
-				.Select(objectValue => (int)objectValue.GetType().GetProperty(nameof(ArtifactId)).GetValue(objectValue, null))
-				.Select(artifactId => new Artifact(artifactId));
-			var relativityValue = new FieldValueList<Artifact>(enumerableOfObjects);
-
-			rdo.Fields.Add(new FieldValue(multipleObjectAttributeGuid.Value, relativityValue));
-			return true;
-		}
-
 		private static object ConvertPropertyValue(PropertyInfo property, RdoFieldType fieldType, object propertyValue)
 		{
 			switch (fieldType)
@@ -188,8 +139,18 @@ namespace Gravity.Base
 
 				case RdoFieldType.MultipleObject:
 					{
+						//return new FieldValueList<Artifact>(
+						//	((IList<int>)propertyValue).Select(x => new Artifact(x)));
 						return new FieldValueList<Artifact>(
-							((IList<int>)propertyValue).Select(x => new Artifact(x)));
+							(
+								(IEnumerable<object>) propertyValue).Select(x =>
+								new Artifact(
+									(int) x.GetType().GetProperty("ArtifactId").GetValue(x, null)
+									)
+								)
+							);
+
+
 					}
 
 				case RdoFieldType.SingleChoice:
