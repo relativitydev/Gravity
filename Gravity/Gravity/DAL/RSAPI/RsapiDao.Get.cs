@@ -3,9 +3,11 @@ using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Gravity.Base;
 using Gravity.Exceptions;
 using Gravity.Extensions;
@@ -135,11 +137,13 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			//single object
-			var singleObjectAttribute = property.GetCustomAttribute<RelativitySingleObjectAttribute>();
-			if (singleObjectAttribute != null)
+				var fieldType = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType;
+						var fieldGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+
+						if (fieldType == RdoFieldType.SingleObject && fieldGuid != null)
 			{
 				var objectType = property.PropertyType;
-				int childArtifactId = objectRdo[singleObjectAttribute.FieldGuid].ValueAsSingleObject.ArtifactID;
+				int childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
 				return childArtifactId == 0
 					? Activator.CreateInstance(objectType)
 					: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);

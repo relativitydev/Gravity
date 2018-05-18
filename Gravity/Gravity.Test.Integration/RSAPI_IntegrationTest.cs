@@ -178,7 +178,7 @@ namespace Gravity.Test.Integration
                 //Act
                 Console.WriteLine("Starting Act....");
 
-                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity(testObject);
+                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity<GravityLevelOne>(testObject);
 
                 Console.WriteLine("Act Complete....");
 
@@ -242,7 +242,7 @@ namespace Gravity.Test.Integration
                 //Act
                 Console.WriteLine("Starting Act....");
 
-                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity(testObject);
+                var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity<GravityLevelOne>(testObject);
 
                 //read artifactID from RSAPI
                 RDO newObject = _client.Repositories.RDO.ReadSingle(newRdoArtifactId);
@@ -281,6 +281,18 @@ namespace Gravity.Test.Integration
                             newObjectValue = choice.Guids.SingleOrDefault(x => x.Equals(singleChoiceGuid));
                             expectedData = singleChoiceGuid;
                         }
+                        break;
+                    case RdoFieldType.SingleObject:
+                        newObjectValue = field.ValueAsSingleObject.ArtifactID;
+                        if (testObject.GravityLevel2Obj.ArtifactId > 0)
+                        {
+                            expectedData = testObject.GravityLevel2Obj.ArtifactId;
+                        }
+                        else
+                        {
+                            expectedData = null;
+                        }
+
                         break;
                 }
 
@@ -325,6 +337,8 @@ namespace Gravity.Test.Integration
 
                 _client.APIOptions.WorkspaceID = _workspaceId;
 
+                object expectedData = sampleData;
+
                 var dto = new RDO();
                 int newArtifactId = -1;
                 dto.ArtifactTypeGuids.Add(testObjectTypeGuid);
@@ -338,6 +352,12 @@ namespace Gravity.Test.Integration
                         Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
                         kCura.Relativity.Client.DTOs.Choice singleChoiceToAdd = new kCura.Relativity.Client.DTOs.Choice(singleChoiceGuid);
                         dto.Fields.Add(new FieldValue(testFieldGuid, singleChoiceToAdd));
+                        break;
+                    case RdoFieldType.SingleObject:
+                        int objectToAttach =
+                            _testObjectHelper.CreateTestObjectWithGravity<GravityLevel2>(sampleData as GravityLevel2);
+                        dto.Fields.Add(new FieldValue(testFieldGuid, objectToAttach));
+                        expectedData = (sampleData as GravityLevel2).Name;
                         break;
                     default:
                         dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
@@ -372,6 +392,13 @@ namespace Gravity.Test.Integration
                 {
                     GravityLevelOne testGravityObject = _testObjectHelper.ReturnTestObjectWithGravity<GravityLevelOne>(newArtifactId);
                     gravityFieldValue = testGravityObject.GetPropertyValue(objectPropertyName);
+                    switch (fieldType)
+                    {
+                        case RdoFieldType.SingleObject:
+                            gravityFieldValue = (gravityFieldValue as GravityLevel2).Name;
+                            break;
+
+                    }
                 }
                
                 Console.WriteLine("Act Complete....");
@@ -381,7 +408,7 @@ namespace Gravity.Test.Integration
 
                 if (newArtifactId > 0)
                 {
-                    Assert.AreEqual(sampleData, gravityFieldValue);
+                    Assert.AreEqual(expectedData, gravityFieldValue);
                 }
                 else
                 {

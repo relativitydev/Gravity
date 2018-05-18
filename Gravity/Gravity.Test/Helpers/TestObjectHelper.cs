@@ -23,11 +23,11 @@ namespace Gravity.Test.Helpers
             _retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
         }
 
-        public int CreateTestObjectWithGravity(BaseDto testObject)
+        public int CreateTestObjectWithGravity<T>(BaseDto testObject)
         {
             RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
 
-            int testDtoId = gravityRsapiDao.InsertRelativityObject<BaseDto>(testObject);
+            int testDtoId = gravityRsapiDao.InsertRelativityObject<T>(testObject);
 
             return testDtoId;
         }

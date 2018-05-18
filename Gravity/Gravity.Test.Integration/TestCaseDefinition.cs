@@ -19,7 +19,9 @@ namespace Gravity.Test.Integration
                 yield return new TestCaseData("DecimalField", 123.45);
                 yield return new TestCaseData("CurrencyField", 5648.54);
                 yield return new TestCaseData("SingleChoice", SingleChoiceFieldChoices.SingleChoice2);
+                yield return new TestCaseData("GravityLevel2Obj", new GravityLevel2() { Name = "Test_" + Guid.NewGuid()});
             }
         }
+
     }
 }
