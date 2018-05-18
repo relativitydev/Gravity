@@ -72,8 +72,6 @@ namespace Gravity.Base
 				}
 
 				if (TryAddSimplePropertyValue(rdo, property, propertyValue)) { continue; }
-				//if (TryAddObjectPropertyValue(rdo, property, propertyValue)) { continue; }
-				//if (TryAddMultipleObjectPropertyValue(rdo, property, propertyValue)) { continue; }
 			}
 
 			return rdo;
@@ -85,7 +83,6 @@ namespace Gravity.Base
 		{
 			RelativityObjectFieldAttribute fieldAttribute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
-			//if (fieldAttribute == null || fieldAttribute.FieldType == RdoFieldType.File || fieldAttribute.FieldType == RdoFieldType.SingleObject)
 			if (fieldAttribute == null || fieldAttribute.FieldType == RdoFieldType.File)
 			{
 				return false;
@@ -139,8 +136,6 @@ namespace Gravity.Base
 
 				case RdoFieldType.MultipleObject:
 					{
-						//return new FieldValueList<Artifact>(
-						//	((IList<int>)propertyValue).Select(x => new Artifact(x)));
 						return new FieldValueList<Artifact>(
 							(
 								(IEnumerable<object>) propertyValue).Select(x =>
