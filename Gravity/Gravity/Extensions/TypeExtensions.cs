@@ -38,6 +38,15 @@ namespace Gravity.Extensions
 			return method.Invoke(obj, args);
 		}
 
+		public static object InvokeGenericMethodWithExactParametersTypes(this object obj, Type typeArgument, string methodName, params object[] args)
+		{
+			MethodInfo method = obj.GetType()
+				.GetMethod(methodName, new Type[] { typeArgument })
+				.MakeGenericMethod(new Type[] { typeArgument });
+
+			return method.Invoke(obj, args);
+		}
+
 		// performance boost option: cache results of these
 		public static Type GetEnumerableInnerType(this Type type)
 		{

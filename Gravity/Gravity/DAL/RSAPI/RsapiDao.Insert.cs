@@ -29,55 +29,124 @@ namespace Gravity.DAL.RSAPI
 
 		protected void InsertUpdateFileFields(BaseDto objectToInsert, int parentId)
 		{
-			foreach (var propertyInfo in objectToInsert.GetType()
-                .GetProperties()
-                .Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
+			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
 			{
-                RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
-                InsertUpdateFileField(relativityFile, parentId);
+				RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
+				InsertUpdateFileField(relativityFile, parentId);
 			}
 		}
 
 		protected void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
 		{
-            if (relativityFile?.FileValue == null)
-            {
-                return;
-            }
-
-            if (relativityFile.FileValue.Path != null)
-            {
-                rsapiProvider.UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
+			if (relativityFile?.FileValue == null)
+			{
+				return;
 			}
-            else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
-            {
-                string fileName = Path.GetTempPath() + relativityFile.FileMetadata.FileName;
-                File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
 
-                try
-                {
-                    rsapiProvider.UploadFile(relativityFile, parentId, fileName);
+			if (relativityFile.FileValue.Path != null)
+			{
+				rsapiProvider.UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
+			}
+			else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
+			{
+				string fileName = Path.GetTempPath() + relativityFile.FileMetadata.FileName;
+				File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
+
+				try
+				{
+					rsapiProvider.UploadFile(relativityFile, parentId, fileName);
 				}
-                finally
-                {
-                    invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(fileName));
-                }
-                
-            }
-        }        
+				finally
+				{
+					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(fileName));
+				}
+			}
+		}
 
-        private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
-        {
+		protected void InsertUpdateSingleObjectPropertiesBeforeRdoInsert(ref BaseDto parentObjectToInsert)
+		{
+			IEnumerable<PropertyInfo> singleObjectsPropertyInfo = parentObjectToInsert.GetType()
+				.GetProperties()
+				.Where(c => c.GetCustomAttribute<RelativitySingleObjectAttribute>() != null);
+
+			foreach (var propertyInfo in singleObjectsPropertyInfo)
+			{
+				Type singleObjectType = propertyInfo.PropertyType;
+
+				BaseDto singleObjectToInsert = propertyInfo.GetValue(parentObjectToInsert) as BaseDto;
+
+				PropertyInfo singleObjectArtifactIdProperty = singleObjectType.GetProperty("ArtifactId");
+
+				PropertyInfo singleObjectArtifactIdPropertyInParentObject = parentObjectToInsert.GetType().GetProperties()
+					.Where(c =>
+					{
+						RelativityObjectFieldAttribute objectFieldAttribute = c.GetCustomAttribute<RelativityObjectFieldAttribute>();
+
+						if (objectFieldAttribute?.FieldType == RdoFieldType.SingleObject && objectFieldAttribute?.ObjectFieldDTOType == propertyInfo.PropertyType)
+						{
+							return true;
+						}
+						return false;
+					}).Single();
+
+				if (singleObjectArtifactIdProperty == null || singleObjectToInsert == null)
+				{
+					continue;
+				}
+
+				int singleObjectArtifactIdValue = (int)singleObjectArtifactIdProperty.GetValue(singleObjectToInsert);
+
+				try
+				{
+					if (singleObjectArtifactIdValue == 0)
+					{
+						singleObjectArtifactIdValue = (int)this.InvokeGenericMethod(singleObjectType, nameof(InsertRelativityObject), singleObjectToInsert);
+
+						PropertyInfo artifactIdProperty = parentObjectToInsert.GetType()
+							.GetProperties()
+							.Where(c =>
+							{
+								RelativityObjectFieldAttribute objectFieldAttribute = c.GetCustomAttribute<RelativityObjectFieldAttribute>();
+
+								if (objectFieldAttribute?.FieldType == RdoFieldType.SingleObject && objectFieldAttribute?.ObjectFieldDTOType == propertyInfo.PropertyType)
+								{
+									return true;
+								}
+
+								return false;
+							}).Single();
+
+						singleObjectArtifactIdPropertyInParentObject.SetValue(parentObjectToInsert, singleObjectArtifactIdValue);
+					}
+					else
+					{
+						this.InvokeGenericMethodWithExactParametersTypes(singleObjectType, nameof(UpdateRelativityObject), singleObjectToInsert);
+					}
+				}
+				catch (Exception)
+				{
+
+					singleObjectArtifactIdPropertyInParentObject.SetValue(parentObjectToInsert, -1);
+				}
+			}
+		}
+
+		private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
+		{
 			var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;
+			if(childObjectsList == null)
+			{
+				return;
+			}
 
-            if (childObjectsList?.Count != 0)
-            {
+			if (childObjectsList?.Count != 0)
+			{
 				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
 				this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
-            }
-        }
+			}
+		}
 
-        private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto, new()
+		private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto, new()
 		{
 			PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
 			PropertyInfo ArtifactIdProperty = objectToBeInserted.GetType().GetProperty("ArtifactId");
@@ -124,11 +193,12 @@ namespace Gravity.DAL.RSAPI
 				var rdosToBeInserted = objectsToInserted.Select(x => x.ToRdo()).ToArray();
 
 				rsapiProvider.Create(rdosToBeInserted);
-			}			
+			}
 		}
 
-        public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
+		public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
 		{
+			InsertUpdateSingleObjectPropertiesBeforeRdoInsert(ref theObjectToInsert);
 
 			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
 
@@ -136,11 +206,11 @@ namespace Gravity.DAL.RSAPI
 
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			foreach (var childPropertyInfo in childObjectsInfo)
-            {
-                InsertChildListObjectsWithDynamicType(theObjectToInsert, resultArtifactId, childPropertyInfo);
-            }
+			{
+				InsertChildListObjectsWithDynamicType(theObjectToInsert, resultArtifactId, childPropertyInfo);
+			}
 
-            return resultArtifactId;
+			return resultArtifactId;
 		}
-    }
+	}
 }
