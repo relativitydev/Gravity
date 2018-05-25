@@ -120,34 +120,37 @@ namespace Gravity.DAL.RSAPI
 
 		private object GetChildObjectRecursively(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
 		{
-			var fieldType = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType;
-			var fieldGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+			var relativityObjectFieldAttibutes = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
-			//multiple object
-			if (fieldType == RdoFieldType.MultipleObject && fieldGuid != null)
+			if (relativityObjectFieldAttibutes != null)
 			{
-				Type objectType = property.PropertyType.GetEnumerableInnerType();
+				var fieldType = relativityObjectFieldAttibutes.FieldType;
+				var fieldGuid = relativityObjectFieldAttibutes.FieldGuid;
 
-				int[] childArtifactIds = objectRdo[(Guid)fieldGuid]
-					.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
-					.Select(artifact => artifact.ArtifactID)
-					.ToArray();
+				//multiple object
+				if (fieldType == RdoFieldType.MultipleObject)
+				{
+					Type objectType = property.PropertyType.GetEnumerableInnerType();
 
-				var allObjects = this.InvokeGenericMethod(objectType, nameof(GetDTOs), childArtifactIds, depthLevel) as IEnumerable;
+					int[] childArtifactIds = objectRdo[(Guid)fieldGuid]
+						.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
+						.Select(artifact => artifact.ArtifactID)
+						.ToArray();
 
-				return MakeGenericList(allObjects, objectType);
-			}
+					var allObjects = this.InvokeGenericMethod(objectType, nameof(GetDTOs), childArtifactIds, depthLevel) as IEnumerable;
 
-			//single object
-			
+					return MakeGenericList(allObjects, objectType);
+				}
 
-			if (fieldType == RdoFieldType.SingleObject && fieldGuid != null)
-			{
-				var objectType = property.PropertyType;
-				int childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
-				return childArtifactId == 0
-					? Activator.CreateInstance(objectType)
-					: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);
+				//single object
+				if (fieldType == RdoFieldType.SingleObject)
+				{
+					var objectType = property.PropertyType;
+					int childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
+					return childArtifactId == 0
+						? Activator.CreateInstance(objectType)
+						: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);
+				}
 			}
 
 			//child object

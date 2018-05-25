@@ -137,15 +137,7 @@ namespace Gravity.Base
 				case RdoFieldType.MultipleObject:
 					{
 						return new FieldValueList<Artifact>(
-							(
-								(IEnumerable<object>) propertyValue).Select(x =>
-								new Artifact(
-									(int) x.GetType().GetProperty("ArtifactId").GetValue(x, null)
-									)
-								)
-							);
-
-
+							((IEnumerable<object>) propertyValue).Select(x => new Artifact((x as BaseDto).ArtifactId)));
 					}
 
 				case RdoFieldType.SingleChoice:
@@ -160,8 +152,7 @@ namespace Gravity.Base
 
 				case RdoFieldType.SingleObject:
 					{
-						int artifactId = (int)propertyValue.GetType().GetProperty("ArtifactId")?.GetValue(propertyValue, null);
-					
+						int artifactId = (propertyValue as BaseDto).ArtifactId;
 						if (artifactId > 0)
 						{
 							return new Artifact(artifactId);

@@ -125,34 +125,25 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		private bool InsertUpdateSingleObjectFields(BaseDto objectToInsert)
+		private bool InsertSingleObjectFields(BaseDto objectToInsert)
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.SingleObject))
 			{
 				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
-				var fieldValue = (objectToInsert.GetPropertyValue(propertyInfo.Name) as BaseDto);
+				var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
 
 				if (fieldGuid != null && fieldValue != null)
 				{
-					//TODO: better test to see if contains value...if all fields are null, not need
-					if (fieldValue.ArtifactId == 0)
-					{
-						Type objType = fieldValue.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", fieldValue);
-						fieldValue.ArtifactId = (int)newArtifactId;
-					}
-					else
-					{
-						//TODO: Consider update if fields have changed
-
-					}
+					Type objType = fieldValue.GetType();
+					var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", fieldValue);
+					fieldValue.ArtifactId = (int)newArtifactId;
 				}
 			}
 			return true;
 		}
 
-		private bool InsertUpdateMultipleObjectFields(BaseDto objectToInsert)
+		private bool InsertMultipleObjectFields(BaseDto objectToInsert)
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
@@ -164,7 +155,7 @@ namespace Gravity.DAL.RSAPI
 				{
 					foreach (var childObject in fieldValue)
 					{
-						if (fieldGuid != null && fieldValue != null)
+						if (fieldGuid != null)
 						{
 							//TODO: better test to see if contains value...if all fields are null, not need
 							if (((childObject as BaseDto).ArtifactId == 0))
@@ -188,8 +179,8 @@ namespace Gravity.DAL.RSAPI
 		public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
 		{
 			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
-			InsertUpdateSingleObjectFields(theObjectToInsert);
-			InsertUpdateMultipleObjectFields(theObjectToInsert);
+			InsertSingleObjectFields(theObjectToInsert);
+			InsertMultipleObjectFields(theObjectToInsert);
 
 			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
 

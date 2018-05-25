@@ -18,10 +18,6 @@ Before using the CRUD/Q methods in Gravity you will have to create a model and d
 
 * `RelativityObject` - Specifies the type Guid of the RDO you are targeting.
 * `RelativityObjectField` - Specifies the type Guid and the "RdoFieldType" of the RDO field you are targeting.
-* `RelativityMultipleObject` - Specifies the type Guid of a multiple object RDO field.
-     * **Note:** This attribute is used if you want to return the field as a List of objects (not just ids).
-* `RelativitySingleObject` - Specifies the type Guid of a single object RDO field.
-    * **Note:** This attribute is used if you want to return the field as a objects (not just id).
 * `RelativityObjectChildrenList` - Used to decorate a List of child RDOs as a object List.
 
 The following example demonstrates a RDO represented as a Model:
@@ -42,13 +38,10 @@ public class DemoPurchaseOrder : BaseDto
 	[RelativityObjectField("3BDC0971-A87C-414E-9A37-FC477279BBAD", RdoFieldType.FixedLengthText, 100)]
 	public string CustomerEmail { get; set; }
 
-	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject, typeof(Items))]
-	public IList<int> ItemIds { get; set; }
+	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E"), RdoFieldType.MultipleObject, typeof(Items))]
+	public IList<Items> Items { get; set; }
 
-	[RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E")]
-	public List<Items> Items { get; set; }
-
-	[RelativitySingleObject("D0770889-8A4D-436A-9647-33419B96E37E")]
+	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E"), RdoFieldType.SingleObject, typeof(Address))]
 	public Address Address { get; set; }
 
 	[RelativityObjectField("4501A308-5E68-4314-AEDC-4DEB527F12A8", RdoFieldType.Decimal)]
