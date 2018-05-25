@@ -44,6 +44,7 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,6 +57,7 @@
     <Compile Include="Attributes\RelativityObjectFieldAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
     <Compile Include="Base\RelativityFile.cs" />
+    <Compile Include="DAL\RSAPI\ChoiceCache.cs" />
     <Compile Include="DAL\RSAPI\IRsapiProvider.cs" />
     <Compile Include="DAL\RSAPI\RsapiProvider.cs" />
     <Compile Include="Extensions\CollectionsExtensions.cs" />
