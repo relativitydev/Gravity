@@ -38,6 +38,11 @@ namespace Gravity.Base
 				.Item1;
 		}
 
+		public static IEnumerable<Guid> GetFieldsGuids<T>() where T : BaseDto
+		{
+			return GetPropertyAttributes<RelativityObjectFieldAttribute>(typeof(T)).Select(propertyAttributePair => propertyAttributePair.Item2.FieldGuid);
+		}
+
 		// BE CAREFUL!
 		// This is the Artifact ID of the DTO within the working Workspace (where app is installed, usually)
 		// If you need the global Artifact ID (for Group, User, Client, etc)
