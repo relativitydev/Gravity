@@ -76,7 +76,7 @@
     <Compile Include="DAL\RSAPI\RsapiDao.Update.cs" />
     <Compile Include="Extensions\RdoExtensions.cs" />
     <Compile Include="Extensions\TypeExtensions.cs" />
-    <Compile Include="Globals\SharedConstants.cs" />
+    <Compile Include="obj\SharedConstants.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Exceptions\ProxyOperationFailedException.cs" />
   </ItemGroup>
@@ -84,6 +84,9 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Globals\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

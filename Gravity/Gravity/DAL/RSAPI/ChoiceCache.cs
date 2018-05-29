@@ -12,7 +12,11 @@ namespace Gravity.DAL.RSAPI
     public class ChoiceCache
     {
 		private static readonly CacheItemPolicy CachePolicy = new CacheItemPolicy { SlidingExpiration = TimeSpan.FromMinutes(15) };
+
+		// caches are recommended to be static across all members of the class
 		private static readonly MemoryCache Cache = new MemoryCache(nameof(ChoiceCache));
+
+		// we will use this below to ensure each ChoiceCache gets a unique address in the Cache object
 		private readonly Guid CacheInstanceId = Guid.NewGuid();
 
 
@@ -25,6 +29,9 @@ namespace Gravity.DAL.RSAPI
 
 		private Dictionary<int, T> GetEnumDictionary<T>()
 		{
+			// each type needs its own dictionary, obviously
+			// but each instance does too, since they could point to, e.g. different workspaces, and thus have different IDs.
+
 			var cacheKey = $"{CacheInstanceId}_{typeof(T).GUID}";
 			if (Cache.Get(cacheKey) is Dictionary<int, T> cacheItem)
 			{
