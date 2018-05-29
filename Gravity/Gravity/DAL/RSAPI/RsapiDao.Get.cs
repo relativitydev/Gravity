@@ -34,8 +34,8 @@ namespace Gravity.DAL.RSAPI
 			{
 				ArtifactTypeGuid = BaseDto.GetObjectTypeGuid<T>(),
 				Condition = queryCondition,
-				Fields = FieldValue.AllFields
-			};
+				Fields = BaseDto.GetFieldsGuids<T>().Select(x => new FieldValue(x)).ToList()
+		};
 
 			return rsapiProvider.Query(query).SelectMany(x => x.GetResultData());
 		}
