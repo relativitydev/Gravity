@@ -127,17 +127,18 @@ namespace Gravity.DAL.RSAPI
 
 		private bool InsertSingleObjectFields(BaseDto objectToInsert)
 		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
-				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.SingleObject))
+			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
 			{
-				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
-				var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
-
-				if (fieldGuid != null && fieldValue != null)
+				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
+				if (attribute?.FieldType == RdoFieldType.SingleObject)
 				{
-					Type objType = fieldValue.GetType();
-					var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", fieldValue);
-					fieldValue.ArtifactId = (int)newArtifactId;
+					var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
+					if (fieldValue != null)
+					{
+						Type objType = fieldValue.GetType();
+						var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", fieldValue);
+						fieldValue.ArtifactId = (int)newArtifactId;
+					}
 				}
 			}
 			return true;
