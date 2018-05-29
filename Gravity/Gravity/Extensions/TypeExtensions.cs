@@ -21,12 +21,6 @@ namespace Gravity.Extensions
 			return returnValue;
 		}
 
-		public static Guid GetFieldGuidValueFromAttribute(this PropertyInfo propertyInfo)
-		{
-			return propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid
-				?? new Guid();
-		}
-
 		public static object InvokeGenericMethod(this object obj, Type typeArgument, string methodName, params object[] args)
 		{
 			MethodInfo method = obj.GetType()

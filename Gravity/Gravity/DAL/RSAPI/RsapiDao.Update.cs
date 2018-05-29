@@ -103,7 +103,7 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			PropertyInfo fieldProperty = typeof(T).GetProperties()
-				.SingleOrDefault(p => p.GetFieldGuidValueFromAttribute() == fieldGuid);
+				.SingleOrDefault(p => p.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid == fieldGuid);
 			if (fieldProperty == null)
 				throw new InvalidOperationException($"Field not on type {typeof(T)}");
 
