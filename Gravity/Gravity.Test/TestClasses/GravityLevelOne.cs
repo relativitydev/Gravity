@@ -34,9 +34,6 @@ namespace Gravity.Test.TestClasses
 		public RelativityFile FileField { get; set; }
 
 		[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject, typeof(GravityLevel2))]
-		public IList<int> GravityLevel2MultipleArtifactIds { get; set; }
-
-		[RelativityMultipleObject("D0770889-8A4D-436A-9647-33419B96E37E")]
 		public IList<GravityLevel2> GravityLevel2MultipleObjs { get; set; }
 
 		[RelativityObjectField("C3336C2C-5A97-4EB1-A3A4-929D79658B8D", RdoFieldType.SingleObject, typeof(GravityLevel2))]
