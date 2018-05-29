@@ -19,6 +19,7 @@ namespace Gravity.Extensions
 		{
 			T returnDto = new T();
 			returnDto.ArtifactId = rdo.ArtifactID;
+			returnDto.GetParentArtifactIdProperty()?.SetValue(returnDto, rdo.ParentArtifact?.ArtifactID);
 
 			foreach (PropertyInfo property in typeof(T).GetPublicProperties())
 			{
@@ -28,9 +29,9 @@ namespace Gravity.Extensions
 				{
 					FieldValue theFieldValue = rdo[fieldAttribute.FieldGuid];
 
-					switch (fieldAttribute.FieldType)
-					{
-						case RdoFieldType.SingleObject:
+				switch (fieldAttribute.FieldType)
+				{
+					case RdoFieldType.SingleObject:
 						case RdoFieldType.MultipleObject:
 							break;
 						case RdoFieldType.Currency:

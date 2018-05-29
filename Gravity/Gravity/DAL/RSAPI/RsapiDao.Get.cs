@@ -65,7 +65,12 @@ namespace Gravity.DAL.RSAPI
 		public IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			Condition queryCondition = new WholeNumberCondition("ParentArtifactID", NumericConditionEnum.EqualTo, parentArtifactID);
+			var parentFieldGuid = typeof(T).GetPublicProperties()
+				.Select(x => x.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>())
+				.First(x => x != null)
+				.FieldGuid;
+
+			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
 			return GetAllDTOs<T>(queryCondition, depthLevel);
 		}
 
