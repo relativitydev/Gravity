@@ -125,12 +125,77 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
+		private bool InsertUpdateSingleObjectFields(BaseDto objectToInsert)
+		{
+			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
+				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.SingleObject))
+			{
+				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+				var fieldValue = (objectToInsert.GetPropertyValue(propertyInfo.Name) as BaseDto);
+
+				if (fieldGuid != null && fieldValue != null)
+				{
+					//TODO: better test to see if contains value...if all fields are null, not need
+					if (fieldValue.ArtifactId == 0)
+					{
+						Type objType = fieldValue.GetType();
+						var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", fieldValue);
+						fieldValue.ArtifactId = (int)newArtifactId;
+					}
+					else
+					{
+						//TODO: Consider update if fields have changed
+
+					}
+				}
+			}
+			return true;
+		}
+
+		private bool InsertUpdateMultipleObjectFields(BaseDto objectToInsert)
+		{
+			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
+				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
+			{
+				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
+				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
+
+				if (fieldValue != null)
+				{
+					foreach (var childObject in fieldValue)
+					{
+						if (fieldGuid != null && fieldValue != null)
+						{
+							//TODO: better test to see if contains value...if all fields are null, not need
+							if (((childObject as BaseDto).ArtifactId == 0))
+							{
+								Type objType = childObject.GetType();
+								var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", childObject);
+								(childObject as BaseDto).ArtifactId = (int)newArtifactId;
+							}
+							else
+							{
+								//TODO: Consider update if fields have changed
+
+							}
+						}
+					}
+				}
+			}
+			return true;
+		}
+
 		public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
 		{
+			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
+			InsertUpdateSingleObjectFields(theObjectToInsert);
+			InsertUpdateMultipleObjectFields(theObjectToInsert);
 
 			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
 
 			InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
+
+			
 
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			foreach (var childPropertyInfo in childObjectsInfo)
