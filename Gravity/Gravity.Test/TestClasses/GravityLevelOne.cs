@@ -33,19 +33,19 @@ namespace Gravity.Test.TestClasses
 		[RelativityObjectField("06575EC1-7DE4-47C0-A763-AA135C1F29BA", RdoFieldType.File)]
 		public RelativityFile FileField { get; set; }
 
-		[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject, typeof(GravityLevel2))]
+		[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject)]
 		public IList<GravityLevel2> GravityLevel2MultipleObjs { get; set; }
 
-		[RelativityObjectField("C3336C2C-5A97-4EB1-A3A4-929D79658B8D", RdoFieldType.SingleObject, typeof(GravityLevel2))]
+		[RelativityObjectField("C3336C2C-5A97-4EB1-A3A4-929D79658B8D", RdoFieldType.SingleObject)]
 		public GravityLevel2 GravityLevel2Obj { get; set; }
 
-		[RelativityObjectField("C3B2943D-C9C2-4C92-A88D-115B3F9ED64D", RdoFieldType.MultipleChoice, typeof(MultipleChoiceFieldChoices))]
+		[RelativityObjectField("C3B2943D-C9C2-4C92-A88D-115B3F9ED64D", RdoFieldType.MultipleChoice)]
 		public IList<MultipleChoiceFieldChoices> MultipleChoiceFieldChoices { get; set; }
 
-		[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", RdoFieldType.SingleChoice, typeof(SingleChoiceFieldChoices))]
+		[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", RdoFieldType.SingleChoice)]
 		public SingleChoiceFieldChoices SingleChoice { get; set; }
 
-		[RelativityObjectField("48404771-DEA2-41AA-8FE6-217E6A04C8DC", RdoFieldType.User, typeof(User))]
+		[RelativityObjectField("48404771-DEA2-41AA-8FE6-217E6A04C8DC", RdoFieldType.User)]
 		public User UserField { get; set; }
 
 		[RelativityObjectField("AB5D53FB-9217-4633-A4F1-EF3536EDC8EC", RdoFieldType.Currency)]

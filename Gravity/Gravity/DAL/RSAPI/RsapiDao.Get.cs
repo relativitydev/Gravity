@@ -62,10 +62,10 @@ namespace Gravity.DAL.RSAPI
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel));
 		}
 
-		public IEnumerable<T> GetAllChildDTOs<T>(Guid parentFieldGuid, int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
+		public IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
+			Condition queryCondition = new WholeNumberCondition("ParentArtifactID", NumericConditionEnum.EqualTo, parentArtifactID);
 			return GetAllDTOs<T>(queryCondition, depthLevel);
 		}
 
@@ -157,9 +157,8 @@ namespace Gravity.DAL.RSAPI
 			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
 			{
 				var childType = property.PropertyType.GetEnumerableInnerType();
-				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
-				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
+				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), baseDto.ArtifactId, depthLevel) as IEnumerable;
 
 				return MakeGenericList(allChildObjects, childType);
 			}

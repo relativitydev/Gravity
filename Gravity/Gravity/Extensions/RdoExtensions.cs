@@ -63,8 +63,10 @@ namespace Gravity.Extensions
 								if (valueAsMultipleChoice == null)
 									break;
 
+								var enumType = property.PropertyType.GetEnumerableInnerType();
+
 								//get a List<target_enum_type> to hold your converted values
-								var genericListType = typeof(List<>).MakeGenericType(fieldAttribute.ObjectFieldDTOType);
+								var genericListType = typeof(List<>).MakeGenericType(enumType);
 								var listOfEnumValuesInstance = (IList)Activator.CreateInstance(genericListType);
 
 								//get choice names
@@ -73,7 +75,7 @@ namespace Gravity.Extensions
 									StringComparer.InvariantCultureIgnoreCase);
 
 								//get enum values of type that correspond to those names
-								var enumValues = Enum.GetValues(fieldAttribute.ObjectFieldDTOType).Cast<Enum>()
+								var enumValues = Enum.GetValues(enumType).Cast<Enum>()
 									.Where(x => choiceNames.Contains(x.ToString()));
 
 								//add to list
@@ -94,7 +96,7 @@ namespace Gravity.Extensions
 								if (choiceNameTrimmed == null)
 									break;
 
-								newValueObject = Enum.GetValues(fieldAttribute.ObjectFieldDTOType)
+								newValueObject = Enum.GetValues(property.PropertyType)
 									.Cast<object>()
 									.SingleOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
 							}

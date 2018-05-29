@@ -9,32 +9,19 @@ public class RelativityObjectFieldAttribute : System.Attribute
 {
 	public Guid FieldGuid { get; set; }
 
-	// TODO: Make this our own custom enum in RelativityShared; right now an ugly int?
 	public RdoFieldType FieldType { get; set; }
 
 	public int? Length { get; set; }
-
-	public Type ObjectFieldDTOType { get; set; }
 
 	public RelativityObjectFieldAttribute(string fieldGuid, RdoFieldType fieldType)
 	{
 		this.FieldGuid = new Guid(fieldGuid);
 		this.FieldType = fieldType;
-		this.Length = null;
 	}
 
 	public RelativityObjectFieldAttribute(string fieldGuid, RdoFieldType fieldType, int length)
+		: this (fieldGuid, fieldType)
 	{
-		this.FieldGuid = new Guid(fieldGuid);
-		this.FieldType = fieldType;
 		this.Length = length;
-	}
-
-	public RelativityObjectFieldAttribute(string fieldGuid, RdoFieldType fieldType, Type objectFieldDTOType)
-	{
-		this.FieldGuid = new Guid(fieldGuid);
-		this.FieldType = fieldType;
-		this.ObjectFieldDTOType = objectFieldDTOType;
-		this.Length = null;
 	}
 }
