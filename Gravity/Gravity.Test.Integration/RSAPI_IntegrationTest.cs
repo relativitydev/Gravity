@@ -436,12 +436,7 @@ namespace Gravity.Test.Integration
 								gravityFieldValue = (gravityFieldValue as GravityLevel2).Name;
 								break;
 							case RdoFieldType.MultipleObject:
-								var resultsDictionary = new Dictionary<int, string>();
-								foreach (var child in (gravityFieldValue as List<GravityLevel2>))
-								{
-									resultsDictionary.Add(child.ArtifactId, child.Name);
-								}
-								gravityFieldValue = resultsDictionary;
+								gravityFieldValue = (gravityFieldValue as List<GravityLevel2>).ToDictionary(x => x.ArtifactId, x => x.Name);
 								break;
 						}
 					}
