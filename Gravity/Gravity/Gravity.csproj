@@ -51,9 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Attributes\RelativitySingleObjectAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectAttribute.cs" />
-    <Compile Include="Attributes\RelativityMultipleObjectAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectChildrenListAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectFieldAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
