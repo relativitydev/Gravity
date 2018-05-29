@@ -63,7 +63,7 @@ namespace Gravity.DAL.RSAPI
 				var thisChildTypeObj = propertyInfo.GetValue(theObjectToDelete, null) as IList;
 
 				List<int> thisArtifactIDs = thisChildTypeObj.Cast<object>()
-					.Select(item => (int)item.GetType().GetProperty("ArtifactId").GetValue(item, null))
+					.Select(item => ((BaseDto)item).ArtifactId)
 					.ToList();
 
 				if (thisArtifactIDs.Count != 0)

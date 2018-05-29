@@ -112,8 +112,7 @@ namespace Gravity.DAL.RSAPI
 			if (!TryGetRelativityFieldValue<T>(fieldProperty, value, out rdoValue))
 				return;
 
-			var rdoValueFile = rdoValue as RelativityFile;
-			if (rdoValueFile != null)
+			if (rdoValue is RelativityFile rdoValueFile)
 			{
 				InsertUpdateFileField(rdoValueFile, rdoID);
 				return;

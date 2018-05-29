@@ -30,10 +30,10 @@ namespace Gravity.Extensions
 
 					switch (fieldAttribute.FieldType)
 					{
-										case RdoFieldType.SingleObject:
-												case RdoFieldType.MultipleObject:
-									break;
-												case RdoFieldType.Currency:
+						case RdoFieldType.SingleObject:
+						case RdoFieldType.MultipleObject:
+							break;
+						case RdoFieldType.Currency:
 							newValueObject = theFieldValue.ValueAsCurrency;
 							break;
 						case RdoFieldType.Date:
@@ -102,9 +102,9 @@ namespace Gravity.Extensions
 							}
 							break;
 						case RdoFieldType.User:
-							if (theFieldValue.Value != null && property.PropertyType == typeof(User))
+							if (theFieldValue.Value is User user && property.PropertyType == typeof(User))
 							{
-								newValueObject = theFieldValue.Value as User;
+								newValueObject = user;
 							}
 							break;
 						case RdoFieldType.WholeNumber:
