@@ -60,10 +60,9 @@ namespace Gravity.Base
 			RelativityObjectAttribute objectTypeAttribute = this.GetType().GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO rdo = new RDO(objectTypeAttribute.ObjectTypeGuid, ArtifactId);
 
-			var parentId = this.GetParentArtifactIdProperty()?.GetValue(this, null);
-			if (parentId != null)
+			if (this.GetParentArtifactIdProperty()?.GetValue(this, null) is int parentId)
 			{
-				rdo.ParentArtifact = new Artifact((int)parentId);
+				rdo.ParentArtifact = new Artifact(parentId);
 			}
 
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())

@@ -56,7 +56,7 @@ namespace Gravity.Test.Unit
 			}
 
 			var property = typeof(GravityLevelOne).GetProperty(fieldName);
-			var propertyGuid = property.GetFieldGuidValueFromAttribute();
+			var propertyGuid = property.GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 
 			AssertThrowsAny(() => GetRdoWithField(propertyGuid, new FieldValue() { Value = value }));
 		}
@@ -74,7 +74,7 @@ namespace Gravity.Test.Unit
 			//
 			//return typeof(GravityLevelOne)
 			//	.GetPublicProperties()
-			//	.Where(x => x.GetFieldGuidValueFromAttribute() != new Guid())
+			//	.Where(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid() != null)
 			//	.Select(x => new TestCaseData(x.Name, new { Foo = "Bar" }).SetName("{m}(" + x.Name + ")"));
 		}
 
@@ -86,7 +86,8 @@ namespace Gravity.Test.Unit
 		{
 			var propertyGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.SingleChoice))
-				.GetFieldGuidValueFromAttribute();
+				.GetCustomAttribute<RelativityObjectFieldAttribute>()
+				.FieldGuid;
 
 			var fieldValue = new FieldValue()
 			{
@@ -111,7 +112,8 @@ namespace Gravity.Test.Unit
 		{
 			var propertyGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.MultipleChoiceFieldChoices))
-				.GetFieldGuidValueFromAttribute();
+				.GetCustomAttribute<RelativityObjectFieldAttribute>()
+				.FieldGuid;
 
 			var fieldValue = new FieldValue(propertyGuid)
 			{
@@ -154,7 +156,8 @@ namespace Gravity.Test.Unit
 			//generates file
 			var propertyGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.FileField))
-				.GetFieldGuidValueFromAttribute();
+				.GetCustomAttribute<RelativityObjectFieldAttribute>()
+				.FieldGuid;
 
 			var fieldId = 2;
 
@@ -175,10 +178,10 @@ namespace Gravity.Test.Unit
 
 				var fieldValues = typeof(T)
 					.GetPublicProperties()
-					.Select(x => x.GetFieldGuidValueFromAttribute())
-					.Where(x => x != new Guid())
+					.Select(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid)
+					.Where(x => x != null)
 					.Distinct()
-					.Select(x => new FieldValue(x, null));
+					.Select(x => new FieldValue(x.Value, null));
 				stubRdo.Fields.AddRange(fieldValues);
 
 				return stubRdo;

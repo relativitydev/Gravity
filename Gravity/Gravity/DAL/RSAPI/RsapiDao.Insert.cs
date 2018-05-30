@@ -78,7 +78,6 @@ namespace Gravity.DAL.RSAPI
 		private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto, new()
 		{
 			PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
-			PropertyInfo ArtifactIdProperty = objectToBeInserted.GetType().GetProperty("ArtifactId");
 
 			if (parentArtifactIdProperty == null)
 			{
@@ -86,7 +85,7 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
-			ArtifactIdProperty.SetValue(objectToBeInserted, 0);
+			objectToBeInserted.ArtifactId = 0;
 		}
 		#endregion
 
@@ -150,27 +149,30 @@ namespace Gravity.DAL.RSAPI
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
 			{
 				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
-				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
-
-				if (fieldValue != null)
+				if (fieldGuid == null)
 				{
-					foreach (var childObject in fieldValue)
-					{
-						if (fieldGuid != null)
-						{
-							//TODO: better test to see if contains value...if all fields are null, not need
-							if (((childObject as BaseDto).ArtifactId == 0))
-							{
-								Type objType = childObject.GetType();
-								var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", childObject);
-								(childObject as BaseDto).ArtifactId = (int)newArtifactId;
-							}
-							else
-							{
-								//TODO: Consider update if fields have changed
+					continue;
+				}
 
-							}
-						}
+				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
+				if (fieldValue == null)
+				{
+					continue;
+				}
+
+				foreach (var childObject in fieldValue)
+				{
+					//TODO: better test to see if contains value...if all fields are null, not need
+					if (((childObject as BaseDto).ArtifactId == 0))
+					{
+						Type objType = childObject.GetType();
+						var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", childObject);
+						(childObject as BaseDto).ArtifactId = (int)newArtifactId;
+					}
+					else
+					{
+						//TODO: Consider update if fields have changed
+
 					}
 				}
 			}

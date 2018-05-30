@@ -38,16 +38,16 @@ public class DemoPurchaseOrder : BaseDto
 	[RelativityObjectField("3BDC0971-A87C-414E-9A37-FC477279BBAD", RdoFieldType.FixedLengthText, 100)]
 	public string CustomerEmail { get; set; }
 
-	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E"), RdoFieldType.MultipleObject, typeof(Items))]
+	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E"), RdoFieldType.MultipleObject)]
 	public IList<Items> Items { get; set; }
 
-	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E"), RdoFieldType.SingleObject, typeof(Address))]
+	[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E"), RdoFieldType.SingleObject)]
 	public Address Address { get; set; }
 
 	[RelativityObjectField("4501A308-5E68-4314-AEDC-4DEB527F12A8", RdoFieldType.Decimal)]
 	public decimal Total { get; set; }
 
-	[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", RdoFieldType.SingleChoice, typeof(OrderType))]
+	[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", RdoFieldType.SingleChoice)]
 	public OrderType OrderType { get; set; }
 
 	[RelativityObjectChildrenList]

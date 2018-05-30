@@ -62,9 +62,14 @@ namespace Gravity.DAL.RSAPI
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel));
 		}
 
-		public IEnumerable<T> GetAllChildDTOs<T>(Guid parentFieldGuid, int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
+		public IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
+			var parentFieldGuid = typeof(T).GetPublicProperties()
+				.Select(x => x.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>())
+				.First(x => x != null)
+				.FieldGuid;
+
 			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
 			return GetAllDTOs<T>(queryCondition, depthLevel);
 		}
@@ -157,16 +162,14 @@ namespace Gravity.DAL.RSAPI
 			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
 			{
 				var childType = property.PropertyType.GetEnumerableInnerType();
-				Guid parentFieldGuid = childType.GetRelativityObjectGuidForParentField();
 
-				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), parentFieldGuid, baseDto.ArtifactId, depthLevel) as IEnumerable;
+				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), baseDto.ArtifactId, depthLevel) as IEnumerable;
 
 				return MakeGenericList(allChildObjects, childType);
 			}
 
 			//file
-			var relativityFile = property.GetValue(baseDto, null) as RelativityFile;
-			if (relativityFile != null)
+			if (property.GetValue(baseDto, null) is RelativityFile relativityFile)
 			{
 				return GetFile(relativityFile.ArtifactTypeId, baseDto.ArtifactId);
 			}

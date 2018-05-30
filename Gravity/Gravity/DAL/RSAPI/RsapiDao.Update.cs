@@ -103,7 +103,7 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			PropertyInfo fieldProperty = typeof(T).GetProperties()
-				.SingleOrDefault(p => p.GetFieldGuidValueFromAttribute() == fieldGuid);
+				.SingleOrDefault(p => p.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid == fieldGuid);
 			if (fieldProperty == null)
 				throw new InvalidOperationException($"Field not on type {typeof(T)}");
 
@@ -112,8 +112,7 @@ namespace Gravity.DAL.RSAPI
 			if (!TryGetRelativityFieldValue<T>(fieldProperty, value, out rdoValue))
 				return;
 
-			var rdoValueFile = rdoValue as RelativityFile;
-			if (rdoValueFile != null)
+			if (rdoValue is RelativityFile rdoValueFile)
 			{
 				InsertUpdateFileField(rdoValueFile, rdoID);
 				return;

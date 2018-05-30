@@ -8,27 +8,6 @@ namespace Gravity.Extensions
 {
 	public static class TypeExtensions
 	{
-		public static Guid GetRelativityObjectGuidForParentField(this Type type)
-		{
-			Guid returnValue = new Guid();
-
-			foreach (var propertyInfo in type.GetPublicProperties())
-			{
-				RelativityObjectFieldParentArtifactIdAttribute parentAttribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>();
-				return propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid ?? new Guid();
-			}
-
-			return returnValue;
-		}
-
-		public static Guid GetFieldGuidValueFromAttribute(this PropertyInfo propertyInfo)
-		{
-			return propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid
-				?? propertyInfo.GetCustomAttribute<RelativityMultipleObjectAttribute>()?.FieldGuid
-				?? propertyInfo.GetCustomAttribute<RelativitySingleObjectAttribute>()?.FieldGuid
-				?? new Guid();
-		}
-
 		public static object InvokeGenericMethod(this object obj, Type typeArgument, string methodName, params object[] args)
 		{
 			MethodInfo method = obj.GetType()

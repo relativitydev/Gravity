@@ -19,6 +19,7 @@ namespace Gravity.Extensions
 		{
 			T returnDto = new T();
 			returnDto.ArtifactId = rdo.ArtifactID;
+			returnDto.GetParentArtifactIdProperty()?.SetValue(returnDto, rdo.ParentArtifact?.ArtifactID);
 
 			foreach (PropertyInfo property in typeof(T).GetPublicProperties())
 			{
@@ -28,12 +29,12 @@ namespace Gravity.Extensions
 				{
 					FieldValue theFieldValue = rdo[fieldAttribute.FieldGuid];
 
-					switch (fieldAttribute.FieldType)
-					{
-										case RdoFieldType.SingleObject:
-												case RdoFieldType.MultipleObject:
-									break;
-												case RdoFieldType.Currency:
+				switch (fieldAttribute.FieldType)
+				{
+					case RdoFieldType.SingleObject:
+						case RdoFieldType.MultipleObject:
+							break;
+						case RdoFieldType.Currency:
 							newValueObject = theFieldValue.ValueAsCurrency;
 							break;
 						case RdoFieldType.Date:
@@ -63,8 +64,10 @@ namespace Gravity.Extensions
 								if (valueAsMultipleChoice == null)
 									break;
 
+								var enumType = property.PropertyType.GetEnumerableInnerType();
+
 								//get a List<target_enum_type> to hold your converted values
-								var genericListType = typeof(List<>).MakeGenericType(fieldAttribute.ObjectFieldDTOType);
+								var genericListType = typeof(List<>).MakeGenericType(enumType);
 								var listOfEnumValuesInstance = (IList)Activator.CreateInstance(genericListType);
 
 								//get choice names
@@ -73,7 +76,7 @@ namespace Gravity.Extensions
 									StringComparer.InvariantCultureIgnoreCase);
 
 								//get enum values of type that correspond to those names
-								var enumValues = Enum.GetValues(fieldAttribute.ObjectFieldDTOType).Cast<Enum>()
+								var enumValues = Enum.GetValues(enumType).Cast<Enum>()
 									.Where(x => choiceNames.Contains(x.ToString()));
 
 								//add to list
@@ -94,15 +97,15 @@ namespace Gravity.Extensions
 								if (choiceNameTrimmed == null)
 									break;
 
-								newValueObject = Enum.GetValues(fieldAttribute.ObjectFieldDTOType)
+								newValueObject = Enum.GetValues(property.PropertyType)
 									.Cast<object>()
 									.SingleOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
 							}
 							break;
 						case RdoFieldType.User:
-							if (theFieldValue.Value != null && property.PropertyType == typeof(User))
+							if (theFieldValue.Value is User user && property.PropertyType == typeof(User))
 							{
-								newValueObject = theFieldValue.Value as User;
+								newValueObject = user;
 							}
 							break;
 						case RdoFieldType.WholeNumber:
