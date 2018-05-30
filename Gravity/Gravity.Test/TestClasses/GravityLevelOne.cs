@@ -43,7 +43,7 @@ namespace Gravity.Test.TestClasses
 		public IList<MultipleChoiceFieldChoices> MultipleChoiceFieldChoices { get; set; }
 
 		[RelativityObjectField("CEDB347B-679D-44ED-93D3-0B3027C7E6F5", RdoFieldType.SingleChoice)]
-		public SingleChoiceFieldChoices SingleChoice { get; set; }
+		public SingleChoiceFieldChoices? SingleChoice { get; set; }
 
 		[RelativityObjectField("48404771-DEA2-41AA-8FE6-217E6A04C8DC", RdoFieldType.User)]
 		public User UserField { get; set; }

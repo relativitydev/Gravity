@@ -97,7 +97,8 @@ namespace Gravity.Extensions
 								if (choiceNameTrimmed == null)
 									break;
 
-								newValueObject = Enum.GetValues(property.PropertyType)
+								var enumType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+								newValueObject = Enum.GetValues(enumType)
 									.Cast<object>()
 									.SingleOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
 							}
