@@ -25,5 +25,12 @@ namespace Gravity.Extensions
 				.First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
 				.GetGenericArguments()[0];
 		}
+
+		public static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributeTuples<A>(this Type type) where A : Attribute
+		{
+			return type.GetPublicProperties()
+				.Select(p => new Tuple<PropertyInfo, A>(p, p.GetCustomAttribute<A>()))
+				.Where(kvp => kvp.Item2 != null);
+		}
 	}
 }

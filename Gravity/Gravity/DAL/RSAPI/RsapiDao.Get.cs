@@ -65,10 +65,9 @@ namespace Gravity.DAL.RSAPI
 		public IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			var parentFieldGuid = typeof(T).GetPublicProperties()
-				.Select(x => x.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>())
-				.First(x => x != null)
-				.FieldGuid;
+			var parentFieldGuid = typeof(T)
+				.GetPropertyAttributeTuples<RelativityObjectFieldParentArtifactIdAttribute>()
+				.First().Item2.FieldGuid;
 
 			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
 			return GetAllDTOs<T>(queryCondition, depthLevel);
@@ -137,7 +136,7 @@ namespace Gravity.DAL.RSAPI
 				{
 					Type objectType = property.PropertyType.GetEnumerableInnerType();
 
-					int[] childArtifactIds = objectRdo[(Guid)fieldGuid]
+					int[] childArtifactIds = objectRdo[fieldGuid]
 						.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
 						.Select(artifact => artifact.ArtifactID)
 						.ToArray();
@@ -151,7 +150,7 @@ namespace Gravity.DAL.RSAPI
 				if (fieldType == RdoFieldType.SingleObject)
 				{
 					var objectType = property.PropertyType;
-					int childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
+					var childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
 					return childArtifactId == 0
 						? Activator.CreateInstance(objectType)
 						: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);

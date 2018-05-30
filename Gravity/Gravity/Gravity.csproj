@@ -63,6 +63,7 @@
     <Compile Include="Extensions\CollectionsExtensions.cs" />
     <Compile Include="Extensions\ResultSetExtensions.cs" />
     <Compile Include="Extensions\EnumHelpers.cs" />
+    <Compile Include="Extensions\TupleHelpers.cs" />
     <Compile Include="Utils\InvokeWithRetrySettings.cs" />
     <Compile Include="Utils\InvokeWithRetryService.cs" />
     <Compile Include="Base\BaseDto.cs" />
