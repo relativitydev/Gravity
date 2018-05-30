@@ -83,12 +83,12 @@ namespace Gravity.Test.Integration
 					//create client
 					_client = _servicesManager.GetProxy<IRSAPIClient>(ConfigurationHelper.ADMIN_USERNAME, ConfigurationHelper.DEFAULT_PASSWORD);
 
-					Console.WriteLine("Importing Application.");
+					LogStart("Application Import");
 					if (!_debug)
 					{
 						//Import Application
 						Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicationFilePath, _applicationName);
-						Console.WriteLine("Application import Complete.");
+						LogEnd("Application Import");
 					}
 					else
 					{
@@ -163,44 +163,34 @@ namespace Gravity.Test.Integration
 		[Test, Description("Verify Test Object is Created")]
 		public void Valid_Gravity_Object_Created()
 		{
-			Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
-
-			try
+			void Inner()
 			{
 				//Arrange
-				Console.WriteLine("Starting Arrangement....");
+				LogStart("Arrangement");
 
-				GravityLevelOne testObject = new GravityLevelOne();
-				testObject.Name = $"TestObject_{Guid.NewGuid()}";
+				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObject_{Guid.NewGuid()}" };
 
 
-				Console.WriteLine("Arrangement Complete....");
+				LogEnd("Arrangement");
 
 				//Act
-				Console.WriteLine("Starting Act....");
+				LogStart("Act");
 
 				var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity<GravityLevelOne>(testObject);
 
-				Console.WriteLine("Act Complete....");
+				LogEnd("Act");
 
 				//Assert
-				Console.WriteLine("Starting Assertion....");
+				LogStart("Assertion");
 
 				//Assert object returned valid Artifact ID
-				Console.WriteLine("Starting Artifact ID > 0 Assertion....");
+				LogStart("Artifact ID > 0 Assertion");
 				Assert.Greater(newRdoArtifactId, 0);
-				Console.WriteLine("Artifact ID > 0 Assertion Complete...." + newRdoArtifactId.ToString());
+				LogEnd($"Artifact ID > 0 Assertion (was {newRdoArtifactId})");
 
-				Console.WriteLine("Assertion Complete....");
+				LogEnd("Assertion");
 			}
-			catch (Exception ex)
-			{
-				throw new Exception("Error encountered in " + System.Reflection.MethodBase.GetCurrentMethod().Name, ex);
-			}
-			finally
-			{
-				Console.WriteLine("Ending Test case " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-			}
+			TestWrapper(Inner);
 		}
 
 		[Test, Description("Verify RelativityObject field created correctly using Gravity"),
@@ -208,15 +198,12 @@ namespace Gravity.Test.Integration
 		//need object fields, could get a little more difficult
 		public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
 		{
-			Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
-
-			try
+			void Inner()
 			{
 				//Arrange
-				Console.WriteLine("Starting Arrangement for property...." + objectPropertyName);
+				LogStart($"for property{objectPropertyName}");
 
-				GravityLevelOne testObject = new GravityLevelOne();
-				testObject.Name = "TestObjectCreate_" + objectPropertyName + Guid.NewGuid().ToString();
+				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectCreate_{objectPropertyName}{Guid.NewGuid()}" };
 
 				Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
 				//can get rid of cast once FieldType is created as RdoFieldType and not int
@@ -238,10 +225,10 @@ namespace Gravity.Test.Integration
 
 				_client.APIOptions.WorkspaceID = _workspaceId;
 
-				Console.WriteLine("Arrangement Complete....");
+				LogEnd("Arrangement");
 
 				//Act
-				Console.WriteLine("Starting Act....");
+				LogStart("Act");
 
 				var newRdoArtifactId = _testObjectHelper.CreateTestObjectWithGravity<GravityLevelOne>(testObject);
 
@@ -301,11 +288,10 @@ namespace Gravity.Test.Integration
 						GravityLevel2 g2 = new GravityLevel2();
 						Guid childFieldNameGuid = g2.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
 
-						foreach (kCura.Relativity.Client.DTOs.Artifact child in (kCura.Relativity.Client.DTOs.FieldValueList<kCura.Relativity.Client.DTOs.Artifact>)newObjectValue)
+						foreach (kCura.Relativity.Client.DTOs.Artifact child in (FieldValueList<kCura.Relativity.Client.DTOs.Artifact>)newObjectValue)
 						{
 							//'Read' - need to get name.
-							kCura.Relativity.Client.DTOs.RDO childRdo = new kCura.Relativity.Client.DTOs.RDO();
-							childRdo.Fields = new List<FieldValue>() {new FieldValue(childFieldNameGuid) };
+							RDO childRdo = new RDO() { Fields = new List<FieldValue>() { new FieldValue(childFieldNameGuid) } };
 							childRdo = _client.Repositories.RDO.ReadSingle(child.ArtifactID);
 							string childNameValue = childRdo.Fields.Where(x => x.Guids.Contains(childFieldNameGuid)).FirstOrDefault().ToString();
 
@@ -317,39 +303,29 @@ namespace Gravity.Test.Integration
 						break;
 				}
 
-				Console.WriteLine("Act Complete....");
+				LogEnd("Act");
 
 				//Assert
-				Console.WriteLine("Starting Assertion....");
+				LogStart("Assertion");
 
 				//Assert
 				Assert.AreEqual(expectedData, newObjectValue);
 
-				Console.WriteLine("Assertion Complete....");
+				LogEnd("Assertion");
 			}
-			catch (Exception ex)
-			{
-				throw new Exception("Error encountered in " + System.Reflection.MethodBase.GetCurrentMethod().Name, ex);
-			}
-			finally
-			{
-				Console.WriteLine("Ending Test case " + System.Reflection.MethodBase.GetCurrentMethod().Name);
-			}
+			TestWrapper(Inner);
 		}
 
 		[Test, Description("Verify RelativityObject field read correctly using Gravity"),
 		 TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
 		public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
 		{
-			Console.WriteLine(System.Reflection.MethodBase.GetCurrentMethod().Name + " Created");
-
-			try
+			void Inner()
 			{
 				//Arrange
-				Console.WriteLine("Starting Arrangement for property...." + objectPropertyName);
+				LogStart($"Arrangement for property{objectPropertyName}");
 
-				GravityLevelOne testObject = new GravityLevelOne();
-				testObject.Name = "TestObjectRead_" + objectPropertyName + Guid.NewGuid().ToString();
+				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
 
 				Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
 				Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
@@ -405,22 +381,22 @@ namespace Gravity.Test.Integration
 				if (writeResults.Success)
 				{
 					newArtifactId = writeResults.Results[0].Artifact.ArtifactID;
-					Console.WriteLine(string.Format("Object was created with Artifact ID {0}.", newArtifactId));
+					Console.WriteLine($"Object was created with Artifact ID {newArtifactId}.");
 				}
 				else
 				{
-					Console.WriteLine(string.Format("An error occurred creating object: {0}", writeResults.Message));
+					Console.WriteLine($"An error occurred creating object: {writeResults.Message}");
 					foreach (var result in writeResults.Results.Select((item, index) => new { rdoResult = item, itemNumber = index }).Where(x => x.rdoResult.Success.Equals(false))
 							.Where(y => y.rdoResult.Success.Equals(false)))
 					{
-						Console.WriteLine(String.Format("An error occurred in create request {0}: {1}", result.itemNumber, result.rdoResult.Message));
+						Console.WriteLine($"An error occurred in create request {result.itemNumber}: {result.rdoResult.Message}");
 					}
 				}
 
-				Console.WriteLine("Arrangement Complete....");
+				LogEnd("Arrangement");
 
 				//Act
-				Console.WriteLine("Starting Act....");
+				LogStart("Act");
 
 				object gravityFieldValue = null;
 
@@ -442,10 +418,10 @@ namespace Gravity.Test.Integration
 					}
 				}
 
-				Console.WriteLine("Act Complete....");
+				LogEnd("Act");
 
 				//Assert
-				Console.WriteLine("Starting Assertion....");
+				LogStart("Assertion");
 
 				if (newArtifactId > 0)
 				{
@@ -453,20 +429,37 @@ namespace Gravity.Test.Integration
 				}
 				else
 				{
-					Assert.Fail("Could not create object to test with through RSAPI.  This is not a Gravity failure.");
+					Assert.Fail("Could not create object to test with through RSAPI. This is not a Gravity failure.");
 				}
 
-				Console.WriteLine("Assertion Complete....");
+				LogEnd("Assertion");
+			}
+			TestWrapper(Inner);
+		}
+		#endregion
+
+		#region Test Helpers
+		private static void TestWrapper(Action action)
+		{
+			string testName = TestContext.CurrentContext.Test.Name;
+			Console.WriteLine($"{testName} Created");
+			try
+			{
+				action();
 			}
 			catch (Exception ex)
 			{
-				throw new Exception("Error encountered in " + System.Reflection.MethodBase.GetCurrentMethod().Name, ex);
+				Console.WriteLine($"Error encountered in {testName}:\r\n{ex}");
+				throw;
 			}
 			finally
 			{
-				Console.WriteLine("Ending Test case " + System.Reflection.MethodBase.GetCurrentMethod().Name);
+				Console.WriteLine($"Ending Test case {testName}");
 			}
 		}
+
+		private static void LogStart(string message) => Console.WriteLine($"Starting {message}....");
+		private static void LogEnd(string message) => Console.WriteLine($"{message} Complete....");
 		#endregion
 	}
 }
