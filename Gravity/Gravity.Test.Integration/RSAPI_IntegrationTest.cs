@@ -15,6 +15,8 @@ using kCura.Relativity.Client.DTOs;
 using System.Reflection;
 using Gravity.Extensions;
 using Gravity.Test.Helpers;
+using Choice = kCura.Relativity.Client.DTOs.Choice;
+using Artifact = kCura.Relativity.Client.DTOs.Artifact;
 
 namespace Gravity.Test.Integration
 {
@@ -27,6 +29,8 @@ namespace Gravity.Test.Integration
 		//must point _workspaceId = valid workspace with application already installed in the Setup
 		private bool _debug = Convert.ToBoolean(ConfigurationManager.AppSettings["Debug"]);
 		private int _debugWorkspaceId = Convert.ToInt32(ConfigurationManager.AppSettings["DebugWorkspaceId"]);
+		public string _applicationFilePath = ConfigurationManager.AppSettings["TestApplicationLocation"];
+		public string _applicationName = ConfigurationManager.AppSettings["TestApplicationName"];
 
 		private IRSAPIClient _client;
 		private readonly string _workspaceName = $"GravityTest_{Guid.NewGuid()}";
@@ -34,10 +38,7 @@ namespace Gravity.Test.Integration
 		private IServicesMgr _servicesManager;
 		private IDBContext _eddsDbContext;
 		private IDBContext _dbContext;
-		//public string FilepathApplication = TestHelpers.Constants.Agent.DEFAULT_RAP_FILE_LOCATION + TestHelpers.Constants.Application.General.APPLICATION_NAME;
-		public string _applicationFilePath = ConfigurationManager.AppSettings["TestApplicationLocation"];
-		public string _applicationName = ConfigurationManager.AppSettings["TestApplicationName"];
-		private Test.Helpers.TestObjectHelper _testObjectHelper;
+		private TestObjectHelper _testObjectHelper;
 		#endregion
 
 		#region Setup
@@ -60,7 +61,7 @@ namespace Gravity.Test.Integration
 				if (!_debug)
 				{
 					_workspaceId =
-							Relativity.Test.Helpers.WorkspaceHelpers.CreateWorkspace.CreateWorkspaceAsync(_workspaceName,
+							CreateWorkspace.CreateWorkspaceAsync(_workspaceName,
 									ConfigurationHelper.TEST_WORKSPACE_TEMPLATE_NAME, _servicesManager, ConfigurationHelper.ADMIN_USERNAME,
 									ConfigurationHelper.DEFAULT_PASSWORD).Result;
 					Console.WriteLine($"Workspace created [WorkspaceArtifactId= {_workspaceId}].....");
@@ -111,7 +112,7 @@ namespace Gravity.Test.Integration
 
 				Console.WriteLine("Creating TestObject Helper.");
 				//1 retry setting because I want to know if it fails quickly while debugging, may bump up for production
-				_testObjectHelper = new Test.Helpers.TestObjectHelper(_servicesManager, _workspaceId, 1);
+				_testObjectHelper = new TestObjectHelper(_servicesManager, _workspaceId, 1);
 				Console.WriteLine("TestObject Helper Created.");
 
 			}
@@ -194,7 +195,7 @@ namespace Gravity.Test.Integration
 		}
 
 		[Test, Description("Verify RelativityObject field created correctly using Gravity"),
-		 TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
+		 TestCaseSource(typeof(TestCaseDefinition), nameof(TestCaseDefinition.SimpleFieldReadWriteTestCases))]
 		//need object fields, could get a little more difficult
 		public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
 		{
@@ -205,11 +206,10 @@ namespace Gravity.Test.Integration
 
 				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectCreate_{objectPropertyName}{Guid.NewGuid()}" };
 
-				Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
-				//can get rid of cast once FieldType is created as RdoFieldType and not int
-				RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+				var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
+				Guid testFieldGuid = testFieldAttribute.FieldGuid;
+				RdoFieldType fieldType = testFieldAttribute.FieldType;
 
-				object expectedData = sampleData;
 				
 				//need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
 				switch (fieldType)
@@ -238,6 +238,7 @@ namespace Gravity.Test.Integration
 				FieldValue field = newObject.Fields.Get(testFieldGuid);
 
 				object newObjectValue = null;
+				object expectedData = sampleData;
 
 				switch (fieldType)
 				{
@@ -263,42 +264,38 @@ namespace Gravity.Test.Integration
 						int choiceArtifactId = field.ValueAsSingleChoice.ArtifactID;
 						if (choiceArtifactId > 0)
 						{
-							kCura.Relativity.Client.DTOs.Choice choice = _client.Repositories.Choice.ReadSingle(choiceArtifactId);
+							Choice choice = _client.Repositories.Choice.ReadSingle(choiceArtifactId);
 							Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
 							Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
-							newObjectValue = choice.Guids.SingleOrDefault(x => x.Equals(singleChoiceGuid));
+							newObjectValue = choice.Guids.SingleOrDefault(x => x == singleChoiceGuid);
 							expectedData = singleChoiceGuid;
 						}
 						break;
 					case RdoFieldType.SingleObject:
 						newObjectValue = field.ValueAsSingleObject.ArtifactID;
-						if (testObject.GravityLevel2Obj.ArtifactId > 0)
-						{
-							expectedData = testObject.GravityLevel2Obj.ArtifactId;
-						}
-						else
-						{
-							expectedData = null;
-						}
-
+						expectedData = testObject.GravityLevel2Obj.ArtifactId > 0 
+							? (object)testObject.GravityLevel2Obj.ArtifactId 
+							: null;
 						break;
 					case RdoFieldType.MultipleObject:
-						newObjectValue = field.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>();
-						List<GravityLevel2> resultData = new List<GravityLevel2>();
-						GravityLevel2 g2 = new GravityLevel2();
-						Guid childFieldNameGuid = g2.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+						var rawNewObjectValue = field.GetValueAsMultipleObject<Artifact>();
+						var resultData = new List<GravityLevel2>();
+						Guid childFieldNameGuid = new GravityLevel2().GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
 
-						foreach (kCura.Relativity.Client.DTOs.Artifact child in (FieldValueList<kCura.Relativity.Client.DTOs.Artifact>)newObjectValue)
+						foreach (Artifact child in rawNewObjectValue)
 						{
 							//'Read' - need to get name.
-							RDO childRdo = new RDO() { Fields = new List<FieldValue>() { new FieldValue(childFieldNameGuid) } };
+							RDO childRdo = new RDO()
+							{
+								Fields = new List<FieldValue>() { new FieldValue(childFieldNameGuid) }
+							};
 							childRdo = _client.Repositories.RDO.ReadSingle(child.ArtifactID);
 							string childNameValue = childRdo.Fields.Where(x => x.Guids.Contains(childFieldNameGuid)).FirstOrDefault().ToString();
 
 							resultData.Add(new GravityLevel2() { ArtifactId = child.ArtifactID, Name = childNameValue});
 						}
-						expectedData = (expectedData as IEnumerable<GravityLevel2>).ToDictionary(x => x.ArtifactId, x => x.Name);
-						newObjectValue = (resultData).ToDictionary(x => x.ArtifactId, x => x.Name); 
+						newObjectValue = resultData.ToDictionary(x => x.ArtifactId, x => x.Name);
+						expectedData = ((IEnumerable<GravityLevel2>)expectedData).ToDictionary(x => x.ArtifactId, x => x.Name);
 
 						break;
 				}
@@ -317,28 +314,28 @@ namespace Gravity.Test.Integration
 		}
 
 		[Test, Description("Verify RelativityObject field read correctly using Gravity"),
-		 TestCaseSource(typeof(TestCaseDefinition), "SimpleFieldReadWriteTestCases")]
+		 TestCaseSource(typeof(TestCaseDefinition), nameof(TestCaseDefinition.SimpleFieldReadWriteTestCases))]
 		public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
 		{
 			void Inner()
 			{
 				//Arrange
-				LogStart($"Arrangement for property{objectPropertyName}");
+				LogStart($"Arrangement for property {objectPropertyName}");
 
 				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
 
 				Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
 				Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
-				Guid testFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldGuid;
+				var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
+				Guid testFieldGuid = testFieldAttribute.FieldGuid;
 				RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
 				_client.APIOptions.WorkspaceID = _workspaceId;
 
 				object expectedData = sampleData;
 
-				var dto = new RDO();
+				var dto = new RDO() { Guids = new List<Guid> { testObjectTypeGuid } };
 				int newArtifactId = -1;
-				dto.ArtifactTypeGuids.Add(testObjectTypeGuid);
 				dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
 
 				int objectToAttachID;
@@ -349,7 +346,7 @@ namespace Gravity.Test.Integration
 					case RdoFieldType.SingleChoice:
 						Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
 						Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
-						kCura.Relativity.Client.DTOs.Choice singleChoiceToAdd = new kCura.Relativity.Client.DTOs.Choice(singleChoiceGuid);
+						Choice singleChoiceToAdd = new Choice(singleChoiceGuid);
 						dto.Fields.Add(new FieldValue(testFieldGuid, singleChoiceToAdd));
 						break;
 					case RdoFieldType.SingleObject:
@@ -360,13 +357,13 @@ namespace Gravity.Test.Integration
 						break;
 					case RdoFieldType.MultipleObject:
 						IList<GravityLevel2> gravityLevel2s = (IList<GravityLevel2>)sampleData;
-						FieldValueList<kCura.Relativity.Client.DTOs.Artifact> objects = new FieldValueList<kCura.Relativity.Client.DTOs.Artifact>();
+						FieldValueList<Artifact> objects = new FieldValueList<Artifact>();
 						expectedData = new Dictionary<int, string>();
 						foreach (GravityLevel2 child in gravityLevel2s)
 						{
 							objectToAttachID =
 								_testObjectHelper.CreateTestObjectWithGravity<GravityLevel2>(child);
-							objects.Add(new kCura.Relativity.Client.DTOs.Artifact(objectToAttachID));
+							objects.Add(new Artifact(objectToAttachID));
 							(expectedData as Dictionary<int, string>).Add(objectToAttachID, child.Name);
 						}
 						dto.Fields.Add(new FieldValue(testFieldGuid, objects));
@@ -386,8 +383,10 @@ namespace Gravity.Test.Integration
 				else
 				{
 					Console.WriteLine($"An error occurred creating object: {writeResults.Message}");
-					foreach (var result in writeResults.Results.Select((item, index) => new { rdoResult = item, itemNumber = index }).Where(x => x.rdoResult.Success.Equals(false))
-							.Where(y => y.rdoResult.Success.Equals(false)))
+					foreach (var result in 
+						writeResults.Results
+							.Select((item, index) => new { rdoResult = item, itemNumber = index })
+							.Where(x => x.rdoResult.Success == false))
 					{
 						Console.WriteLine($"An error occurred in create request {result.itemNumber}: {result.rdoResult.Message}");
 					}
@@ -409,10 +408,10 @@ namespace Gravity.Test.Integration
 						switch (fieldType)
 						{
 							case RdoFieldType.SingleObject:
-								gravityFieldValue = (gravityFieldValue as GravityLevel2).Name;
+								gravityFieldValue = ((GravityLevel2)gravityFieldValue).Name;
 								break;
 							case RdoFieldType.MultipleObject:
-								gravityFieldValue = (gravityFieldValue as List<GravityLevel2>).ToDictionary(x => x.ArtifactId, x => x.Name);
+								gravityFieldValue = ((List<GravityLevel2>)gravityFieldValue).ToDictionary(x => x.ArtifactId, x => x.Name);
 								break;
 						}
 					}
