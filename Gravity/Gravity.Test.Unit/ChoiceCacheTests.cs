@@ -97,7 +97,7 @@ namespace Gravity.DAL.RSAPI.Tests
 			rsapiProvider.Verify(multiSetupExpr, Times.Once);
 		}
 
-		private static List<Guid> GetOrderedGuids<T>()
+		internal static List<Guid> GetOrderedGuids<T>()
 		{
 			return EnumHelpers.GetAttributesForValues<T, RelativityObjectAttribute>()
 						.OrderBy(x => x.Key)
@@ -105,12 +105,12 @@ namespace Gravity.DAL.RSAPI.Tests
 						.ToList();
 		}
 
-		private static Expression<Func<IRsapiProvider, ResultSet<RDO>>> SetupExpr(IEnumerable<Guid> guids)
+		internal static Expression<Func<IRsapiProvider, ResultSet<RDO>>> SetupExpr(IEnumerable<Guid> guids)
 		{
 			return z => z.Read(It.Is<List<RDO>>(x => new HashSet<Guid>(guids).SetEquals(x.Select(y => y.Guids.Single()))));
 		}
 
-		private static ResultSet<RDO> GetResults(List<Guid> choiceGuids, int offset)
+		internal static ResultSet<RDO> GetResults(List<Guid> choiceGuids, int offset)
 		{
 			return choiceGuids.Select((x, i) => new RDO(i + offset) { Guids = new List<Guid> { x } }).ToSuccessResultSet();
 		}

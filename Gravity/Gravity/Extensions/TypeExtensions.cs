@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 using Gravity.Base;
 
 namespace Gravity.Extensions
@@ -14,7 +15,16 @@ namespace Gravity.Extensions
 				.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
 				.MakeGenericMethod(new Type[] { typeArgument });
 
-			return method.Invoke(obj, args);
+			try
+			{ 
+				return method.Invoke(obj, args);
+			}
+			catch(TargetInvocationException ex)
+			{
+				// rethrow actual exception https://stackoverflow.com/a/17091351/1180926
+				ExceptionDispatchInfo.Capture(ex.InnerException).Throw();
+				throw;
+			}
 		}
 
 		// performance boost option: cache results of these

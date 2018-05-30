@@ -130,12 +130,13 @@ namespace Gravity.Base
 
 				case RdoFieldType.MultipleChoice:
 					{
-						var multiChoiceFieldValueEnumerable = ((IEnumerable)propertyValue)
+						var choiceList = ((IEnumerable)propertyValue)
 							.Cast<Enum>()
 							.Select(x => x.GetRelativityObjectAttributeGuidValue())
-							.Select(choiceGuid => new Choice(choiceGuid));
+							.Select(choiceGuid => new Choice(choiceGuid))
+							.ToList();
 
-						return new MultiChoiceFieldValueList(multiChoiceFieldValueEnumerable);
+						return choiceList.Any() ? (MultiChoiceFieldValueList)choiceList : null;
 					}
 
 				case RdoFieldType.MultipleObject:

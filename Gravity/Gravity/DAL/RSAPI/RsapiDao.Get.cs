@@ -24,7 +24,9 @@ namespace Gravity.DAL.RSAPI
 
 		protected List<RDO> GetRdos(int[] artifactIds)
 		{
-			return rsapiProvider.Read(artifactIds).GetResultData();
+			return artifactIds.Any()
+				? rsapiProvider.Read(artifactIds).GetResultData()
+				: new List<RDO>();
 		}
 
 		protected IEnumerable<RDO> GetRdos<T>(Condition queryCondition = null)
@@ -186,8 +188,14 @@ namespace Gravity.DAL.RSAPI
 				//single object
 				if (fieldType == RdoFieldType.SingleObject)
 				{
+					var childArtifact = objectRdo[fieldGuid].ValueAsSingleObject;
+					if (childArtifact == null)
+					{
+						return null;
+					}
+
 					var objectType = property.PropertyType;
-					var childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
+					var childArtifactId = childArtifact.ArtifactID;
 					return childArtifactId == 0
 						? Activator.CreateInstance(objectType)
 						: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);
@@ -216,7 +224,11 @@ namespace Gravity.DAL.RSAPI
 		private static IList MakeGenericList(IEnumerable items, Type type)
 		{
 			var listType = typeof(List<>).MakeGenericType(type);
-			IList returnList = (IList)Activator.CreateInstance(listType, items);
+			IList returnList = (IList)Activator.CreateInstance(listType);
+			foreach (var item in items)
+			{
+				returnList.Add(item);
+			}
 			return returnList;
 		}
 	}

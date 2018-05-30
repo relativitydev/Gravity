@@ -11,7 +11,12 @@ namespace Gravity.Test.Helpers
 	{
 		public static ResultSet<RDO> ToSuccessResultSet(this IEnumerable<RDO> rdos)
 		{
-			return new ResultSet<RDO>
+			return ToSuccessResultSet<ResultSet<RDO>>(rdos);
+		}
+
+		public static T ToSuccessResultSet<T>(this IEnumerable<RDO> rdos) where T: ResultSet<RDO>, new()
+		{
+			return new T
 			{
 				Success = true,
 				Results = rdos.Select(x => new Result<RDO> { Success = true, Artifact = x }).ToList()
