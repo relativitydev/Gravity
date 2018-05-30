@@ -11,6 +11,7 @@ namespace Gravity.DAL.RSAPI
 
 		protected InvokeWithRetryService invokeWithRetryService;
 		protected IRsapiProvider rsapiProvider;
+		protected ChoiceCache choiceCache;
 
 		public RsapiDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity,
 				InvokeWithRetrySettings invokeWithRetrySettings = null, 
@@ -31,6 +32,7 @@ namespace Gravity.DAL.RSAPI
 		public RsapiDao(IRsapiProvider rsapiProvider)
 		{
 			this.rsapiProvider = rsapiProvider;
+			this.choiceCache = new ChoiceCache(this.rsapiProvider);
 		}
 
 		private static InvokeWithRetryService GetInvokeWithRetryService(InvokeWithRetrySettings invokeWithRetrySettings)

@@ -56,50 +56,6 @@ namespace Gravity.Extensions
 					case RdoFieldType.LongText:
 						newValueObject = theFieldValue.ValueAsLongText;
 						break;
-					case RdoFieldType.MultipleChoice:
-						{
-							var valueAsMultipleChoice = theFieldValue.ValueAsMultipleChoice;
-							if (valueAsMultipleChoice == null)
-								break;
-
-							var enumType = property.PropertyType.GetEnumerableInnerType();
-
-							//get a List<target_enum_type> to hold your converted values
-							var genericListType = typeof(List<>).MakeGenericType(enumType);
-							var listOfEnumValuesInstance = (IList)Activator.CreateInstance(genericListType);
-
-							//get choice names
-							var choiceNames = new HashSet<string>(
-								valueAsMultipleChoice.Select(c => c.Name.ChoiceTrim()),
-								StringComparer.InvariantCultureIgnoreCase);
-
-							//get enum values of type that correspond to those names
-							var enumValues = Enum.GetValues(enumType).Cast<Enum>()
-								.Where(x => choiceNames.Contains(x.ToString()));
-
-							//add to list
-							foreach (var theValueObject in enumValues)
-							{
-								listOfEnumValuesInstance.Add(theValueObject);
-							}
-
-							//set to new object
-							newValueObject = listOfEnumValuesInstance;
-						}
-						break;
-					case RdoFieldType.SingleChoice:
-						{
-
-							string choiceNameTrimmed = theFieldValue?.ValueAsSingleChoice?.Name.ChoiceTrim();
-
-							if (choiceNameTrimmed == null)
-								break;
-
-							newValueObject = Enum.GetValues(property.PropertyType)
-								.Cast<object>()
-								.SingleOrDefault(x => x.ToString().Equals(choiceNameTrimmed, StringComparison.OrdinalIgnoreCase));
-						}
-						break;
 					case RdoFieldType.User:
 						if (theFieldValue.Value is User user && property.PropertyType == typeof(User))
 						{

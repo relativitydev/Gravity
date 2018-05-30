@@ -1,4 +1,5 @@
 ﻿using Gravity.Extensions;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections.Generic;
@@ -39,7 +40,8 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			var set = EnumHelpers.GetAttributesForValues<T, RelativityObjectAttribute>().Where(x => x.Value != null).ToList();
-			var choices = rsapiProvider.Read(set.Select(x => new RDO(x.Value.ObjectTypeGuid)).ToList()).GetResultData();
+			var rdosToRead = set.Select(x => new RDO(x.Value.ObjectTypeGuid) { ArtifactTypeID = (int)ArtifactType.Code }).ToList();
+			var choices = rsapiProvider.Read(rdosToRead).GetResultData();
 
 			var newCacheItem = Enumerable.Range(0, set.Count).ToDictionary(
 				i => choices[i].ArtifactID,

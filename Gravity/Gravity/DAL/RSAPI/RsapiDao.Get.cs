@@ -92,7 +92,7 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			T dto = objectRdo.ToHydratedDto<T>();
-
+			PopulateChoices(dto, objectRdo);
 			switch (depthLevel)
 			{
 				case ObjectFieldsDepthLevel.OnlyParentObject:
@@ -109,6 +109,43 @@ namespace Gravity.DAL.RSAPI
 
 			return dto;
 		}
+
+		private void PopulateChoices(BaseDto dto, RDO objectRdo)
+		{
+			foreach ((PropertyInfo property, RelativityObjectFieldAttribute fieldAttribute) 
+				in dto.GetType().GetPropertyAttributeTuples<RelativityObjectFieldAttribute>())
+			{
+				object GetEnum(Type enumType, int artifactId) => choiceCache.InvokeGenericMethod(enumType, nameof(ChoiceCache.GetEnum), artifactId);
+
+				switch (fieldAttribute.FieldType)
+				{
+					case RdoFieldType.SingleChoice:
+						{ 
+							if (objectRdo[fieldAttribute.FieldGuid].ValueAsSingleChoice?.ArtifactID is int artifactId)
+							{
+								var enumType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+								property.SetValue(dto, GetEnum(enumType, artifactId));
+							}
+						}
+						break;
+					case RdoFieldType.MultipleChoice:
+						{ 
+							var enumType = property.PropertyType.GetEnumerableInnerType();
+							var fieldValue = objectRdo[fieldAttribute.FieldGuid].ValueAsMultipleChoice?
+								.Select(x => GetEnum(enumType, x.ArtifactID))
+								.ToList();
+							if (fieldValue != null)
+							{ 
+								property.SetValue(dto, MakeGenericList(fieldValue, enumType));
+							}
+						}
+						break;
+					default:
+						break;
+				}
+			}
+		}
+
 
 		internal void PopulateChildrenRecursively<T>(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
 		{
