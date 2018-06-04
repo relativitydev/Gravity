@@ -1,11 +1,16 @@
-Open Source Community: Gravity is an ORM framework (https://en.wikipedia.org/wiki/Object-relational_mapping) for Relativity custom development.  Using Gravity will greatly decrease the amount of time it takes to pick up Relativity development and allow you to write code that interacts with Relativity with commonly used C# syntax.
+Open Source Community: Gravity is an [ORM framework](https://en.wikipedia.org/wiki/Object-relational_mapping) for Relativity custom development.  Using Gravity will greatly decrease the amount of time it takes to pick up Relativity development and allow you to write code that interacts with Relativity with commonly used C# syntax.
 
 While this project is hosted on the RelativityDev account, support is only available through the Relativity developer community. You are welcome to use the code and solution as you see fit within the confines of the license it is released under. However, if you are looking for support or modifications to the solution, we suggest reaching out to a Relativity Development Partner.
 
 Gravity was originally created by TSD Services.   Through their generosity and leadership, they have released the project as open source.  It is an active project and has contributions from other Relativity Development Partners.  Anyone who has a need is invited to use and contribute to the project.
 
 We would like to recognize the following Relativity Development Partners who have made significant contributions to the Gravity project:
-[TSD Services] [Milyli]
+
+<p align="center>
+	<img src="http://www.tsdservices.com/wp-content/uploads/2015/03/TSD_Logo-TM-for-website.png">  
+</p>
+
+![TSD Services](http://www.tsdservices.com/wp-content/uploads/2015/03/TSD_Logo-TM-for-website.png "TSD Services")  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![MILYLI](http://milyli.com/wp-content/uploads/2014/07/milyli_header-regular.png "MILYLI")
 
 This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
 
