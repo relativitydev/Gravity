@@ -1,5 +1,4 @@
-# Gravity
-CRUDQ Framework for Relativity Custom Development
+Open Source Community: Gravity is an ORM framework (https://en.wikipedia.org/wiki/Object-relational_mapping) for Relativity custom development.  Using Gravity will greatly decrease the amount of time it takes to pick up Relativity development and allow you to write code that interacts with Relativity with commonly used C# syntax.
 
 This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
 
