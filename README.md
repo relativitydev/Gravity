@@ -2,6 +2,11 @@ Open Source Community: Gravity is an ORM framework (https://en.wikipedia.org/wik
 
 While this project is hosted on the RelativityDev account, support is only available through the Relativity developer community. You are welcome to use the code and solution as you see fit within the confines of the license it is released under. However, if you are looking for support or modifications to the solution, we suggest reaching out to a Relativity Development Partner.
 
+Gravity was originally created by TSD Services.   Through their generosity and leadership, they have released the project as open source.  It is an active project and has contributions from other Relativity Development Partners.  Anyone who has a need is invited to use and contribute to the project.
+
+We would like to recognize the following Relativity Development Partners who have made significant contributions to the Gravity project:
+[TSD Services] [Milyli]
+
 This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
 
 ## Target Framework
