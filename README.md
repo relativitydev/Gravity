@@ -1,5 +1,7 @@
 Open Source Community: Gravity is an ORM framework (https://en.wikipedia.org/wiki/Object-relational_mapping) for Relativity custom development.  Using Gravity will greatly decrease the amount of time it takes to pick up Relativity development and allow you to write code that interacts with Relativity with commonly used C# syntax.
 
+While this project is hosted on the RelativityDev account, support is only available through the Relativity developer community. You are welcome to use the code and solution as you see fit within the confines of the license it is released under. However, if you are looking for support or modifications to the solution, we suggest reaching out to a Relativity Development Partner.
+
 This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
 
 ## Target Framework
