@@ -62,6 +62,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Helpers\ResultSetHelper.cs" />
     <Compile Include="Helpers\TestObjectHelper.cs" />
     <Compile Include="Helpers\TestValues.cs" />
     <Compile Include="TestClasses\GravityLevel2.cs" />

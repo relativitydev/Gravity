@@ -23,7 +23,8 @@ namespace Gravity.Base
 
 		public static List<PropertyInfo> GetRelativityObjectChildrenListProperties<T>()
 		{
-			return GetPropertyAttributes<T, RelativityObjectChildrenListAttribute>().Select(x => x.Item1).ToList();
+			return typeof(T).GetPropertyAttributeTuples<RelativityObjectChildrenListAttribute>()
+				.Select(x => x.Item1).ToList();
 		}
 
 		public object GetPropertyValue(string propertyName)
@@ -33,14 +34,15 @@ namespace Gravity.Base
 
 		public PropertyInfo GetParentArtifactIdProperty()
 		{
-			return GetPropertyAttributes<RelativityObjectFieldParentArtifactIdAttribute>(this.GetType())
+			return this.GetType().GetPropertyAttributeTuples<RelativityObjectFieldParentArtifactIdAttribute>()
 				.FirstOrDefault()?
 				.Item1;
 		}
 
 		public static IEnumerable<Guid> GetFieldsGuids<T>() where T : BaseDto
 		{
-			return GetPropertyAttributes<RelativityObjectFieldAttribute>(typeof(T)).Select(propertyAttributePair => propertyAttributePair.Item2.FieldGuid);
+			return typeof(T).GetPropertyAttributeTuples<RelativityObjectFieldAttribute>()
+				.Select(propertyAttributePair => propertyAttributePair.Item2.FieldGuid);
 		}
 
 		// BE CAREFUL!
@@ -67,8 +69,6 @@ namespace Gravity.Base
 
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
 			{
-
-
 				object propertyValue = property.GetValue(this);
 				if (propertyValue == null)
 				{
@@ -130,12 +130,13 @@ namespace Gravity.Base
 
 				case RdoFieldType.MultipleChoice:
 					{
-						var multiChoiceFieldValueEnumerable = ((IEnumerable)propertyValue)
+						var choiceList = ((IEnumerable)propertyValue)
 							.Cast<Enum>()
 							.Select(x => x.GetRelativityObjectAttributeGuidValue())
-							.Select(choiceGuid => new Choice(choiceGuid));
+							.Select(choiceGuid => new Choice(choiceGuid))
+							.ToList();
 
-						return new MultiChoiceFieldValueList(multiChoiceFieldValueEnumerable);
+						return choiceList.Any() ? (MultiChoiceFieldValueList)choiceList : null;
 					}
 
 				case RdoFieldType.MultipleObject:
@@ -170,14 +171,6 @@ namespace Gravity.Base
 
 		#endregion
 
-		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<T, A>() where A : Attribute
-			=> GetPropertyAttributes<A>(typeof(T));
 
-		private static IEnumerable<Tuple<PropertyInfo, A>> GetPropertyAttributes<A>(Type type) where A : Attribute
-		{
-			return type.GetPublicProperties()
-				.Select(p => new Tuple<PropertyInfo, A>(p, p.GetCustomAttribute<A>()))
-				.Where(kvp => kvp.Item2 != null);
-		}
 	}
 }

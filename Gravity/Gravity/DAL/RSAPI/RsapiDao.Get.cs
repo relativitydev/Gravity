@@ -24,7 +24,9 @@ namespace Gravity.DAL.RSAPI
 
 		protected List<RDO> GetRdos(int[] artifactIds)
 		{
-			return rsapiProvider.Read(artifactIds).GetResultData();
+			return artifactIds.Any()
+				? rsapiProvider.Read(artifactIds).GetResultData()
+				: new List<RDO>();
 		}
 
 		protected IEnumerable<RDO> GetRdos<T>(Condition queryCondition = null)
@@ -65,10 +67,9 @@ namespace Gravity.DAL.RSAPI
 		public IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			var parentFieldGuid = typeof(T).GetPublicProperties()
-				.Select(x => x.GetCustomAttribute<RelativityObjectFieldParentArtifactIdAttribute>())
-				.First(x => x != null)
-				.FieldGuid;
+			var parentFieldGuid = typeof(T)
+				.GetPropertyAttributeTuples<RelativityObjectFieldParentArtifactIdAttribute>()
+				.First().Item2.FieldGuid;
 
 			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
 			return GetAllDTOs<T>(queryCondition, depthLevel);
@@ -93,7 +94,7 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			T dto = objectRdo.ToHydratedDto<T>();
-
+			PopulateChoices(dto, objectRdo);
 			switch (depthLevel)
 			{
 				case ObjectFieldsDepthLevel.OnlyParentObject:
@@ -110,6 +111,43 @@ namespace Gravity.DAL.RSAPI
 
 			return dto;
 		}
+
+		private void PopulateChoices(BaseDto dto, RDO objectRdo)
+		{
+			foreach ((PropertyInfo property, RelativityObjectFieldAttribute fieldAttribute) 
+				in dto.GetType().GetPropertyAttributeTuples<RelativityObjectFieldAttribute>())
+			{
+				object GetEnum(Type enumType, int artifactId) => choiceCache.InvokeGenericMethod(enumType, nameof(ChoiceCache.GetEnum), artifactId);
+
+				switch (fieldAttribute.FieldType)
+				{
+					case RdoFieldType.SingleChoice:
+						{ 
+							if (objectRdo[fieldAttribute.FieldGuid].ValueAsSingleChoice?.ArtifactID is int artifactId)
+							{
+								var enumType = Nullable.GetUnderlyingType(property.PropertyType) ?? property.PropertyType;
+								property.SetValue(dto, GetEnum(enumType, artifactId));
+							}
+						}
+						break;
+					case RdoFieldType.MultipleChoice:
+						{ 
+							var enumType = property.PropertyType.GetEnumerableInnerType();
+							var fieldValue = objectRdo[fieldAttribute.FieldGuid].ValueAsMultipleChoice?
+								.Select(x => GetEnum(enumType, x.ArtifactID))
+								.ToList();
+							if (fieldValue != null)
+							{ 
+								property.SetValue(dto, MakeGenericList(fieldValue, enumType));
+							}
+						}
+						break;
+					default:
+						break;
+				}
+			}
+		}
+
 
 		internal void PopulateChildrenRecursively<T>(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
 		{
@@ -137,7 +175,7 @@ namespace Gravity.DAL.RSAPI
 				{
 					Type objectType = property.PropertyType.GetEnumerableInnerType();
 
-					int[] childArtifactIds = objectRdo[(Guid)fieldGuid]
+					int[] childArtifactIds = objectRdo[fieldGuid]
 						.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
 						.Select(artifact => artifact.ArtifactID)
 						.ToArray();
@@ -150,8 +188,14 @@ namespace Gravity.DAL.RSAPI
 				//single object
 				if (fieldType == RdoFieldType.SingleObject)
 				{
+					var childArtifact = objectRdo[fieldGuid].ValueAsSingleObject;
+					if (childArtifact == null)
+					{
+						return null;
+					}
+
 					var objectType = property.PropertyType;
-					int childArtifactId = objectRdo[(Guid)fieldGuid].ValueAsSingleObject.ArtifactID;
+					var childArtifactId = childArtifact.ArtifactID;
 					return childArtifactId == 0
 						? Activator.CreateInstance(objectType)
 						: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);
@@ -180,7 +224,11 @@ namespace Gravity.DAL.RSAPI
 		private static IList MakeGenericList(IEnumerable items, Type type)
 		{
 			var listType = typeof(List<>).MakeGenericType(type);
-			IList returnList = (IList)Activator.CreateInstance(listType, items);
+			IList returnList = (IList)Activator.CreateInstance(listType);
+			foreach (var item in items)
+			{
+				returnList.Add(item);
+			}
 			return returnList;
 		}
 	}

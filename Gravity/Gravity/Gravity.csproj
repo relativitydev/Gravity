@@ -44,6 +44,7 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -56,11 +57,13 @@
     <Compile Include="Attributes\RelativityObjectFieldAttribute.cs" />
     <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
     <Compile Include="Base\RelativityFile.cs" />
+    <Compile Include="DAL\RSAPI\ChoiceCache.cs" />
     <Compile Include="DAL\RSAPI\IRsapiProvider.cs" />
     <Compile Include="DAL\RSAPI\RsapiProvider.cs" />
     <Compile Include="Extensions\CollectionsExtensions.cs" />
     <Compile Include="Extensions\ResultSetExtensions.cs" />
     <Compile Include="Extensions\EnumHelpers.cs" />
+    <Compile Include="Extensions\TupleHelpers.cs" />
     <Compile Include="Utils\InvokeWithRetrySettings.cs" />
     <Compile Include="Utils\InvokeWithRetryService.cs" />
     <Compile Include="Base\BaseDto.cs" />
@@ -82,6 +85,9 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="obj\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
