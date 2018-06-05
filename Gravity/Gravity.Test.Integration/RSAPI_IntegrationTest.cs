@@ -334,7 +334,7 @@ namespace Gravity.Test.Integration
 
 				object expectedData = sampleData;
 
-				var dto = new RDO() { Guids = new List<Guid> { testObjectTypeGuid } };
+				var dto = new RDO() { ArtifactTypeGuids = new List<Guid> { testObjectTypeGuid } };
 				int newArtifactId = -1;
 				dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
 
