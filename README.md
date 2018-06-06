@@ -16,11 +16,11 @@ We would like to recognize the following Relativity Development Partners who hav
 
 This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
 
-## Target Framework
-* .NET 4.5.1
+## Target Frameworks
+* .NET 4.5.1, .NET 4.6.2
 
 ## Dependencies
-This project requires references to Relativity's Relativity® SDK dlls, which are referenced via Nuget packages. Only DLL versions 9.4.224.2 to 9.5.162.111 are supported at the moment, but these should generally work with earlier or later versions of a Relativity server without any problems.
+This project requires references to Relativity's Relativity® SDK dlls, which are referenced via Nuget packages. As such, DLL versions 9.4.224.2 and up are supported.
 
 ## Sample / Test Suite
 
