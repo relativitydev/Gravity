@@ -2,9 +2,9 @@
   <PropertyGroup>
     <TargetFrameworks>net451;net462</TargetFrameworks>
     <Version>1.1.0</Version>
-    <PackageTags>Relativity Gravity CRUD CRUDQ Framework Custom Dev Development</PackageTags>
+    <PackageTags>Relativity Gravity ORM RSAPI</PackageTags>
     <PackageReleaseNotes>Initial Release</PackageReleaseNotes>
-    <PackageLicenseUrl>https://opensource.org/licenses/BSD-3-Clause</PackageLicenseUrl>
+    <PackageLicenseUrl>https://github.com/relativitydev/Gravity/blob/development/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/relativitydev/Gravity</PackageProjectUrl>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/relativitydev/Gravity.git</RepositoryUrl>
