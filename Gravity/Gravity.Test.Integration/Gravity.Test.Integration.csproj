@@ -1,22 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
-    <Configurations>Debug;Release</Configurations>
     <TestProjectType>UnitTest</TestProjectType>
-    <Company>TSD Services, Ltd - Open Source</Company>
-    <Description>CRUDQ Framework for Relativity Custom Development</Description>
-    <Copyright>Copyright © 2017</Copyright>
-    <Authors>TSD Services, Ltd - Open Source</Authors>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ProjectGuid>{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gravity.Test.Integration</RootNamespace>
-    <AssemblyName>Gravity.Test.Integration</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp />
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>

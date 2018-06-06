@@ -1,0 +1,9 @@
+<Project>
+  <!-- Common metadata properties -->
+  <PropertyGroup>
+    <Company>TSD Services, Ltd - Open Source</Company>
+    <Description>CRUDQ Framework for Relativity Custom Development</Description>
+    <Copyright>Copyright © 2017</Copyright>
+    <Authors>TSD Services, Ltd - Open Source</Authors>
+  </PropertyGroup>
+</Project>

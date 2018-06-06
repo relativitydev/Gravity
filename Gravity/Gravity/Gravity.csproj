@@ -1,21 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net451;net462</TargetFrameworks>
-    <Configurations>Debug;Release</Configurations>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gravity</RootNamespace>
-    <AssemblyName>Gravity</AssemblyName>
-    <FileAlignment>512</FileAlignment>
     <Version>1.1.0</Version>
-    <Company>TSD Services, Ltd - Open Source</Company>
-    <Description>CRUDQ Framework for Relativity Custom Development</Description>
-    <Copyright>Copyright © 2017</Copyright>
     <PackageTags>Relativity Gravity CRUD CRUDQ Framework Custom Dev Development</PackageTags>
     <PackageReleaseNotes>Initial Release</PackageReleaseNotes>
     <PackageLicenseUrl>https://opensource.org/licenses/BSD-3-Clause</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/relativitydev/Gravity</PackageProjectUrl>
-    <Authors>TSD Services, Ltd - Open Source</Authors>
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/relativitydev/Gravity.git</RepositoryUrl>
   </PropertyGroup>
@@ -33,8 +23,4 @@
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Data.DataSetExtensions" />
   </ItemGroup>
-  <!-- Workaround for https://github.com/dotnet/roslyn-project-system/issues/1739 -->
-  <PropertyGroup>
-    <AssemblySearchPaths>$(AssemblySearchPaths);{GAC}</AssemblySearchPaths>
-  </PropertyGroup>
 </Project>

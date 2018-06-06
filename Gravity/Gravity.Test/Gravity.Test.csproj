@@ -1,28 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>net451;net462</TargetFrameworks>
-    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
   <PropertyGroup>
-    <ProjectGuid>{5A30BD81-511E-40D3-BA48-08399AE61A7B}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gravity.Test</RootNamespace>
-    <AssemblyName>Gravity.Test</AssemblyName>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
-    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
-    <ReferencePath>$(ProgramFiles)\Common Files\microsoft shared\VSTT\$(VisualStudioVersion)\UITestExtensionPackages</ReferencePath>
-    <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
-    <Company>TSD Services, Ltd - Open Source</Company>
-    <Description>CRUDQ Framework for Relativity Custom Development</Description>
-    <Copyright>Copyright © 2017</Copyright>
-    <Authors>TSD Services, Ltd - Open Source</Authors>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
-  <PropertyGroup />
   <ItemGroup>
     <ProjectReference Include="..\Gravity\Gravity.csproj" />
   </ItemGroup>
@@ -38,8 +21,4 @@
     <None Include="RelativityApplication\GravityDemo.rap" />
     <Content Include="RelativityApplication\TestingApplication.xml" />
   </ItemGroup>
-  <!-- Workaround for https://github.com/dotnet/roslyn-project-system/issues/1739 -->
-  <PropertyGroup>
-    <AssemblySearchPaths>$(AssemblySearchPaths);{GAC}</AssemblySearchPaths>
-  </PropertyGroup>
 </Project>
