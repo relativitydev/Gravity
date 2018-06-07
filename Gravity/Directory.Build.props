@@ -1,0 +1,8 @@
+<Project>
+  <!-- Common metadata properties -->
+  <PropertyGroup>
+    <Description>ORM Framework for Relativity Custom Development</Description>
+    <Copyright>Copyright © 2017-</Copyright>
+    <Authors>Relativity, TSD Services, Milyli, et. al.</Authors>
+  </PropertyGroup>
+</Project>

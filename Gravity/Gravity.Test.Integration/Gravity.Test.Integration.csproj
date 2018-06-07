@@ -1,108 +1,30 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\NUnit.3.10.1\build\NUnit.props" Condition="Exists('..\packages\NUnit.3.10.1\build\NUnit.props')" />
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7DF2B93B-3B14-45BB-B466-31F5D76E3BA1}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gravity.Test.Integration</RootNamespace>
-    <AssemblyName>Gravity.Test.Integration</AssemblyName>
-    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <TargetFramework>net462</TargetFramework>
+    <TestProjectType>UnitTest</TestProjectType>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemGroup>
-    <Reference Include="kCura.Config, Version=9.5.169.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.Other.9.5.169.7\lib\kCura.Config.dll</HintPath>
-    </Reference>
-    <Reference Include="kCura.Data.RowDataGateway, Version=9.5.169.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.Other.9.5.169.7\lib\kCura.Data.RowDataGateway.dll</HintPath>
-    </Reference>
-    <Reference Include="kCura.Relativity.Client, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.Rsapi.9.5.162.111\lib\kCura.Relativity.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="nunit.framework, Version=3.10.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
-      <HintPath>..\packages\NUnit.3.10.1\lib\net45\nunit.framework.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.API, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.Api.9.5.162.111\lib\Relativity.API.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.Kepler, Version=1.0.1.333, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.ObjectManager.9.5.169.7\lib\Relativity.Kepler.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.Services.DataContracts, Version=9.5.169.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.ObjectManager.9.5.169.7\lib\Relativity.Services.DataContracts.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.Services.Interfaces, Version=9.5.169.7, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.ObjectManager.9.5.169.7\lib\Relativity.Services.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.Services.ServiceProxy, Version=1.0.1.333, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.ObjectManager.9.5.169.7\lib\Relativity.Services.ServiceProxy.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.Test.Helpers, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\RelativityTestHelpersNuget.1.3.0\lib\Relativity.Test.Helpers.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <ProjectReference Include="..\Gravity.Test\Gravity.Test.csproj" />
+    <ProjectReference Include="..\Gravity\Gravity.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="RSAPI_IntegrationTest.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestCaseDefinition.cs" />
+    <PackageReference Include="NUnit" Version="3.10.1" />
+    <!--Relativity dependencies for integration tests need higher version so don't run into kCura.Config vs kCura issues-->
+    <PackageReference Include="Relativity.Other" Version="9.5.162.111" />
+    <PackageReference Include="Relativity.ObjectManager" Version="9.5.162.111" />
+    <PackageReference Include="Relativity.Api" Version="9.5.162.111" />
+    <PackageReference Include="Relativity.Rsapi" Version="9.5.162.111" />
+    <PackageReference Include="RelativityTestHelpersNuget" Version="1.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Gravity.Test\Gravity.Test.csproj">
-      <Project>{5a30bd81-511e-40d3-ba48-08399ae61a7b}</Project>
-      <Name>Gravity.Test</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Gravity\Gravity.csproj">
-      <Project>{cfa21c47-85e1-47b9-a824-7cd3989c9998}</Project>
-      <Name>Gravity</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\NUnit.3.10.1\build\NUnit.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NUnit.3.10.1\build\NUnit.props'))" />
-  </Target>
 </Project>

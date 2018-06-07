@@ -1,100 +1,26 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{CFA21C47-85E1-47B9-A824-7CD3989C9998}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Gravity</RootNamespace>
-    <AssemblyName>Gravity</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworks>net451;net462</TargetFrameworks>
+    <Version>1.1.0</Version>
+    <PackageTags>Relativity Gravity ORM RSAPI</PackageTags>
+    <PackageReleaseNotes>Initial Release</PackageReleaseNotes>
+    <PackageLicenseUrl>https://github.com/relativitydev/Gravity/blob/development/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/relativitydev/Gravity</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/relativitydev/Gravity.git</RepositoryUrl>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
+  <PropertyGroup>
+    <RelativityVersion Condition="$(TargetFramework) == 'net451'">[9.4.224.2,9.5.162.11]</RelativityVersion>
+    <RelativityVersion Condition="$(TargetFramework) == 'net462'">9.4.224.2</RelativityVersion>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="kCura.Data.RowDataGateway, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.RowDataGateway.9.5.162.111\lib\kCura.Data.RowDataGateway.dll</HintPath>
-    </Reference>
-    <Reference Include="kCura.Relativity.Client, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.Rsapi.9.5.162.111\lib\kCura.Relativity.Client.dll</HintPath>
-    </Reference>
-    <Reference Include="Relativity.API, Version=9.5.162.111, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Relativity.Api.9.5.162.111\lib\Relativity.API.dll</HintPath>
-    </Reference>
-    <Reference Include="System" />
+    <PackageReference Include="Relativity.Api" Version="$(RelativityVersion)" />
+    <PackageReference Include="Relativity.Rsapi" Version="$(RelativityVersion)" />
+    <PackageReference Include="Relativity.RowDataGateway" Version="$(RelativityVersion)" />
+  </ItemGroup>
+  <ItemGroup>
     <Reference Include="System.configuration" />
-    <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Caching" />
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Attributes\RelativityObjectAttribute.cs" />
-    <Compile Include="Attributes\RelativityObjectChildrenListAttribute.cs" />
-    <Compile Include="Attributes\RelativityObjectFieldAttribute.cs" />
-    <Compile Include="Attributes\RelativityObjectFieldParentArtifactIdAttribute.cs" />
-    <Compile Include="Base\RelativityFile.cs" />
-    <Compile Include="DAL\RSAPI\ChoiceCache.cs" />
-    <Compile Include="DAL\RSAPI\IRsapiProvider.cs" />
-    <Compile Include="DAL\RSAPI\RsapiProvider.cs" />
-    <Compile Include="Extensions\CollectionsExtensions.cs" />
-    <Compile Include="Extensions\ResultSetExtensions.cs" />
-    <Compile Include="Extensions\EnumHelpers.cs" />
-    <Compile Include="Extensions\TupleHelpers.cs" />
-    <Compile Include="Utils\InvokeWithRetrySettings.cs" />
-    <Compile Include="Utils\InvokeWithRetryService.cs" />
-    <Compile Include="Base\BaseDto.cs" />
-    <Compile Include="Base\BaseExtensionMethods.cs" />
-    <Compile Include="Base\ObjectFieldsDepthLevel.cs" />
-    <Compile Include="Base\RdoFieldType.cs" />
-    <Compile Include="DAL\RSAPI\RsapiDao.cs" />
-    <Compile Include="DAL\RSAPI\RsapiDao.Delete.cs" />
-    <Compile Include="DAL\RSAPI\RsapiDao.Get.cs" />
-    <Compile Include="DAL\RSAPI\RsapiDao.Insert.cs" />
-    <Compile Include="DAL\RSAPI\RsapiDao.Update.cs" />
-    <Compile Include="Extensions\RdoExtensions.cs" />
-    <Compile Include="Extensions\TypeExtensions.cs" />
-    <Compile Include="Globals\SharedConstants.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Exceptions\ProxyOperationFailedException.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="obj\" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
