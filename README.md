@@ -1,4 +1,4 @@
-![Gravity](https://github.com/tsdservices/Gravity/blob/UpdateReadMe/images/Gravity.png?raw=true "Gravity") 
+![Gravity](https://raw.githubusercontent.com/relativitydev/Gravity/development/images/Gravity.png) 
 
 Open Source Community: **Gravity** is an [ORM framework](https://en.wikipedia.org/wiki/Object-relational_mapping) for Relativity custom development.  Using Gravity will greatly decrease the amount of time it takes to pick up Relativity development and allow you to write code that interacts with Relativity with commonly used C# syntax.
 
