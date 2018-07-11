@@ -57,14 +57,14 @@ namespace Gravity.DAL.RSAPI
 
 		#endregion
 
-		public IEnumerable<T> GetAllDTOs<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
+		public IEnumerable<T> Query<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
 			where T : BaseDto, new()
 		{
 			IEnumerable<RDO> objectsRdos = GetRdos<T>(queryCondition);
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel));
 		}
 
-		public IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
+		internal IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			var parentFieldGuid = typeof(T)
@@ -72,17 +72,17 @@ namespace Gravity.DAL.RSAPI
 				.First().Item2.FieldGuid;
 
 			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
-			return GetAllDTOs<T>(queryCondition, depthLevel);
+			return Query<T>(queryCondition, depthLevel);
 		}
 
-		public List<T> GetDTOs<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)
+		public List<T> Get<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			List<RDO> objectsRdos = GetRdos(artifactIDs);
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
 		}
 
-		public T GetRelativityObject<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
+		public T Get<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			RDO objectRdo = GetRdo(artifactID);
@@ -180,7 +180,7 @@ namespace Gravity.DAL.RSAPI
 						.Select(artifact => artifact.ArtifactID)
 						.ToArray();
 
-					var allObjects = this.InvokeGenericMethod(objectType, nameof(GetDTOs), childArtifactIds, depthLevel) as IEnumerable;
+					var allObjects = this.InvokeGenericMethod(objectType, nameof(Get), childArtifactIds, depthLevel) as IEnumerable;
 
 					return MakeGenericList(allObjects, objectType);
 				}
@@ -198,7 +198,7 @@ namespace Gravity.DAL.RSAPI
 					var childArtifactId = childArtifact.ArtifactID;
 					return childArtifactId == 0
 						? Activator.CreateInstance(objectType)
-						: this.InvokeGenericMethod(objectType, nameof(GetRelativityObject), childArtifactId, depthLevel);
+						: this.InvokeGenericMethod(objectType, nameof(Get), childArtifactId, depthLevel);
 				}
 			}
 

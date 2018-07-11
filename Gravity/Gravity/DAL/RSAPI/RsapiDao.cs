@@ -5,7 +5,7 @@ using Relativity.API;
 
 namespace Gravity.DAL.RSAPI
 {
-	public partial class RsapiDao
+	public partial class RsapiDao : IGravityDao
 	{
 		private const int DefaultBatchSize = 1000;
 
@@ -14,7 +14,7 @@ namespace Gravity.DAL.RSAPI
 		protected ChoiceCache choiceCache;
 
 		public RsapiDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity,
-				InvokeWithRetrySettings invokeWithRetrySettings = null, 
+				InvokeWithRetrySettings invokeWithRetrySettings = null,
 				int batchSize = DefaultBatchSize)
 			: this(servicesManager, workspaceId, executionIdentity, GetInvokeWithRetryService(invokeWithRetrySettings), batchSize)
 

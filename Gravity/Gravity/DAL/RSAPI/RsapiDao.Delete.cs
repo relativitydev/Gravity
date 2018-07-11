@@ -29,7 +29,7 @@ namespace Gravity.DAL.RSAPI
 		}
 		#endregion
 
-		internal void DeleteChildObjects<T>(IList<T> parentObjectList, List<int> artifactIds) where T : BaseDto, new()
+		internal void DeleteChildObjects<T>(IList<T> parentObjectList, List<int> artifactIds) where T : BaseDto
 		{
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 
@@ -41,21 +41,21 @@ namespace Gravity.DAL.RSAPI
 			DeleteRDOs(artifactIds);
 		}
 
-		public void DeleteRelativityObjectRecusively<T>(T theObjectToDelete) where T : BaseDto, new()
+		public void Delete<T>(T theObjectToDelete) where T : BaseDto
 		{
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			DeleteChildObjectsInner(theObjectToDelete, childObjectsInfo);
 			DeleteRDO(theObjectToDelete.ArtifactId);
 		}
 
-		public void DeleteRelativityObjectRecusively<T>(int objectToDeleteId) where T : BaseDto, new()
+		public void Delete<T>(int objectToDeleteId) where T : BaseDto, new()
 		{
-			T theObjectToDelete = GetRelativityObject<T>(objectToDeleteId, Base.ObjectFieldsDepthLevel.FullyRecursive);
-			DeleteRelativityObjectRecusively(theObjectToDelete);
+			T theObjectToDelete = Get<T>(objectToDeleteId, Base.ObjectFieldsDepthLevel.FullyRecursive);
+			Delete(theObjectToDelete);
 		}
 
 		private void DeleteChildObjectsInner<T>(T theObjectToDelete, IEnumerable<PropertyInfo> childProperties) 
-			where T : BaseDto, new()
+			where T : BaseDto
 		{
 			foreach (var propertyInfo in childProperties)
 			{

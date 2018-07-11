@@ -75,7 +75,7 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto, new()
+		private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto
 		{
 			PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
 
@@ -89,8 +89,8 @@ namespace Gravity.DAL.RSAPI
 		}
 		#endregion
 
-		public void InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)
-			where T : BaseDto, new()
+		internal void InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)
+			where T : BaseDto
 		{
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 
@@ -135,7 +135,7 @@ namespace Gravity.DAL.RSAPI
 					if (fieldValue != null)
 					{
 						Type objType = fieldValue.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", fieldValue);
+						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), fieldValue);
 						fieldValue.ArtifactId = (int)newArtifactId;
 					}
 				}
@@ -166,7 +166,7 @@ namespace Gravity.DAL.RSAPI
 					if (((childObject as BaseDto).ArtifactId == 0))
 					{
 						Type objType = childObject.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, "InsertRelativityObject", childObject);
+						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), childObject);
 						(childObject as BaseDto).ArtifactId = (int)newArtifactId;
 					}
 					else
@@ -179,7 +179,7 @@ namespace Gravity.DAL.RSAPI
 			return true;
 		}
 
-		public int InsertRelativityObject<T>(BaseDto theObjectToInsert)
+		public int Insert<T>(T theObjectToInsert) where T : BaseDto
 		{
 			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
 			InsertSingleObjectFields(theObjectToInsert);

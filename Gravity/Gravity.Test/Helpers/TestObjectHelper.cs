@@ -26,11 +26,11 @@ namespace Gravity.Test.Helpers
             _retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
         }
 
-        public int CreateTestObjectWithGravity<T>(BaseDto testObject)
+        public int CreateTestObjectWithGravity<T>(T testObject) where T : BaseDto
         {
             RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
 
-            int testDtoId = gravityRsapiDao.InsertRelativityObject<T>(testObject);
+            int testDtoId = gravityRsapiDao.Insert(testObject);
 
             return testDtoId;
         }
@@ -38,10 +38,10 @@ namespace Gravity.Test.Helpers
         public T ReturnTestObjectWithGravity<T>(int artifactId) where T : BaseDto, new()
         {
             RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
-            return gravityRsapiDao.GetRelativityObject<T>(artifactId,ObjectFieldsDepthLevel.FirstLevelOnly);
+            return gravityRsapiDao.Get<T>(artifactId,ObjectFieldsDepthLevel.FirstLevelOnly);
         }
 
-		public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto, new()
+		public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto
 		{
 			RelativityObjectAttribute objectTypeAttribute = typeof(T).GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO stubRdo = new RDO(objectTypeAttribute.ObjectTypeGuid, artifactId);
