@@ -25,7 +25,7 @@ namespace Gravity.DAL.RSAPI
 
 		//inserts *child* lists of a parent artifact ID (not associated artifacts)
 		protected void UpdateChildListObjects<T>(IList<T> objectsToUpdate, int parentArtifactId)
-			where T : BaseDto, new()
+			where T : BaseDto
 		{
 			var objectsToBeInsertedLookup = objectsToUpdate.ToLookup(x => x.ArtifactId == 0);
 			var objectsToBeInserted = objectsToBeInsertedLookup[true];
@@ -71,8 +71,8 @@ namespace Gravity.DAL.RSAPI
 
 		#endregion
 
-		public void UpdateRelativityObject<T>(BaseDto theObjectToUpdate)
-			where T : BaseDto , new()
+		public void Update<T>(T theObjectToUpdate)
+			where T : BaseDto
 		{
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			UpdateRelativityObject(theObjectToUpdate, childObjectsInfo);
@@ -99,8 +99,9 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
+		[Obsolete("This class will be replaced by a version that gets the field via lambda")]
 		public void UpdateField<T>(int rdoID, Guid fieldGuid, object value)
-			where T : BaseDto, new()
+			where T : BaseDto
 		{
 			PropertyInfo fieldProperty = typeof(T).GetProperties()
 				.SingleOrDefault(p => p.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid == fieldGuid);
@@ -125,7 +126,7 @@ namespace Gravity.DAL.RSAPI
 		}
 
 		private static bool TryGetRelativityFieldValue<T>(PropertyInfo fieldProperty, object value, out object rdoValue)
-			where T : BaseDto, new()
+			where T : BaseDto
 		{
 			rdoValue = null;	
 

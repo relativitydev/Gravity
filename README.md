@@ -89,22 +89,19 @@ public enum OrderType
 To use Gravity for RSAPI operations, you must instantiate an `RsapiDao` object using the `RsapiDao` constructor, with `IHelper` and `WorkspaceId` as parameters.
 
 Supported RSAPIDao methods:
- - `GetRelativityObject<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)` - Get DTO by Artifact ID and specific depth level of child objects and object     fields.
- - `GetDTOs<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)` - Get DTOs by Artifact IDs and specific depth level of child objects and object
+ - `Get<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)` - Get DTO by Artifact ID and specific depth level of child objects and object     fields.
+ - `Get<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)` - Get DTOs by Artifact IDs and specific depth level of child objects and object
  fields.
- - `List<T> GetAllChildDTOs<T>(Guid parentFieldGuid, int parentArtifactID, ObjectFieldsDepthLevel depthLevel)` - Get all child DTOs of type for parent.
- - `List<T> GetAllDTOs<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)`
- - `List<T> GetAllDTOs<T>()` - Get all DTOs of type.
- - `DeleteRelativityObjectRecusively<T>(T theObjectToDelete)` - Delete object recursively (includes child objects).
- - `DeleteRelativityObjectRecusively<T>(int objectToDeleteId)`- Delete object recursively (includes child objects) by Artifact ID.
- - `InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)` - Insert Child objects for parent.
- - `InsertRelativityObject<T>(BaseDto theObjectToInsert)` - Insert Relativity object from RDO.
- - `UpdateRelativityObject<T>(BaseDto theObjectToUpdate)` - Update Relativity object from RDO.
+ - `List<T> Query<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)` - Get all DTOs of type matching an optional condition
+ - `Delete<T>(T theObjectToDelete)` - Delete object recursively (includes child objects).
+ - `Delete<T>(int objectToDeleteId)`- Delete object recursively (includes child objects) by Artifact ID.
+ - `Insert<T>(BaseDto theObjectToInsert)` - Insert Relativity object from RDO.
+ - `Update<T>(BaseDto theObjectToUpdate)` - Update Relativity object from RDO.
  - `UpdateField<T>(int rdoID, Guid fieldGuid, object value)` - Update field value by GUID and RDO Artifact ID
 
 ### Example
 
-The following example demonstrates a object "Get" used in Event handler. First we instantiate `RsapiDao` and then we use the Gravity RSAPI Dao `GetRelativityObject` method to get the object (`ObjectFieldsDepthLevel.OnlyParentObject` means that we want just the object - no child object fields, multiple object fields or single object fields are populated recursively):
+The following example demonstrates a object "Get" used in Event handler. First we instantiate `RsapiDao` and then we use the Gravity RSAPI Dao `Get` method to get the object (`ObjectFieldsDepthLevel.OnlyParentObject` means that we want just the object - no child object fields, multiple object fields or single object fields are populated recursively):
 ```csharp
 public override Response Execute()
 {
@@ -112,7 +109,7 @@ public override Response Execute()
 
 	RsapiDao gravityRsapiDao = new RsapiDao(this.Helper, this.Helper.GetActiveCaseID());
 
-		DemoPurchaseOrder demoOrder =  gravityRsapiDao.GetRelativityObject<DemoPurchaseOrder>(1047088,
+		DemoPurchaseOrder demoOrder =  gravityRsapiDao.Get<DemoPurchaseOrder>(1047088,
 	  ObjectFieldsDepthLevel.OnlyParentObject);
 
 		return returnResponse;

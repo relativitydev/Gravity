@@ -12,8 +12,22 @@ namespace Gravity.Extensions
 		public static object InvokeGenericMethod(this object obj, Type typeArgument, string methodName, params object[] args)
 		{
 			MethodInfo method = obj.GetType()
-				.GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-				.MakeGenericMethod(new Type[] { typeArgument });
+				.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+				.Where(x => x.Name == methodName && x.IsGenericMethodDefinition)
+				.Select(x => x.MakeGenericMethod(new Type[] { typeArgument }))
+				.Single(x =>
+				{
+					//get the overload with matching parameters
+					var parameters = x.GetParameters();
+					//not matching parameters if diff number parameters
+					if (parameters.Length != args.Length) return false;
+					//make sure each parameter is resolvable from the type
+					return Enumerable.Zip(
+						parameters,
+						args,
+						(p, a) => p.ParameterType.IsAssignableFrom(a.GetType()))
+					.All(y => y);
+				});
 
 			try
 			{ 

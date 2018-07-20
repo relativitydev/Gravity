@@ -20,7 +20,7 @@ namespace Gravity.Test.Unit
 		public void GetHydratedDTO_BlankRDO()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(null, null));
-			var dto = dao.GetRelativityObject<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
+			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.AreEqual(RootArtifactID, dto.ArtifactId);
 		}
 
@@ -60,7 +60,7 @@ namespace Gravity.Test.Unit
 		public void GetHydratedDTO_SingleChoice_InEnum()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(2, null));
-			var dto = dao.GetRelativityObject<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
+			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.AreEqual(SingleChoiceFieldChoices.SingleChoice2, dto.SingleChoice);
 		}
 
@@ -68,14 +68,14 @@ namespace Gravity.Test.Unit
 		public void GetHydratedDTO_SingleChoice_NotInEnum()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(5, null));
-			Assert.Throws<InvalidOperationException>(() => dao.GetRelativityObject<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly));
+			Assert.Throws<InvalidOperationException>(() => dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly));
 		}
 
 		[Test]
 		public void GetHydratedDTO_MultipleChoice_AllInEnum()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 11, 13 }));
-			var dto = dao.GetRelativityObject<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
+			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			CollectionAssert.AreEquivalent(
 				new[] { MultipleChoiceFieldChoices.MultipleChoice1, MultipleChoiceFieldChoices.MultipleChoice3 },
 				dto.MultipleChoiceFieldChoices
@@ -87,7 +87,7 @@ namespace Gravity.Test.Unit
 		{
 			//first item is in an enum, but not in our enum
 			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 3, 13 }));
-			Assert.Throws<InvalidOperationException>(() => dao.GetRelativityObject<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly));
+			Assert.Throws<InvalidOperationException>(() => dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly));
 
 		}
 
