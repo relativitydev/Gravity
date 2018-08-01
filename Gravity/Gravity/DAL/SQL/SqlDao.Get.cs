@@ -134,7 +134,6 @@ namespace Gravity.DAL.SQL
 
 				int currentChildArtifactTypeID = GetArtifactTypeIdByArtifactGuid(objectType.GetCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid);
 
-				// TODO HH: Do we want to yield this?
 				foreach (IEnumerable<int> childArtifactIds in GetChildrenArtifactIdsByParentAndType(baseDto.ArtifactId, currentChildArtifactTypeID, batchSize))
 				{
 					foreach (int childArtifactId in childArtifactIds)
