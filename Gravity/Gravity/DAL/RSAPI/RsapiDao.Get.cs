@@ -132,7 +132,7 @@ namespace Gravity.DAL.RSAPI
 						break;
 					case RdoFieldType.MultipleChoice:
 						{ 
-							var enumType = property.PropertyType.GetEnumerableInnerType();
+							var enumType = property.PropertyType.GetEnumerableOrListInnerType();
 							var fieldValue = objectRdo[fieldAttribute.FieldGuid].ValueAsMultipleChoice?
 								.Select(x => GetEnum(enumType, x.ArtifactID))
 								.ToList();
@@ -173,7 +173,7 @@ namespace Gravity.DAL.RSAPI
 				//multiple object
 				if (fieldType == RdoFieldType.MultipleObject)
 				{
-					Type objectType = property.PropertyType.GetEnumerableInnerType();
+					Type objectType = property.PropertyType.GetEnumerableOrListInnerType();
 
 					int[] childArtifactIds = objectRdo[fieldGuid]
 						.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
@@ -205,7 +205,7 @@ namespace Gravity.DAL.RSAPI
 			//child object
 			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
 			{
-				var childType = property.PropertyType.GetEnumerableInnerType();
+				var childType = property.PropertyType.GetEnumerableOrListInnerType();
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), baseDto.ArtifactId, depthLevel) as IEnumerable;
 
