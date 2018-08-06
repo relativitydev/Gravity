@@ -73,7 +73,7 @@ namespace Gravity.DAL.SQL
 			{
 				Type objectType = property.PropertyType.IsGenericType && (property.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
 								|| property.PropertyType.GetGenericTypeDefinition() == typeof(IList<>)) ?
-								property.PropertyType.GetEnumerableOrListInnerType() : property.PropertyType;
+								property.PropertyType.GetEnumerableInnerType() : property.PropertyType;
 
 				switch (fieldAttribute.FieldType)
 				{
@@ -102,7 +102,7 @@ namespace Gravity.DAL.SQL
 
 			Type objectType = property.PropertyType.IsGenericType && (property.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
 							|| property.PropertyType.GetGenericTypeDefinition() == typeof(IList<>)) ?
-							property.PropertyType.GetEnumerableOrListInnerType() : property.PropertyType;
+							property.PropertyType.GetEnumerableInnerType() : property.PropertyType;
 
 			if (relativityObjectFieldAttibutes != null)
 			{

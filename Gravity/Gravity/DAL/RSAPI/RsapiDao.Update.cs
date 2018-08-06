@@ -93,7 +93,7 @@ namespace Gravity.DAL.RSAPI
 
 				if (childObjectsList != null && childObjectsList.Count > 0)
 				{
-					Type childType = childPropertyInfo.PropertyType.GetEnumerableOrListInnerType();
+					Type childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
 					this.InvokeGenericMethod(childType, nameof(UpdateChildListObjects), childObjectsList, theObjectToUpdate.ArtifactId);
 				}
 			}
