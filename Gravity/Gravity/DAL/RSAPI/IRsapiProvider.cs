@@ -20,7 +20,7 @@ namespace Gravity.DAL.RSAPI
 		WriteResultSet<RDO> Delete(List<int> artifactIDs);
 		void DeleteSingle(Guid artifactGuid);
 		void DeleteSingle(int artifactID);
-		KeyValuePair<DownloadResponse, Stream> DownloadFile(int fieldId, int objectArtifactId);
+		Tuple<FileMetadata, MemoryStream> DownloadFile(int fieldId, int objectArtifactId);
 		WriteResultSet<RDO> MassCreate(RDO templateArtifact, List<RDO> artifacts);
 		WriteResultSet<RDO> MassEdit(RDO templateArtifact, List<int> artifactIDs);
 

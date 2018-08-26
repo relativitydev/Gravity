@@ -46,7 +46,7 @@ namespace Gravity.DAL.RSAPI
 
 		#region File Operations
 
-		public KeyValuePair<DownloadResponse, Stream> DownloadFile(int fieldId, int objectArtifactId)
+		public Tuple<FileMetadata, MemoryStream> DownloadFile(int fieldId, int objectArtifactId)
 		{
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
@@ -59,7 +59,10 @@ namespace Gravity.DAL.RSAPI
 					}
 				};
 
-				return InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Download(fileRequest));
+				return InvokeProxyWithRetry(proxyToWorkspace, proxy => {
+					var download = proxy.Download(fileRequest);
+					return Tuple.Create(download.Key.Metadata, (MemoryStream)download.Value);
+				});
 			}
 		}
 

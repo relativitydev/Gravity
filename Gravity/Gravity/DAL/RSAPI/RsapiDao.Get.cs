@@ -44,13 +44,11 @@ namespace Gravity.DAL.RSAPI
 
 		protected RelativityFile GetFile(int fileFieldArtifactId, int ourFileContainerInstanceArtifactId)
 		{
-			var fileData = rsapiProvider.DownloadFile(fileFieldArtifactId, ourFileContainerInstanceArtifactId);
+			(var fileMetadata, var fileStream) = rsapiProvider.DownloadFile(fileFieldArtifactId, ourFileContainerInstanceArtifactId);
 
-			using (MemoryStream ms = (MemoryStream)fileData.Value)
+			using (fileStream)
 			{
-				FileValue fileValue = new FileValue(null, ms.ToArray());
-				FileMetadata fileMetadata = fileData.Key.Metadata;
-
+				var fileValue = new FileValue(null, fileStream.ToArray());
 				return new RelativityFile(fileFieldArtifactId, fileValue, fileMetadata);
 			}
 		}
