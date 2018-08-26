@@ -39,6 +39,6 @@ namespace Gravity.DAL.RSAPI
 		WriteResultSet<RDO> Update(params RDO[] artifacts);
 		WriteResultSet<RDO> Update(List<RDO> artifacts);
 		void UpdateSingle(RDO artifact);
-		void UploadFile(RelativityFile relativityFile, int parentId, string fileName);
+		void UploadFile(int fieldId, int parentId, string fileName);
 	}
 }

@@ -63,7 +63,7 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		public void UploadFile(RelativityFile relativityFile, int parentId, string fileName)
+		public void UploadFile(int fieldId, int parentId, string fileName)
 		{
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
@@ -77,7 +77,7 @@ namespace Gravity.DAL.RSAPI
 					Overwrite = true,
 					Target =
 					{
-						FieldId = relativityFile.ArtifactTypeId,
+						FieldId = fieldId,
 						ObjectArtifactId = parentId
 					}
 				};

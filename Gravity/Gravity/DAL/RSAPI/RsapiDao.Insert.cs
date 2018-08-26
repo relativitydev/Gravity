@@ -45,7 +45,7 @@ namespace Gravity.DAL.RSAPI
 
 			if (relativityFile.FileValue.Path != null)
 			{
-				rsapiProvider.UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
+				rsapiProvider.UploadFile(relativityFile.ArtifactTypeId, parentId, relativityFile.FileValue.Path);
 			}
 			else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
 			{
@@ -54,7 +54,7 @@ namespace Gravity.DAL.RSAPI
 
 				try
 				{
-					rsapiProvider.UploadFile(relativityFile, parentId, fileName);
+					rsapiProvider.UploadFile(relativityFile.ArtifactTypeId, parentId, fileName);
 				}
 				finally
 				{
