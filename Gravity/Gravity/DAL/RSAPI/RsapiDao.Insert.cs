@@ -1,4 +1,4 @@
-using kCura.Relativity.Client;
+﻿using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -64,63 +64,28 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
-		{
-			var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;
 
-			if (childObjectsList != null && childObjectsList?.Count != 0)
-			{
-				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
-				this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
-			}
-		}
-
-		private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto
-		{
-			PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
-
-			if (parentArtifactIdProperty == null)
-			{
-				return;
-			}
-
-			parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
-			objectToBeInserted.ArtifactId = 0;
-		}
 		#endregion
 
-		internal void InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)
-			where T : BaseDto
+
+		private void InsertChildListObjects<T>(T theObjectToInsert, int resultArtifactId) where T : BaseDto
 		{
+
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-
-			bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile)));
-
-			if (childObjectsInfo.Any() || isFilePropertyPresent)
+			foreach (var childPropertyInfo in childObjectsInfo)
 			{
-				foreach (var objectToBeInserted in objectsToInserted)
-				{
-					SetParentArtifactID(objectToBeInserted, parentArtifactId);
-					int insertedRdoArtifactID = InsertRdo(objectToBeInserted.ToRdo());
-					InsertUpdateFileFields(objectToBeInserted, insertedRdoArtifactID);
+				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert, null) as IList;
 
-					foreach (var childPropertyInfo in childObjectsInfo)
+				if (childObjectsList?.Count > 0)
+				{
+					foreach (var childObject in childObjectsList)
 					{
-						InsertChildListObjectsWithDynamicType(objectToBeInserted, insertedRdoArtifactID, childPropertyInfo);
+						var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
+						parentArtifactIdProperty.SetValue(childObject, resultArtifactId);
+						//TODO: bulk operation if no recursion
+						this.InvokeGenericMethod(childObject.GetType(), nameof(Insert), childObject);
 					}
 				}
-			}
-			else
-			{
-
-				foreach (var objectToBeInserted in objectsToInserted)
-				{
-					SetParentArtifactID(objectToBeInserted, parentArtifactId);
-				}
-
-				var rdosToBeInserted = objectsToInserted.Select(x => x.ToRdo()).ToArray();
-
-				rsapiProvider.Create(rdosToBeInserted);
 			}
 		}
 
@@ -146,12 +111,6 @@ namespace Gravity.DAL.RSAPI
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
 			{
-				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
-				if (fieldGuid == null)
-				{
-					continue;
-				}
-
 				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
 				if (fieldValue == null)
 				{
@@ -160,25 +119,21 @@ namespace Gravity.DAL.RSAPI
 
 				foreach (var childObject in fieldValue)
 				{
-					//TODO: better test to see if contains value...if all fields are null, not need
-					if (((childObject as BaseDto).ArtifactId == 0))
+					if ((childObject as BaseDto).ArtifactId == 0)
 					{
-						Type objType = childObject.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), childObject);
-					}
-					else
-					{
-						//TODO: Consider update if fields have changed
-
+						//TODO: bulk operation if no recursion
+						this.InvokeGenericMethod(childObject.GetType(), nameof(Insert), childObject);
 					}
 				}
 			}
 			return true;
 		}
 
-		public int Insert<T>(T theObjectToInsert) where T : BaseDto
+		public int Insert<T>(T theObjectToInsert, ObjectFieldsDepthLevel depthLevel) where T : BaseDto
 		{
+			
 			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
+			
 			InsertSingleObjectFields(theObjectToInsert);
 			InsertMultipleObjectFields(theObjectToInsert);
 
@@ -186,14 +141,7 @@ namespace Gravity.DAL.RSAPI
 			theObjectToInsert.ArtifactId = resultArtifactId;
 
 			InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
-
-			
-
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-			foreach (var childPropertyInfo in childObjectsInfo)
-			{
-				InsertChildListObjectsWithDynamicType(theObjectToInsert, resultArtifactId, childPropertyInfo);
-			}
+			InsertChildListObjects(theObjectToInsert, resultArtifactId);
 
 			return resultArtifactId;
 		}
