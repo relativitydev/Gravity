@@ -112,6 +112,80 @@ namespace Gravity.Test.Unit
 		{
 		}
 
+		[Test]
+		public void Insert_NewSingleObject_Recursive()
+		{
+			const int g2Id = 20;
+
+			var objectToInsert = new G1
+			{
+				GravityLevel2Obj = new G2 { Name = "G2" }
+			};
+
+			//G2 object created with its fields, not just as a stub
+			RdoBoolExpr matchingG2Expression = rdo => 
+				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2>(nameof(G2.Name))) && f.ValueAsFixedLengthText == "G2");
+			RdoBoolExpr matchingG1Expression = rdo =>
+				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2Obj))) && f.ValueAsSingleObject.ArtifactID == g2Id);
+
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2Expression))).Returns(g2Id);
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG1Expression))).Returns(10);
+			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.FirstLevelOnly);
+
+			Assert.AreEqual(10, insertedId);
+			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
+		}
+
+		[Test]
+		public void Insert_NewSingleObject_NonRecursive()
+		{
+			var objectToInsert = new G1
+			{
+				GravityLevel2Obj = new G2 { Name = "G2" }
+			};
+
+			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
+
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG1Expression))).Returns(10);
+			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.OnlyParentObject);
+			Assert.AreEqual(10, insertedId);
+			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			//since only parent object, G2 object never inserted
+			Assert.AreEqual(0, objectToInsert.GravityLevel2Obj.ArtifactId);
+		}
+
+		[Test]
+		public void Insert_ExistingSingleObject_DontUpdateFields()
+		{
+			const int g2Id = 20;
+
+			var objectToInsert = new G1
+			{
+				GravityLevel2Obj = new G2 { ArtifactId = g2Id }
+			};
+
+			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2Id;
+
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG1Expression))).Returns(10);
+
+			//even though first level, will be no update of G2 object because already exists
+			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.FirstLevelOnly);
+			Assert.AreEqual(10, insertedId);
+			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
+		}
+
+		[Test, Ignore("No Level-3 object for testing")]
+		public void Insert_ExistingSingleObject_DontInsertChildren()
+		{
+			var objectToInsert = new G1
+			{
+			};
+		}
+
+	
+
 		private Guid FieldGuid<T>(string fieldName)
 			=> typeof(T).GetProperty(fieldName).GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 	}

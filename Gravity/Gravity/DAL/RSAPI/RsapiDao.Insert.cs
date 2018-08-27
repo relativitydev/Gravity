@@ -97,7 +97,7 @@ namespace Gravity.DAL.RSAPI
 				if (attribute?.FieldType == RdoFieldType.SingleObject)
 				{
 					var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
-					if (fieldValue != null)
+					if (fieldValue?.ArtifactId == 0)
 					{
 						this.InvokeGenericMethod(fieldValue.GetType(), nameof(Insert), fieldValue, recursive);
 					}
