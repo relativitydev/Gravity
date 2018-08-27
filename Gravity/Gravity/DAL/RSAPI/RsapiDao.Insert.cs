@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -134,9 +134,7 @@ namespace Gravity.DAL.RSAPI
 					var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
 					if (fieldValue != null)
 					{
-						Type objType = fieldValue.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), fieldValue);
-						fieldValue.ArtifactId = (int)newArtifactId;
+						this.InvokeGenericMethod(fieldValue.GetType(), nameof(Insert), fieldValue);
 					}
 				}
 			}
@@ -167,7 +165,6 @@ namespace Gravity.DAL.RSAPI
 					{
 						Type objType = childObject.GetType();
 						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), childObject);
-						(childObject as BaseDto).ArtifactId = (int)newArtifactId;
 					}
 					else
 					{
@@ -186,6 +183,7 @@ namespace Gravity.DAL.RSAPI
 			InsertMultipleObjectFields(theObjectToInsert);
 
 			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
+			theObjectToInsert.ArtifactId = resultArtifactId;
 
 			InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
 
