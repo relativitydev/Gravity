@@ -1,4 +1,4 @@
-﻿using Gravity.Base;
+using Gravity.Base;
 using Gravity.DAL.RSAPI;
 using Gravity.Extensions;
 using Gravity.Test.Helpers;
@@ -60,13 +60,7 @@ namespace Gravity.Test.Unit
 				&& rdo[FieldGuid<G1>(nameof(G1.IntegerField))].Value.Equals(2)
 				&& rdo[FieldGuid<G1>(nameof(G1.LongTextField))].Value.Equals("LongText");
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingRdoExpression))).Returns(10);
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.OnlyParentObject);
-			Assert.AreEqual(10, insertedId);
-			Assert.AreEqual(10, objectToInsert.ArtifactId);
-
-
-
+			InsertObject(objectToInsert, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
@@ -81,10 +75,7 @@ namespace Gravity.Test.Unit
 				rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].ValueAsSingleChoice.Guids.Single() 
 					== SingleChoiceFieldChoices.SingleChoice2.GetRelativityObjectAttributeGuidValue();
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingRdoExpression))).Returns(10);
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.OnlyParentObject);
-			Assert.AreEqual(10, insertedId);
-			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			InsertObject(objectToInsert, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
@@ -101,10 +92,7 @@ namespace Gravity.Test.Unit
 					new[] { MultipleChoiceFieldChoices.MultipleChoice2, MultipleChoiceFieldChoices.MultipleChoice3 }
 						.Select(x => x.GetRelativityObjectAttributeGuidValue()));
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingRdoExpression))).Returns(10);
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.OnlyParentObject);
-			Assert.AreEqual(10, insertedId);
-			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			InsertObject(objectToInsert, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test, Ignore("File behavior not defined yet")]
@@ -129,11 +117,8 @@ namespace Gravity.Test.Unit
 				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2Obj))) && f.ValueAsSingleObject.ArtifactID == g2Id);
 
 			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2Expression))).Returns(g2Id);
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG1Expression))).Returns(10);
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.FirstLevelOnly);
+			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
 
-			Assert.AreEqual(10, insertedId);
-			Assert.AreEqual(10, objectToInsert.ArtifactId);
 			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
 
@@ -147,10 +132,8 @@ namespace Gravity.Test.Unit
 
 			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG1Expression))).Returns(10);
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.OnlyParentObject);
-			Assert.AreEqual(10, insertedId);
-			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.OnlyParentObject);
+
 			//since only parent object, G2 object never inserted
 			Assert.AreEqual(0, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
@@ -162,17 +145,13 @@ namespace Gravity.Test.Unit
 
 			var objectToInsert = new G1
 			{
-				GravityLevel2Obj = new G2 { ArtifactId = g2Id }
+				GravityLevel2Obj = new G2 { ArtifactId = g2Id, Name = "G2A" }
 			};
 
-			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2Id;
-
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG1Expression))).Returns(10);
-
 			//even though first level, will be no update of G2 object because already exists
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, ObjectFieldsDepthLevel.FirstLevelOnly);
-			Assert.AreEqual(10, insertedId);
-			Assert.AreEqual(10, objectToInsert.ArtifactId);
+			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2Id;
+			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
+
 			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
 
