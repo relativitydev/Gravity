@@ -144,7 +144,8 @@ namespace Gravity.Base
 					{
 						return new FieldValueList<Artifact>(
 							((IEnumerable<object>) propertyValue)
-								.Select(x => new Artifact((x as BaseDto).ArtifactId)));
+								.Select(x => new Artifact((x as BaseDto).ArtifactId))
+								.Where(x => x.ArtifactID > 0));
 					}
 
 				case RdoFieldType.SingleChoice:
