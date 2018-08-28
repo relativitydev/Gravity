@@ -74,6 +74,7 @@ namespace Gravity.DAL.RSAPI
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 			foreach (var childPropertyInfo in childObjectsInfo)
 			{
+				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
 				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert, null) as IList;
 
 				if (childObjectsList?.Count > 0)
@@ -83,7 +84,7 @@ namespace Gravity.DAL.RSAPI
 						var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
 						parentArtifactIdProperty.SetValue(childObject, resultArtifactId);
 						//TODO: bulk operation if no recursion
-						this.InvokeGenericMethod(childObject.GetType(), nameof(Insert), childObject, recursive);
+						this.InvokeGenericMethod(childType, nameof(Insert), childObject, recursive);
 					}
 				}
 			}
@@ -93,13 +94,14 @@ namespace Gravity.DAL.RSAPI
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
 			{
+				var childType = propertyInfo.PropertyType;
 				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
 				if (attribute?.FieldType == RdoFieldType.SingleObject)
 				{
 					var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
 					if (fieldValue?.ArtifactId == 0)
 					{
-						this.InvokeGenericMethod(fieldValue.GetType(), nameof(Insert), fieldValue, recursive);
+						this.InvokeGenericMethod(childType, nameof(Insert), fieldValue, recursive);
 					}
 				}
 			}
@@ -111,6 +113,7 @@ namespace Gravity.DAL.RSAPI
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
 			{
+				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
 				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
 				if (fieldValue == null)
 				{
@@ -122,7 +125,7 @@ namespace Gravity.DAL.RSAPI
 					if ((childObject as BaseDto).ArtifactId == 0)
 					{
 						//TODO: bulk operation if no recursion
-						this.InvokeGenericMethod(childObject.GetType(), nameof(Insert), childObject, recursive);
+						this.InvokeGenericMethod(childType, nameof(Insert), childObject, recursive);
 					}
 				}
 			}
