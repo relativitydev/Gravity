@@ -51,5 +51,8 @@ namespace Gravity.Test.Helpers
 
 			return stubRdo;
 		}
+
+		public static Guid FieldGuid<T>(string fieldName)
+			=> typeof(T).GetProperty(fieldName).GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 	}
 }

@@ -19,6 +19,8 @@ using G2 = Gravity.Test.TestClasses.GravityLevel2;
 using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
 using RdoBoolExpr = System.Linq.Expressions.Expression<System.Func<kCura.Relativity.Client.DTOs.RDO, bool>>;
 
+using static Gravity.Test.Helpers.TestObjectHelper;
+
 namespace Gravity.Test.Unit
 {
 	public class RsapiDaoInsertTests
@@ -301,8 +303,5 @@ namespace Gravity.Test.Unit
 			Assert.AreEqual(10, insertedId);
 			Assert.AreEqual(10, objectToInsert.ArtifactId);
 		}
-
-		private Guid FieldGuid<T>(string fieldName)
-			=> typeof(T).GetProperty(fieldName).GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 	}
 }
