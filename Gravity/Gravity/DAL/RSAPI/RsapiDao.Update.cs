@@ -41,7 +41,7 @@ namespace Gravity.DAL.RSAPI
 
 				foreach (var childObject in fieldValue)
 				{
-					this.InvokeGenericMethod(childType, nameof(InsertOrUpdate), fieldValue, recursive);
+					this.InvokeGenericMethod(childType, nameof(InsertOrUpdate), childObject, recursive);
 				}
 			}
 		}
