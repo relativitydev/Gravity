@@ -1,4 +1,4 @@
-using kCura.Relativity.Client.DTOs;
+﻿using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
