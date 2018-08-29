@@ -69,6 +69,40 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
+		protected void InsertUpdateFileField(Guid fieldGuid, int objectArtifactId, FileDto fileDto)
+		{
+			var fileFieldArtifactId = rsapiProvider.Read(new RDO(fieldGuid)).GetResultData().Single().ArtifactID;
+
+			if (fileDto == null)
+				return;		//TODO: handle file deletion
+
+			var currentMD5 = fileDto.GetCurrentMD5();
+			if (currentMD5 == fileDto.LastOperationMD5)
+				return;
+			
+			FilePathFileDto temporaryFileDto = null;
+			if (fileDto is ByteArrayFileDto arrayFileDto)
+			{
+				//TODO: check file name not null or empty
+				temporaryFileDto = arrayFileDto.WriteToFile(Path.Combine(Path.GetTempPath(), arrayFileDto.FileName));
+			}
+
+			try
+			{
+				var filePath = (temporaryFileDto ?? (FilePathFileDto)fileDto).FilePath;
+				rsapiProvider.UploadFile(fileFieldArtifactId, objectArtifactId, filePath);
+				fileDto.LastOperationMD5 = currentMD5;
+			}
+			finally
+			{
+				if (temporaryFileDto != null)
+				{
+					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(temporaryFileDto.FilePath));
+				}
+			}
+		}
+
+
 		private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
 		{
 			var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;

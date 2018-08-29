@@ -53,6 +53,25 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
+		protected ByteArrayFileDto GetFile(Guid fieldGuid, int objectArtifactId)
+		{
+			//TODO: cache this?
+			var fileFieldArtifactId = rsapiProvider.Read(new RDO(fieldGuid)).GetResultData().Single().ArtifactID;
+
+			(var fileMetadata, var fileStream) = rsapiProvider.DownloadFile(fileFieldArtifactId, objectArtifactId);
+
+			using (fileStream)
+			{
+				var fileDto = new ByteArrayFileDto
+				{
+					ByteArray = fileStream.ToArray(),
+					FileName = fileMetadata.FileName
+				};
+				fileDto.LastOperationMD5 = fileDto.GetCurrentMD5();
+				return fileDto;
+			}
+		}
+
 		#endregion
 
 		public IEnumerable<T> Query<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)
