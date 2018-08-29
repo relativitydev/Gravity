@@ -11,6 +11,7 @@ namespace Gravity.DAL.RSAPI
 {
 	public interface IRsapiProvider
 	{
+		void ClearFile(int fieldId, int objectArtifactId);
 		WriteResultSet<RDO> Create(params RDO[] artifacts);
 		WriteResultSet<RDO> Create(List<RDO> artifacts);
 		int CreateSingle(RDO artifact);

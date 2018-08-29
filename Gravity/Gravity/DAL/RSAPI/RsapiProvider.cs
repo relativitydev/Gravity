@@ -46,6 +46,23 @@ namespace Gravity.DAL.RSAPI
 
 		#region File Operations
 
+		public void ClearFile(int fieldId, int objectArtifactId)
+		{
+			using (IRSAPIClient proxyToWorkspace = CreateProxy())
+			{
+				var fileRequest = new FileRequest(proxyToWorkspace.APIOptions)
+				{
+					Target =
+					{
+						FieldId = fieldId,
+						ObjectArtifactId = objectArtifactId
+					}
+				};
+
+				InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Clear(fileRequest));
+			}
+		}
+
 		public Tuple<FileMetadata, MemoryStream> DownloadFile(int fieldId, int objectArtifactId)
 		{
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())

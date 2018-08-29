@@ -73,8 +73,9 @@ namespace Gravity.DAL.RSAPI
 		{
 			var fileFieldArtifactId = rsapiProvider.Read(new RDO(fieldGuid)).GetResultData().Single().ArtifactID;
 
+			//TODO: see if can reduce frequency
 			if (fileDto == null)
-				return;		//TODO: handle file deletion
+				rsapiProvider.ClearFile(fileFieldArtifactId, objectArtifactId);
 
 			var currentMD5 = fileDto.GetCurrentMD5();
 			if (currentMD5 == fileDto.LastOperationMD5)
