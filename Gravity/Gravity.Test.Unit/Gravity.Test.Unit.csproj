@@ -14,10 +14,10 @@
     <ProjectReference Include="..\Gravity\Gravity.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="LinqKit" Version="1.1.15" />
     <PackageReference Include="Moq" Version="4.8.2" />
     <PackageReference Include="NUnit" Version="3.10.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
-    <PackageReference Include="PredicateBuilder" Version="1.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.Configuration" />

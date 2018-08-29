@@ -1,4 +1,4 @@
-using Gravity.DAL.RSAPI;
+﻿using Gravity.DAL.RSAPI;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -6,18 +6,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using G1 = Gravity.Test.TestClasses.GravityLevelOne;
-using G2 = Gravity.Test.TestClasses.GravityLevel2;
-using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
-using RdoBoolExpr = System.Linq.Expressions.Expression<System.Func<kCura.Relativity.Client.DTOs.RDO, bool>>;
-
-using static Gravity.Test.Helpers.TestObjectHelper;
 using Gravity.Base;
 using System.Linq.Expressions;
 using Gravity.Test.TestClasses;
 using Gravity.Extensions;
 using kCura.Relativity.Client.DTOs;
+using kCura.Relativity.Client;
+using Gravity.Test.Helpers;
+using LinqKit;
+
+using G1 = Gravity.Test.TestClasses.GravityLevelOne;
+using G2 = Gravity.Test.TestClasses.GravityLevel2;
+using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
+using RdoBoolExpr = System.Linq.Expressions.Expression<System.Func<kCura.Relativity.Client.DTOs.RDO, bool>>;
+using Artifact = kCura.Relativity.Client.DTOs.Artifact;
+
+using static Gravity.Test.Helpers.TestObjectHelper;
 
 namespace Gravity.Test.Unit
 {
@@ -91,7 +95,6 @@ namespace Gravity.Test.Unit
 				SingleChoice = SingleChoiceFieldChoices.SingleChoice2
 			};
 
-			//checks that matches Updateed object
 			RdoBoolExpr matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].ValueAsSingleChoice.Guids.Single()
 					== SingleChoiceFieldChoices.SingleChoice2.GetRelativityObjectAttributeGuidValue();
@@ -121,7 +124,8 @@ namespace Gravity.Test.Unit
 			Func<RDO, bool> matchingRdoExpressionInner = rdo => {
 				var value = rdo[FieldGuid<G1>(nameof(G1.MultipleChoiceFieldChoices))].ValueAsMultipleChoice;
 
-				if (value.UpdateBehavior == kCura.Relativity.Client.MultiChoiceUpdateBehavior.Merge)
+				//Gravity overwrites choices
+				if (value.UpdateBehavior == MultiChoiceUpdateBehavior.Merge)
 					return false;
 
 				return Enumerable.SequenceEqual(
@@ -141,7 +145,7 @@ namespace Gravity.Test.Unit
 		{
 			var objectToUpdate = new G1
 			{
-				GravityLevel2Childs = emptyList ? new List<G2c>() : null
+				MultipleChoiceFieldChoices = emptyList ? new List<MultipleChoiceFieldChoices>() : null
 			};
 
 			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].Value == null;
@@ -163,63 +167,97 @@ namespace Gravity.Test.Unit
 		public void Update_FileField_Modify()
 		{
 		}
-		
+
 		[Test]
-		public void Update_ChildObject_Update()
+		public void Update_SingleObject_UpdateInsertExisting()
 		{
+			const int g2id = 20;
+
+			var objectToUpdate = new G1
+			{
+				GravityLevel2Obj = new G2
+				{
+					ArtifactId = g2id,
+					Name = "NewName"
+				}
+			};
+
+			RdoBoolExpr matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
+			//since recursion off, don't update G2 obj
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
-		public void Update_ChildObject_UpdateWithRecursion()
+		public void Update_SingleObject_UpdateInsertExisting_WithRecursion()
 		{
-		}
+			const int g2id = 20;
 
-		[Test]
-		public void Update_ChildObject_InsertNew()
-		{
-			//without recursion, should throw an error
-		}
+			var objectToUpdate = new G1
+			{
+				GravityLevel2Obj = new G2
+				{
+					ArtifactId = g2id,
+					Name = "NewName"
+				}
+			};
 
-		[Test]
-		public void Update_ChildObject_InsertNewWithRecursion()
-		{
-		}
+			RdoBoolExpr matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
+			//update G2 object
+			RdoBoolExpr matchingG2Expression = rdo =>
+				rdo.ArtifactID == g2id
+				&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "NewName";
 
-		[Test]
-		public void Update_ChildObject_Remove()
-		{
-			//delete if not in the collection. Annoying that have to query, but <shrug>
-		}
+			SetupChildQuery();
+			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2Expression)));
 
-		[Test]
-		public void Update_SingleObject_Update()
-		{
-		}
-
-		[Test]
-		public void Update_SingleObject_UpdateWithRecursion()
-		{
-		}
-
-		[Test]
-		public void Update_SingleObject_InsertExisting()
-		{
-		}
-
-		[Test]
-		public void Update_SingleObject_InsertExistingWithRecursion()
-		{
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
 
 		[Test]
 		public void Update_SingleObject_InsertNew()
 		{
-			//without recursion, should throw an error
+			var objectToUpdate = new G1
+			{
+				GravityLevel2Obj = new G2
+				{
+					Name = "NewName"
+				}
+			};
+
+			RdoBoolExpr matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject == null;
+			//since recursion off, don't create G2 obj
+			//since doesn't exist, don't assign to G1 object
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
-		public void Update_SingleObject_InsertNewWithRecursion()
+		public void Update_SingleObject_InsertNew_WithRecursion()
 		{
+			const int g2id = 20;
+
+			var objectToUpdate = new G1
+			{
+				GravityLevel2Obj = new G2
+				{
+					Name = "NewName"
+				}
+			};
+
+			//create and assign G2 object
+			RdoBoolExpr matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
+			RdoBoolExpr matchingG2Expression = rdo =>
+				rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "NewName";
+
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2Expression))).Returns(g2id);
+			SetupChildQuery();
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
 
 		[Test, Ignore("No third-level objects")]
@@ -230,37 +268,70 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void Update_SingleObject_Remove()
 		{
+			var objectToUpdate = new G1();
+
+			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
-		public void Update_MultipleObject_Update()
+		public void Update_MultipleObject_InsertNewAndUpdateInsertExisting()
 		{
+			const int g2aId = 20;
+
+			var objectToUpdate = new G1
+			{
+				GravityLevel2MultipleObjs = new[] {
+					new G2 { ArtifactId = g2aId, Name = "G2A" }, //exists
+					new G2 { Name = "G2B" } //new
+				}
+			};
+
+			//we don't create new RDOs on non-recursive operations
+			RdoBoolExpr matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>().Single().ArtifactID == g2aId;
+			RdoBoolExpr matchingG2Expression = rdo =>
+				rdo.ArtifactID == g2aId
+				&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2A";
+
+			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2Expression)));
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
+			CollectionAssert.AreEqual(new[] { g2aId, 0 }, objectToUpdate.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
 		}
 
 		[Test]
-		public void Update_MultipleObject_UpdateWithRecursion()
+		public void Update_MultipleObject_InsertNewAndUpdateInsertExisting_WithRecursion()
 		{
-		}
+			const int g2aId = 20;
+			const int g2bId = 30;
 
-		[Test]
-		public void Update_MultipleObject_InsertExisting()
-		{
-		}
+			//update/create children as necessary
+			var objectToUpdate = new G1
+			{
+				GravityLevel2MultipleObjs = new[] {
+					new G2 { ArtifactId = g2aId, Name = "G2A" }, //exists
+					new G2 { ArtifactId = 0, Name = "G2B" } //new
+				}
+			};
 
-		[Test]
-		public void Update_MultipleObject_InsertExistingWithRecursion()
-		{
-		}
+			//we don't create new RDOs on recursive operations
+			RdoBoolExpr matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>()
+					.Select(x => x.ArtifactID)
+					.SequenceEqual(new[] { g2aId, g2bId });
+			RdoBoolExpr matchingG2aExpression = rdo =>
+				rdo.ArtifactID == g2aId	&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2A";
+			RdoBoolExpr matchingG2bExpression = rdo =>
+				rdo.ArtifactID == 0     && rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2B";
 
-		[Test]
-		public void Update_MultipleObject_InsertNew()
-		{
-			//without recursion, should throw an error
-		}
+			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2aExpression)));
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2bExpression))).Returns(g2bId);
+			SetupChildQuery();
 
-		[Test]
-		public void Update_MultipleObject_InsertNewWithRecursion()
-		{
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
+			CollectionAssert.AreEqual(new[] { g2aId, g2bId }, objectToUpdate.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
 		}
 
 
@@ -269,16 +340,66 @@ namespace Gravity.Test.Unit
 		{
 		}
 
-		[Test]
-		public void Update_MultipleObject_Remove()
+		[TestCase(true)]
+		[TestCase(false)]
+		public void Update_MultipleObject_Remove(bool emptyList)
 		{
+			var objectToUpdate = new G1
+			{
+				GravityLevel2MultipleObjs = emptyList ? new List<G2>() : null
+			};
+
+			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].Value == null;
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
+		}
+
+		[Test]
+		public void Update_ChildObject_Update()
+		{
+		}
+
+		[Test]
+		public void Update_ChildObject_Update_WithRecursion()
+		{
+		}
+
+		[Test]
+		public void Update_ChildObject_InsertNew()
+		{
+			//without recursion, should throw an error
+		}
+
+		[Test]
+		public void Update_ChildObject_InsertNew_WithRecursion()
+		{
+		}
+
+		[Test]
+		public void Update_ChildObject_Remove()
+		{
+			//delete if not in the collection. Annoying that have to query, but <shrug>
 		}
 
 		void UpdateObject(G1 objectToInsert, RdoBoolExpr rootExpression, ObjectFieldsDepthLevel depthLevel)
 		{
 			objectToInsert.ArtifactId = G1ArtifactId;
-			mockProvider.Setup(x => x.UpdateSingle(It.Is(rootExpression.And(y => y.ArtifactID == G1ArtifactId))));
+			mockProvider.Setup(x => x.UpdateSingle(It.Is(
+				PredicateBuilder.New<RDO>(true)
+					.And(y => y.ArtifactID == G1ArtifactId)
+					.And(rootExpression)
+				)));
 			new RsapiDao(mockProvider.Object).Update(objectToInsert, depthLevel);
+		}
+
+		//this is needed whenever recursion is turned on
+		private void SetupChildQuery(params int[] resultArtifactIds)
+		{
+			mockProvider.Setup(x =>
+				x.Query(It.Is<Query<RDO>>(
+					y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<G2c>()
+						&& ((WholeNumberCondition)y.Condition).Value.Single() == G1ArtifactId)))
+				.Returns(new[] { resultArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
 		}
 	}
 }
