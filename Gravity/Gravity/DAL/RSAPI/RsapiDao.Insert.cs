@@ -43,24 +43,29 @@ namespace Gravity.DAL.RSAPI
 				return;
 			}
 
-			if (relativityFile.FileValue.Path != null)
+			bool temporaryFile = false;
+			var filePath = relativityFile.FileValue.Path;
+			if (string.IsNullOrWhiteSpace(filePath))
 			{
-				rsapiProvider.UploadFile(relativityFile.ArtifactTypeId, parentId, relativityFile.FileValue.Path);
+				filePath = string.IsNullOrWhiteSpace(relativityFile.FileMetadata.FileName)
+					? throw new ArgumentException("No file path or name")
+					: Path.GetTempPath() + relativityFile.FileMetadata.FileName;
+
+				File.WriteAllBytes(filePath, relativityFile.FileValue.Data);
+
+				temporaryFile = true;
 			}
-			else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
+
+			try
+			{ 
+				rsapiProvider.UploadFile(relativityFile.ArtifactTypeId, parentId, filePath);
+			}
+			finally
 			{
-				string fileName = Path.GetTempPath() + relativityFile.FileMetadata.FileName;
-				File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
-
-				try
+				if (temporaryFile)
 				{
-					rsapiProvider.UploadFile(relativityFile.ArtifactTypeId, parentId, fileName);
+					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(filePath));
 				}
-				finally
-				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(fileName));
-				}
-
 			}
 		}
 
