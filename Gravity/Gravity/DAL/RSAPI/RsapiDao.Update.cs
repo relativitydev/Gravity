@@ -62,7 +62,7 @@ namespace Gravity.DAL.RSAPI
 
 				foreach (var artifactId in artifactIdsToDelete)
 				{
-					this.InvokeGenericMethod(childType, nameof(Delete), artifactId, recursive);
+					this.InvokeGenericMethod(childType, nameof(Delete), artifactId/*, recursive*/);
 				}
 
 				foreach (var childObject in childObjectsList)

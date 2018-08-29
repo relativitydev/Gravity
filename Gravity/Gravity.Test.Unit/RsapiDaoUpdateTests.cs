@@ -288,7 +288,7 @@ namespace Gravity.Test.Unit
 				}
 			};
 
-			//we don't create new RDOs on non-recursive operations
+			//non-recursive, so don't create G2A and only assign G2B to G1
 			RdoBoolExpr matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>().Single().ArtifactID == g2aId;
 			RdoBoolExpr matchingG2Expression = rdo =>
@@ -316,7 +316,7 @@ namespace Gravity.Test.Unit
 				}
 			};
 
-			//we don't create new RDOs on recursive operations
+			//create G2B, update G2A, assign both to G1
 			RdoBoolExpr matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>()
 					.Select(x => x.ArtifactID)
@@ -355,41 +355,69 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
-		public void Update_ChildObject_Update()
+		public void Update_ChildObject_UpdateInsertNew_IgnoredWithNoRecursion()
 		{
+			const int g2caId = 20;
+
+			var objectToUpdate = new G1
+			{
+				GravityLevel2Childs = new[]
+				{
+					new G2c { ArtifactId = g2caId, Name = "G2cA" }, //exists
+					new G2c { ArtifactId = 0, Name = "G2cB" } //new			
+				}
+			};
+			//no actions done on child objects, because recursion off
+			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.OnlyParentObject);
+			CollectionAssert.AreEqual(new[] { g2caId, 0 }, objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 		}
 
-		[Test]
-		public void Update_ChildObject_Update_WithRecursion()
+		[Test, Ignore("Requires delete branch to be merged in first")]
+		public void Update_ChildObject_UpdateInsertNewRemove_WithRecursion()
 		{
+			const int g2caId = 20;
+			const int g2cbId = 30;
+			const int g2ccId = 40;
+
+			var objectToUpdate = new G1
+			{
+				GravityLevel2Childs = new[]
+				{
+					new G2c { ArtifactId = g2caId, Name = "G2cA" }, //exists
+					new G2c { ArtifactId = 0, Name = "G2cB" } //new			
+				}
+			};
+
+			RdoBoolExpr matchingG2caExpression = rdo =>
+				rdo.ArtifactID == g2caId 
+					&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2cA"
+					&& rdo.ParentArtifact.ArtifactID == G1ArtifactId;
+			RdoBoolExpr matchingG2cbExpression = rdo =>
+				rdo.ArtifactID == 0 
+					&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2cB"
+					&& rdo.ParentArtifact.ArtifactID == G1ArtifactId;
+
+			SetupChildQuery(g2caId, g2ccId);
+			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2caExpression)));
+			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2cbExpression))).Returns(g2cbId);
+			mockProvider.Setup(x => x.DeleteSingle(g2ccId));
+
+			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
+			CollectionAssert.AreEqual(
+				new[] { g2caId, g2cbId }, 
+				objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
+
 		}
 
-		[Test]
-		public void Update_ChildObject_InsertNew()
+		void UpdateObject(G1 objectToUpdate, RdoBoolExpr rootExpression, ObjectFieldsDepthLevel depthLevel)
 		{
-			//without recursion, should throw an error
-		}
-
-		[Test]
-		public void Update_ChildObject_InsertNew_WithRecursion()
-		{
-		}
-
-		[Test]
-		public void Update_ChildObject_Remove()
-		{
-			//delete if not in the collection. Annoying that have to query, but <shrug>
-		}
-
-		void UpdateObject(G1 objectToInsert, RdoBoolExpr rootExpression, ObjectFieldsDepthLevel depthLevel)
-		{
-			objectToInsert.ArtifactId = G1ArtifactId;
+			objectToUpdate.ArtifactId = G1ArtifactId;
 			mockProvider.Setup(x => x.UpdateSingle(It.Is(
 				PredicateBuilder.New<RDO>(true)
 					.And(y => y.ArtifactID == G1ArtifactId)
 					.And(rootExpression)
 				)));
-			new RsapiDao(mockProvider.Object).Update(objectToInsert, depthLevel);
+			new RsapiDao(mockProvider.Object).Update(objectToUpdate, depthLevel);
 		}
 
 		//this is needed whenever recursion is turned on
