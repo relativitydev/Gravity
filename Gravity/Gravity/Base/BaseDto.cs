@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client.DTOs;
+using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -142,10 +142,13 @@ namespace Gravity.Base
 
 				case RdoFieldType.MultipleObject:
 					{
-						return new FieldValueList<Artifact>(
-							((IEnumerable<object>) propertyValue)
-								.Select(x => new Artifact((x as BaseDto).ArtifactId))
+						var objectList = new FieldValueList<Artifact>(
+								((IEnumerable)propertyValue)
+								.Cast<BaseDto>()
+								.Select(x => new Artifact(x.ArtifactId))
 								.Where(x => x.ArtifactID > 0));
+
+						return objectList.Any() ? objectList : null;
 					}
 
 				case RdoFieldType.SingleChoice:
