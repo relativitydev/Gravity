@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client.DTOs;
+using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -98,14 +98,13 @@ namespace Gravity.DAL.RSAPI
 				UpdateMultipleObjectFields(theObjectToUpdate, recursive);
 			}
 
-			var rdo = theObjectToUpdate.ToRdo();
-			if (rdo.ArtifactID == 0)
+			if (theObjectToUpdate.ArtifactId == 0)
 			{
-				theObjectToUpdate.ArtifactId = rsapiProvider.CreateSingle(rdo);
+				theObjectToUpdate.ArtifactId = rsapiProvider.CreateSingle(theObjectToUpdate.ToRdo());
 			}
 			else
 			{
-				rsapiProvider.UpdateSingle(rdo);
+				rsapiProvider.UpdateSingle(theObjectToUpdate.ToRdo(true));
 			}
 
 			if (!parentOnly)

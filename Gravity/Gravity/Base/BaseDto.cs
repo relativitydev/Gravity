@@ -1,4 +1,4 @@
-using kCura.Relativity.Client.DTOs;
+﻿using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -57,7 +57,9 @@ namespace Gravity.Base
 		{
 		}
 
-		public RDO ToRdo()
+		public RDO ToRdo() => ToRdo(false);
+
+		public RDO ToRdo(bool includeAllProperties)
 		{
 			RelativityObjectAttribute objectTypeAttribute = this.GetType().GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO rdo = new RDO(objectTypeAttribute.ObjectTypeGuid, ArtifactId);
@@ -70,12 +72,12 @@ namespace Gravity.Base
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
 			{
 				object propertyValue = property.GetValue(this);
-				if (propertyValue == null)
+				if (propertyValue == null && !includeAllProperties)
 				{
 					continue;
 				}
 
-				if (TryAddSimplePropertyValue(rdo, property, propertyValue)) { continue; }
+				TryAddSimplePropertyValue(rdo, property, propertyValue);
 			}
 
 			return rdo;
@@ -92,8 +94,7 @@ namespace Gravity.Base
 				return false;
 			}
 
-			var stringLength = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length;
-			var relativityValue = ConvertPropertyValue(fieldAttribute.FieldType, propertyValue, stringLength);
+			var relativityValue = ConvertPropertyValue(fieldAttribute.FieldType, propertyValue, fieldAttribute.Length);
 
 			rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, relativityValue));
 			return true;
@@ -101,6 +102,11 @@ namespace Gravity.Base
 
 		internal static object ConvertPropertyValue(RdoFieldType fieldType, object propertyValue, int? stringLength = null)
 		{
+			if (propertyValue == null)
+			{
+				return null;
+			}
+
 			switch (fieldType)
 			{
 				case RdoFieldType.Currency:
