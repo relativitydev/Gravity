@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -56,7 +56,7 @@ namespace Gravity.DAL.RSAPI
 		protected ByteArrayFileDto GetFile(Guid fieldGuid, int objectArtifactId)
 		{
 			//TODO: cache this?
-			var fileFieldArtifactId = rsapiProvider.Read(new RDO(fieldGuid)).GetResultData().Single().ArtifactID;
+			var fileFieldArtifactId = this.guidCache.Get(fieldGuid);
 
 			(var fileMetadata, var fileStream) = rsapiProvider.DownloadFile(fileFieldArtifactId, objectArtifactId);
 

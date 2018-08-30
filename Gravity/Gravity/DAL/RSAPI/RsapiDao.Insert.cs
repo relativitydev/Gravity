@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -71,7 +71,7 @@ namespace Gravity.DAL.RSAPI
 
 		protected void InsertUpdateFileField(Guid fieldGuid, int objectArtifactId, FileDto fileDto)
 		{
-			var fileFieldArtifactId = rsapiProvider.Read(new RDO(fieldGuid)).GetResultData().Single().ArtifactID;
+			var fileFieldArtifactId = this.guidCache.Get(fieldGuid);
 
 			//TODO: see if can reduce frequency
 			if (fileDto == null)
