@@ -2,6 +2,7 @@
 using System.Linq;
 using Gravity.Extensions;
 using Gravity.Utils;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 
 namespace Gravity.DAL.RSAPI
@@ -20,7 +21,7 @@ namespace Gravity.DAL.RSAPI
 			string cacheKey = artifactGuid.ToString();
 			if (!TryGetInner(cacheKey, out int artifactId))
 			{
-				artifactId = this.rsapiProvider.Read(new RDO(artifactGuid)).GetResultData().Single().ArtifactID;
+				artifactId = this.rsapiProvider.Read(new RDO((int)ArtifactType.Field, artifactGuid)).GetResultData().Single().ArtifactID;
 				AddInner(artifactGuid.ToString(), artifactId);
 			}
 			return artifactId;

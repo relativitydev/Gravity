@@ -1,4 +1,5 @@
-﻿using Gravity.DAL.RSAPI;
+﻿using Gravity.Base;
+using Gravity.DAL.RSAPI;
 using Gravity.DAL.RSAPI.Tests;
 using Gravity.Test.Helpers;
 using Gravity.Test.TestClasses;
@@ -58,8 +59,8 @@ namespace Gravity.Test.Unit
 			var fileName = "filename.dat";
 			var dao = new RsapiDao(GetFileRsapiProvider(fileName, fileArray));
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.OnlyParentObject);
-			CollectionAssert.AreEqual(fileArray, dto.FileField.ByteArray);
-			Assert.AreEqual(fileName, dto.FileField.FileName);
+			CollectionAssert.AreEqual(fileArray, ((ByteArrayFileDto)dto.FileField).ByteArray);
+			Assert.AreEqual(fileName, ((ByteArrayFileDto)dto.FileField).FileName);
 		}
 
 		[Test]

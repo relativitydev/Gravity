@@ -40,7 +40,7 @@ namespace Gravity.DAL.RSAPI
 					continue;
 
 				var relativityFile = (FileDto)propertyInfo.GetValue(objectToInsert);
-				InsertUpdateFileField(attribute.FieldGuid, objectToInsert.ArtifactId, relativityFile);
+				InsertUpdateFileField(attribute.FieldGuid, parentId, relativityFile);
 			}
 		}
 
