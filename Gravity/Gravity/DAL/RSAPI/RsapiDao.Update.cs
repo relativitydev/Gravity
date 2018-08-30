@@ -51,11 +51,11 @@ namespace Gravity.DAL.RSAPI
 
 				//Cannot update files in bulk; do here
 				if (typeof(T).GetProperties().ToList()
-					.Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile))))
+					.Any(c => c.DeclaringType.IsAssignableFrom(typeof(FileDto))))
 				{
 					foreach (var objectToBeUpdated in objectsToBeUpdated)
 					{
-						InsertUpdateFileFields(objectToBeUpdated, objectToBeUpdated.ArtifactId);
+						InsertUpdateFileFields(objectToBeUpdated);
 					}
 				}
 
@@ -84,7 +84,7 @@ namespace Gravity.DAL.RSAPI
 			UpdateRdo(theObjectToUpdate.ToRdo());
 
 			//update files on object
-			InsertUpdateFileFields(theObjectToUpdate, theObjectToUpdate.ArtifactId);
+			InsertUpdateFileFields(theObjectToUpdate);
 
 			//loop through each child object property
 			foreach (var childPropertyInfo in childObjectsInfo)
@@ -113,9 +113,9 @@ namespace Gravity.DAL.RSAPI
 			if (!TryGetRelativityFieldValue<T>(fieldProperty, value, out rdoValue))
 				return;
 
-			if (rdoValue is RelativityFile rdoValueFile)
+			if (rdoValue is FileDto rdoValueFile)
 			{
-				InsertUpdateFileField(rdoValueFile, rdoID);
+				InsertUpdateFileField(fieldGuid, rdoID, rdoValueFile);
 				return;
 			}
 
@@ -189,7 +189,7 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			if ((fieldAttributeValue.FieldType == RdoFieldType.File)
-				&& value.GetType().BaseType?.IsAssignableFrom(typeof(RelativityFile)) == true)
+				&& value.GetType().BaseType?.IsAssignableFrom(typeof(FileDto)) == true)
 			{
 				rdoValue = value; return true;
 			}

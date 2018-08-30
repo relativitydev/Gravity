@@ -27,45 +27,20 @@ namespace Gravity.DAL.RSAPI
 			return resultArtifactId;
 		}
 
+		protected void InsertUpdateFileFields(BaseDto objectToInsert)
+			=> InsertUpdateFileFields(objectToInsert, objectToInsert.ArtifactId);
+
+		//TODO: remove this signature entirely
 		protected void InsertUpdateFileFields(BaseDto objectToInsert, int parentId)
 		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
+			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
 			{
-				RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
-				InsertUpdateFileField(relativityFile, parentId);
-			}
-		}
+				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
+				if (attribute?.FieldType != RdoFieldType.File)
+					continue;
 
-		protected void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
-		{
-			if (relativityFile?.FileValue == null)
-			{
-				return;
-			}
-
-			bool temporaryFile = false;
-			var filePath = relativityFile.FileValue.Path;
-			if (string.IsNullOrWhiteSpace(filePath))
-			{
-				filePath = string.IsNullOrWhiteSpace(relativityFile.FileMetadata.FileName)
-					? throw new ArgumentException("No file path or name")
-					: Path.GetTempPath() + relativityFile.FileMetadata.FileName;
-
-				File.WriteAllBytes(filePath, relativityFile.FileValue.Data);
-
-				temporaryFile = true;
-			}
-
-			try
-			{ 
-				rsapiProvider.UploadFile(relativityFile.ArtifactTypeId, parentId, filePath);
-			}
-			finally
-			{
-				if (temporaryFile)
-				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(filePath));
-				}
+				var relativityFile = (FileDto)propertyInfo.GetValue(objectToInsert);
+				InsertUpdateFileField(attribute.FieldGuid, objectToInsert.ArtifactId, relativityFile);
 			}
 		}
 
@@ -142,7 +117,7 @@ namespace Gravity.DAL.RSAPI
 		{
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
 
-			bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile)));
+			bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Any(c => c.DeclaringType.IsAssignableFrom(typeof(FileDto)));
 
 			if (childObjectsInfo.Any() || isFilePropertyPresent)
 			{

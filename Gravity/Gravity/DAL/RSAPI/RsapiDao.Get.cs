@@ -42,17 +42,6 @@ namespace Gravity.DAL.RSAPI
 			return rsapiProvider.Query(query).SelectMany(x => x.GetResultData());
 		}
 
-		protected RelativityFile GetFile(int fileFieldArtifactId, int ourFileContainerInstanceArtifactId)
-		{
-			(var fileMetadata, var fileStream) = rsapiProvider.DownloadFile(fileFieldArtifactId, ourFileContainerInstanceArtifactId);
-
-			using (fileStream)
-			{
-				var fileValue = new FileValue(null, fileStream.ToArray());
-				return new RelativityFile(fileFieldArtifactId, fileValue, fileMetadata);
-			}
-		}
-
 		protected ByteArrayFileDto GetFile(Guid fieldGuid, int objectArtifactId)
 		{
 			//TODO: cache this?
@@ -112,6 +101,7 @@ namespace Gravity.DAL.RSAPI
 		{
 			T dto = objectRdo.ToHydratedDto<T>();
 			PopulateChoices(dto, objectRdo);
+			PopulateFiles(dto, objectRdo);
 			switch (depthLevel)
 			{
 				case ObjectFieldsDepthLevel.OnlyParentObject:
@@ -165,6 +155,21 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
+		private void PopulateFiles(BaseDto dto, RDO objectRdo)
+		{
+			foreach ((PropertyInfo property, RelativityObjectFieldAttribute fieldAttribute)
+						in dto.GetType()
+							.GetPropertyAttributeTuples<RelativityObjectFieldAttribute>()
+							.Where(x => x.Item2.FieldType == RdoFieldType.File)
+				)
+			{
+				if (objectRdo[fieldAttribute.FieldGuid].Value != null) // value is file name string, so if present will show up
+				{
+					property.SetValue(dto, this.GetFile(fieldAttribute.FieldGuid, objectRdo.ArtifactID));
+				}
+			}
+		}
+
 
 		internal void PopulateChildrenRecursively<T>(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
 		{
@@ -180,12 +185,12 @@ namespace Gravity.DAL.RSAPI
 
 		private object GetChildObjectRecursively(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
 		{
-			var relativityObjectFieldAttibutes = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
+			var relativityObjectFieldAttibute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
-			if (relativityObjectFieldAttibutes != null)
+			if (relativityObjectFieldAttibute != null)
 			{
-				var fieldType = relativityObjectFieldAttibutes.FieldType;
-				var fieldGuid = relativityObjectFieldAttibutes.FieldGuid;
+				var fieldType = relativityObjectFieldAttibute.FieldType;
+				var fieldGuid = relativityObjectFieldAttibute.FieldGuid;
 
 				//multiple object
 				if (fieldType == RdoFieldType.MultipleObject)
@@ -217,6 +222,7 @@ namespace Gravity.DAL.RSAPI
 						? Activator.CreateInstance(objectType)
 						: this.InvokeGenericMethod(objectType, nameof(Get), childArtifactId, depthLevel);
 				}
+
 			}
 
 			//child object
@@ -229,12 +235,7 @@ namespace Gravity.DAL.RSAPI
 				return MakeGenericList(allChildObjects, childType);
 			}
 
-			//file
-			if (property.GetValue(baseDto, null) is RelativityFile relativityFile)
-			{
-				return GetFile(relativityFile.ArtifactTypeId, baseDto.ArtifactId);
-			}
-
+			
 			return null;
 		}
 
