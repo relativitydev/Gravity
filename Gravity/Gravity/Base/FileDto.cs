@@ -12,9 +12,7 @@ namespace Gravity.Base
 	{
 		internal FileDto() { }
 
-		internal string LastOperationMD5 { get; set; }
-
-		internal string GetCurrentMD5()
+		internal string GetMD5()
 		{
 			using (var md5 = MD5.Create())
 			{
@@ -35,7 +33,6 @@ namespace Gravity.Base
 			return new ByteArrayFileDto
 			{
 				ByteArray = File.ReadAllBytes(this.FilePath),
-				LastOperationMD5 = this.LastOperationMD5,
 				FileName = Path.GetFileName(this.FilePath)
 			};
 		}
@@ -54,8 +51,7 @@ namespace Gravity.Base
 			File.WriteAllBytes(filePath, this.ByteArray);
 			return new FilePathFileDto
 			{
-				FilePath = filePath,
-				LastOperationMD5 = this.LastOperationMD5
+				FilePath = filePath
 			};
 		}
 

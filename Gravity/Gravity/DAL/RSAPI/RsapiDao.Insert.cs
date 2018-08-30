@@ -70,37 +70,45 @@ namespace Gravity.DAL.RSAPI
 		}
 
 		protected void InsertUpdateFileField(Guid fieldGuid, int objectArtifactId, FileDto fileDto)
-		{
+		{			
+			var currentMD5 = fileDto?.GetMD5() ?? "";
+
+			if (fileMd5Cache.Get(fieldGuid, objectArtifactId) == currentMD5) //in cache and matches
+			{
+				return;
+			}
+
 			var fileFieldArtifactId = this.guidCache.Get(fieldGuid);
 
-			//TODO: see if can reduce frequency
 			if (fileDto == null)
+			{
 				rsapiProvider.ClearFile(fileFieldArtifactId, objectArtifactId);
-
-			var currentMD5 = fileDto.GetCurrentMD5();
-			if (currentMD5 == fileDto.LastOperationMD5)
-				return;
-			
-			FilePathFileDto temporaryFileDto = null;
-			if (fileDto is ByteArrayFileDto arrayFileDto)
-			{
-				//TODO: check file name not null or empty
-				temporaryFileDto = arrayFileDto.WriteToFile(Path.Combine(Path.GetTempPath(), arrayFileDto.FileName));
 			}
-
-			try
+			else
 			{
-				var filePath = (temporaryFileDto ?? (FilePathFileDto)fileDto).FilePath;
-				rsapiProvider.UploadFile(fileFieldArtifactId, objectArtifactId, filePath);
-				fileDto.LastOperationMD5 = currentMD5;
-			}
-			finally
-			{
-				if (temporaryFileDto != null)
+				FilePathFileDto temporaryFileDto = null;
+				if (fileDto is ByteArrayFileDto arrayFileDto)
 				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(temporaryFileDto.FilePath));
+					//TODO: check file name not null or empty
+					temporaryFileDto = arrayFileDto.WriteToFile(Path.Combine(Path.GetTempPath(), arrayFileDto.FileName));
+				}
+
+				try
+				{
+					var filePath = (temporaryFileDto ?? (FilePathFileDto)fileDto).FilePath;
+					rsapiProvider.UploadFile(fileFieldArtifactId, objectArtifactId, filePath);
+					fileMd5Cache.Set(fieldGuid, objectArtifactId, currentMD5);
+				}
+				finally
+				{
+					if (temporaryFileDto != null)
+					{
+						invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(temporaryFileDto.FilePath));
+					}
 				}
 			}
+
+			fileMd5Cache.Set(fieldGuid, objectArtifactId, currentMD5);
 		}
 
 

@@ -1,4 +1,4 @@
-using kCura.Relativity.Client;
+﻿using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -67,7 +67,7 @@ namespace Gravity.DAL.RSAPI
 					ByteArray = fileStream.ToArray(),
 					FileName = fileMetadata.FileName
 				};
-				fileDto.LastOperationMD5 = fileDto.GetCurrentMD5();
+				fileMd5Cache.Set(fieldGuid, objectArtifactId, fileDto.GetMD5());
 				return fileDto;
 			}
 		}
