@@ -183,17 +183,20 @@ namespace Gravity.Test.Unit
 			};
 
 			//G2a,b objects created with their fields
-			RdoBoolExpr matchingG2aExpression = rdo =>
-				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2>(nameof(G2.Name))) && f.ValueAsFixedLengthText == "G2A");
-			RdoBoolExpr matchingG2bExpression = rdo =>
-				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2>(nameof(G2.Name))) && f.ValueAsFixedLengthText == "G2B");
+			Func<RDO, string, bool> g2Func = (rdo, name) =>
+			   rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2>(nameof(G2.Name))) && f.ValueAsFixedLengthText == name);
+
 			//parent RDO contains both items
 			RdoBoolExpr matchingG1Expression = rdo =>
 				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs)))
 					&& f.GetValueAsMultipleObject<Artifact>().Select(x => x.ArtifactID).SequenceEqual(new[] { g2aId, g2bId }));
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2aExpression))).Returns(g2aId);
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2bExpression))).Returns(g2bId);
+			mockProvider
+					.Setup(x => x.Create(It.Is<List<RDO>>(
+						rdos => g2Func(rdos[0], "G2A") && g2Func(rdos[1], "G2B") && rdos.Count == 2)))
+				.Returns(
+					new[] { g2aId, g2bId }.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+			
 			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 			CollectionAssert.AreEqual(new[] { g2aId, g2bId }, objectToInsert.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
@@ -259,17 +262,19 @@ namespace Gravity.Test.Unit
 			};
 
 			//G2ca,b objects created with their fields
-			RdoBoolExpr matchingG2aExpression = rdo =>
-				rdo.ParentArtifact.ArtifactID == 10 
-					&& rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2c>(nameof(G2c.Name))) && f.ValueAsFixedLengthText == "G2cA");
-			RdoBoolExpr matchingG2bExpression = rdo =>
+			Func <RDO, string, bool> g2cFunc = (rdo, name) =>
 				rdo.ParentArtifact.ArtifactID == 10
-					&& rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2c>(nameof(G2c.Name))) && f.ValueAsFixedLengthText == "G2cB");
+					&& rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2c>(nameof(G2c.Name))) && f.ValueAsFixedLengthText == name);
+
 			//parent RDO contains both items
 			RdoBoolExpr matchingG1Expression = rdo => rdo.ArtifactTypeGuids.Contains(BaseDto.GetObjectTypeGuid<G1>());
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2aExpression))).Returns(g2caId);
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2bExpression))).Returns(g2cbId);
+			mockProvider
+				.Setup(x => x.Create(It.Is<List<RDO>>(
+					rdos =>	g2cFunc(rdos[0], "G2cA") && g2cFunc(rdos[1], "G2cB") && rdos.Count == 2)))
+				.Returns(
+					new[] { g2caId, g2cbId }.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+
 			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 			CollectionAssert.AreEqual(new[] { g2caId, g2cbId }, objectToInsert.GravityLevel2Childs.Select(x => x.ArtifactId));

@@ -68,25 +68,25 @@ namespace Gravity.DAL.RSAPI
 		#endregion
 
 
-		private void InsertChildListObjects<T>(T theObjectToInsert, int resultArtifactId, bool recursive) where T : BaseDto
+		private void InsertChildListObjects(BaseDto theObjectToInsert, int resultArtifactId, bool recursive)
 		{
-
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
+			var childObjectsInfo = theObjectToInsert.GetType()
+				.GetPropertyAttributeTuples<RelativityObjectChildrenListAttribute>()
+				.Select(x => x.Item1);
 			foreach (var childPropertyInfo in childObjectsInfo)
 			{
 				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
 				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert, null) as IList;
+				if (childObjectsList == null)
+					continue;
 
-				if (childObjectsList?.Count > 0)
+				foreach (var childObject in childObjectsList)
 				{
-					foreach (var childObject in childObjectsList)
-					{
-						var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
-						parentArtifactIdProperty.SetValue(childObject, resultArtifactId);
-						//TODO: bulk operation if no recursion
-						this.InvokeGenericMethod(childType, nameof(Insert), childObject, recursive);
-					}
+					var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
+					parentArtifactIdProperty.SetValue(childObject, resultArtifactId);					
 				}
+
+				this.InvokeGenericMethod(childType, nameof(Insert), childObjectsList, recursive);
 			}
 		}
 
@@ -114,20 +114,16 @@ namespace Gravity.DAL.RSAPI
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
 			{
 				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
-				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
+				var fieldValue = ((IEnumerable)objectToInsert.GetPropertyValue(propertyInfo.Name))?
+					.Cast<BaseDto>()
+					.Where(x => x.ArtifactId == 0);
+
 				if (fieldValue == null)
 				{
 					continue;
 				}
 
-				foreach (var childObject in fieldValue)
-				{
-					if ((childObject as BaseDto).ArtifactId == 0)
-					{
-						//TODO: bulk operation if no recursion
-						this.InvokeGenericMethod(childType, nameof(Insert), childObject, recursive);
-					}
-				}
+				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(fieldValue, childType), recursive);
 			}
 			return true;
 		}
@@ -157,6 +153,40 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			return resultArtifactId;
+		}
+
+		public void Insert<T>(IList<T> theObjectsToInsert, bool recursive) where T : BaseDto
+		{
+			if (theObjectsToInsert.Count == 0)
+			{
+				return;
+			}
+
+			foreach (var theObjectToInsert in theObjectsToInsert)
+			{
+				if (recursive)
+				{
+					InsertSingleObjectFields(theObjectToInsert, recursive);
+					InsertMultipleObjectFields(theObjectToInsert, recursive);
+				}
+			}
+
+			var rdos = theObjectsToInsert.Select(x => x.ToRdo()).ToList();
+			var resultData = rsapiProvider.Create(rdos).GetResultData();
+			for (int i = 0; i < rdos.Count; i++)
+			{
+				theObjectsToInsert[i].ArtifactId = resultData[i].ArtifactID;
+			}
+
+			foreach (var theObjectToInsert in theObjectsToInsert)
+			{
+				if (recursive)
+				{
+					var resultArtifactId = theObjectToInsert.ArtifactId;
+					InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
+					InsertChildListObjects(theObjectToInsert, resultArtifactId, recursive);
+				}
+			}
 		}
 	}
 }
