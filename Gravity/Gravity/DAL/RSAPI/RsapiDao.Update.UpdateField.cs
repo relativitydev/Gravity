@@ -67,7 +67,7 @@ namespace Gravity.DAL.RSAPI
 					{
 						rdoValue =
 							valueList.Cast<object>()
-							.Select(x => new Artifact((int)x.GetType().GetProperty(nameof(BaseDto.ArtifactId)).GetValue(x, null)))
+							.Select(x => new Artifact((int)x.GetType().GetProperty(nameof(BaseDto.ArtifactId)).GetValue(x)))
 							.ToList();
 
 						return true;

@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -76,7 +76,7 @@ namespace Gravity.DAL.RSAPI
 			foreach (var childPropertyInfo in childObjectsInfo)
 			{
 				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
-				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert, null) as IList;
+				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert) as IList;
 				if (childObjectsList == null)
 					continue;
 

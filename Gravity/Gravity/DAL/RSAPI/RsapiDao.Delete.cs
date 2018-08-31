@@ -60,7 +60,7 @@ namespace Gravity.DAL.RSAPI
 			foreach (var propertyInfo in childProperties)
 			{
 
-				var thisChildTypeObj = propertyInfo.GetValue(theObjectToDelete, null) as IList;
+				var thisChildTypeObj = propertyInfo.GetValue(theObjectToDelete) as IList;
 
 				List<int> thisArtifactIDs = thisChildTypeObj.Cast<object>()
 					.Select(item => ((BaseDto)item).ArtifactId)

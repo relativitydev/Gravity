@@ -228,7 +228,7 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			//file
-			if (property.GetValue(baseDto, null) is RelativityFile relativityFile)
+			if (property.GetValue(baseDto) is RelativityFile relativityFile)
 			{
 				return GetFile(relativityFile.ArtifactTypeId, baseDto.ArtifactId);
 			}

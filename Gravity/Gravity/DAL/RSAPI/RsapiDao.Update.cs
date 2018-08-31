@@ -52,7 +52,7 @@ namespace Gravity.DAL.RSAPI
 			foreach (var childPropertyInfo in childObjectsInfo)
 			{
 				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
-				var childObjectsList = (childPropertyInfo.GetValue(theObjectToUpdate, null) as IList)?
+				var childObjectsList = (childPropertyInfo.GetValue(theObjectToUpdate) as IList)?
 						.Cast<BaseDto>().ToList() 
 					?? new List<BaseDto>();
 

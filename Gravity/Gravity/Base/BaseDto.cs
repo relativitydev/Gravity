@@ -29,7 +29,7 @@ namespace Gravity.Base
 
 		public object GetPropertyValue(string propertyName)
 		{
-			return this.GetType().GetProperty(propertyName).GetValue(this, null);
+			return this.GetType().GetProperty(propertyName).GetValue(this);
 		}
 
 		public PropertyInfo GetParentArtifactIdProperty()
@@ -64,7 +64,7 @@ namespace Gravity.Base
 			RelativityObjectAttribute objectTypeAttribute = this.GetType().GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO rdo = new RDO(objectTypeAttribute.ObjectTypeGuid, ArtifactId);
 
-			if (this.GetParentArtifactIdProperty()?.GetValue(this, null) is int parentId)
+			if (this.GetParentArtifactIdProperty()?.GetValue(this) is int parentId)
 			{
 				rdo.ParentArtifact = new Artifact(parentId);
 			}
