@@ -149,12 +149,7 @@ namespace Gravity.DAL.RSAPI
 				InsertMultipleObjectFields(theObjectsToInsert, recursive);
 			}
 
-			var rdos = theObjectsToInsert.Select(x => x.ToRdo()).ToList();
-			var resultData = rsapiProvider.Create(rdos).GetResultData();
-			for (int i = 0; i < rdos.Count; i++)
-			{
-				theObjectsToInsert[i].ArtifactId = resultData[i].ArtifactID;
-			}
+			ExecuteObjectInsert(theObjectsToInsert);
 
 			if (!parentOnly)
 			{
@@ -164,6 +159,16 @@ namespace Gravity.DAL.RSAPI
 				{
 					InsertUpdateFileFields(theObjectToInsert);
 				}
+			}
+		}
+
+		private void ExecuteObjectInsert<T>(IList<T> theObjectsToInsert) where T : BaseDto
+		{
+			var rdos = theObjectsToInsert.Select(x => x.ToRdo()).ToList();
+			var resultData = rsapiProvider.Create(rdos).GetResultData();
+			for (int i = 0; i < rdos.Count; i++)
+			{
+				theObjectsToInsert[i].ArtifactId = resultData[i].ArtifactID;
 			}
 		}
 	}

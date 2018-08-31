@@ -18,7 +18,7 @@ using LinqKit;
 using G1 = Gravity.Test.TestClasses.GravityLevelOne;
 using G2 = Gravity.Test.TestClasses.GravityLevel2;
 using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
-using RdoBoolExpr = System.Linq.Expressions.Expression<System.Func<kCura.Relativity.Client.DTOs.RDO, bool>>;
+using RdoBoolCond = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 using Artifact = kCura.Relativity.Client.DTOs.Artifact;
 
 using static Gravity.Test.Helpers.TestObjectHelper;
@@ -58,7 +58,7 @@ namespace Gravity.Test.Unit
 				LongTextField = "LongText",
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 					rdo[FieldGuid<G1>(nameof(G1.BoolField))].Value.Equals(true)
 				&& rdo[FieldGuid<G1>(nameof(G1.CurrencyField))].Value.Equals(.5M)
 				&& rdo[FieldGuid<G1>(nameof(G1.DateTimeField))].Value.Equals(new DateTime(2000, 1, 1))
@@ -75,7 +75,7 @@ namespace Gravity.Test.Unit
 		{
 			var objectToUpdate = new G1();
 
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 					rdo[FieldGuid<G1>(nameof(G1.BoolField))].Value == null
 				&& rdo[FieldGuid<G1>(nameof(G1.CurrencyField))].Value == null
 				&& rdo[FieldGuid<G1>(nameof(G1.DateTimeField))].Value == null
@@ -95,7 +95,7 @@ namespace Gravity.Test.Unit
 				SingleChoice = SingleChoiceFieldChoices.SingleChoice2
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].ValueAsSingleChoice.Guids.Single()
 					== SingleChoiceFieldChoices.SingleChoice2.GetRelativityObjectAttributeGuidValue();
 
@@ -107,7 +107,7 @@ namespace Gravity.Test.Unit
 		{
 			var objectToUpdate = new G1();
 
-			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].Value == null;
+			RdoBoolCond matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].Value == null;
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
@@ -135,7 +135,7 @@ namespace Gravity.Test.Unit
 						);
 			};
 
-			//checks that matches Updateed object				
+			//checks that matches Updated object				
 			UpdateObject(objectToUpdate, rdo => matchingRdoExpressionInner(rdo), ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
@@ -148,7 +148,7 @@ namespace Gravity.Test.Unit
 				MultipleChoiceFieldChoices = emptyList ? new List<MultipleChoiceFieldChoices>() : null
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].Value == null;
+			RdoBoolCond matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].Value == null;
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
@@ -182,7 +182,7 @@ namespace Gravity.Test.Unit
 				}
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
 			//since recursion off, don't update G2 obj
 
@@ -203,15 +203,15 @@ namespace Gravity.Test.Unit
 				}
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
 			//update G2 object
-			RdoBoolExpr matchingG2Expression = rdo =>
+			RdoBoolCond matchingG2Expression = rdo =>
 				rdo.ArtifactID == g2id
 				&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "NewName";
 
 			SetupChildQuery();
-			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2Expression)));
+			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2Expression(x[0]));
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
@@ -227,7 +227,7 @@ namespace Gravity.Test.Unit
 				}
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject == null;
 			//since recursion off, don't create G2 obj
 			//since doesn't exist, don't assign to G1 object
@@ -249,12 +249,12 @@ namespace Gravity.Test.Unit
 			};
 
 			//create and assign G2 object
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
-			RdoBoolExpr matchingG2Expression = rdo =>
+			RdoBoolCond matchingG2Expression = rdo =>
 				rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "NewName";
 
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2Expression))).Returns(g2id);
+			SetupInsertManyCondition(x => x.Count == 1 && matchingG2Expression(x[0]), g2id);
 			SetupChildQuery();
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
@@ -270,7 +270,7 @@ namespace Gravity.Test.Unit
 		{
 			var objectToUpdate = new G1();
 
-			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
+			RdoBoolCond matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
@@ -289,13 +289,13 @@ namespace Gravity.Test.Unit
 			};
 
 			//non-recursive, so don't create G2A and only assign G2B to G1
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>().Single().ArtifactID == g2aId;
-			RdoBoolExpr matchingG2Expression = rdo =>
+			RdoBoolCond matchingG2Expression = rdo =>
 				rdo.ArtifactID == g2aId
 				&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2A";
 
-			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2Expression)));
+			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2Expression(x[0]));
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 			CollectionAssert.AreEqual(new[] { g2aId, 0 }, objectToUpdate.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
@@ -317,17 +317,17 @@ namespace Gravity.Test.Unit
 			};
 
 			//create G2B, update G2A, assign both to G1
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoBoolCond matchingRdoExpression = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>()
 					.Select(x => x.ArtifactID)
 					.SequenceEqual(new[] { g2aId, g2bId });
-			RdoBoolExpr matchingG2aExpression = rdo =>
+			RdoBoolCond matchingG2aExpression = rdo =>
 				rdo.ArtifactID == g2aId	&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2A";
-			RdoBoolExpr matchingG2bExpression = rdo =>
+			RdoBoolCond matchingG2bExpression = rdo =>
 				rdo.ArtifactID == 0     && rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2B";
 
-			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2aExpression)));
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2bExpression))).Returns(g2bId);
+			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2aExpression(x[0]));
+			SetupInsertManyCondition(x => x.Count == 1 && matchingG2bExpression(x[0]), g2bId);
 			SetupChildQuery();
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
@@ -349,7 +349,7 @@ namespace Gravity.Test.Unit
 				GravityLevel2MultipleObjs = emptyList ? new List<G2>() : null
 			};
 
-			RdoBoolExpr matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].Value == null;
+			RdoBoolCond matchingRdoExpression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].Value == null;
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
@@ -372,7 +372,7 @@ namespace Gravity.Test.Unit
 			CollectionAssert.AreEqual(new[] { g2caId, 0 }, objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 		}
 
-		[Test, Ignore("Requires delete branch to be merged in first")]
+		[Test]
 		public void Update_ChildObject_UpdateInsertNewRemove_WithRecursion()
 		{
 			const int g2caId = 20;
@@ -388,18 +388,19 @@ namespace Gravity.Test.Unit
 				}
 			};
 
-			RdoBoolExpr matchingG2caExpression = rdo =>
+			RdoBoolCond matchingG2caExpression = rdo =>
 				rdo.ArtifactID == g2caId 
-					&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2cA"
+					&& rdo[FieldGuid<G2c>(nameof(G2c.Name))].ValueAsFixedLengthText == "G2cA"
 					&& rdo.ParentArtifact.ArtifactID == G1ArtifactId;
-			RdoBoolExpr matchingG2cbExpression = rdo =>
+			RdoBoolCond matchingG2cbExpression = rdo =>
 				rdo.ArtifactID == 0 
-					&& rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2cB"
+					&& rdo[FieldGuid<G2c>(nameof(G2c.Name))].ValueAsFixedLengthText == "G2cB"
 					&& rdo.ParentArtifact.ArtifactID == G1ArtifactId;
 
 			SetupChildQuery(g2caId, g2ccId);
-			mockProvider.Setup(x => x.UpdateSingle(It.Is(matchingG2caExpression)));
-			mockProvider.Setup(x => x.CreateSingle(It.Is(matchingG2cbExpression))).Returns(g2cbId);
+			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2caExpression(x[0]));
+			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
+			mockProvider.Setup(x => x.ReadSingle(g2ccId)).Returns(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
 			mockProvider.Setup(x => x.DeleteSingle(g2ccId));
 
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
@@ -409,14 +410,11 @@ namespace Gravity.Test.Unit
 
 		}
 
-		void UpdateObject(G1 objectToUpdate, RdoBoolExpr rootExpression, ObjectFieldsDepthLevel depthLevel)
+		void UpdateObject(G1 objectToUpdate, RdoBoolCond rootExpression, ObjectFieldsDepthLevel depthLevel)
 		{
 			objectToUpdate.ArtifactId = G1ArtifactId;
-			mockProvider.Setup(x => x.UpdateSingle(It.Is(
-				PredicateBuilder.New<RDO>(true)
-					.And(y => y.ArtifactID == G1ArtifactId)
-					.And(rootExpression)
-				)));
+			SetupUpdateManyCondition(x => x.Count == 1 && x[0].ArtifactID == G1ArtifactId && rootExpression(x[0]));
+
 			new RsapiDao(mockProvider.Object).Update(objectToUpdate, depthLevel);
 		}
 
@@ -428,6 +426,20 @@ namespace Gravity.Test.Unit
 					y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<G2c>()
 						&& ((WholeNumberCondition)y.Condition).Value.Single() == G1ArtifactId)))
 				.Returns(new[] { resultArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
+		}
+
+		public void SetupInsertManyCondition(Func<List<RDO>, bool> condition, params int[] resultIds)
+		{
+			mockProvider
+				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
+				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+		}
+
+		public void SetupUpdateManyCondition(Func<List<RDO>, bool> condition)
+		{
+			mockProvider
+				.Setup(x => x.Update(It.Is<List<RDO>>(y => condition(y))))
+				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
 		}
 	}
 }
