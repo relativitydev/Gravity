@@ -1,4 +1,4 @@
-using kCura.Relativity.Client;
+﻿using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -67,26 +67,33 @@ namespace Gravity.DAL.RSAPI
 
 		#endregion
 
-
-		private void InsertChildListObjects(BaseDto theObjectToInsert, bool recursive)
+		private void InsertChildListObjects<T>(IEnumerable<T> objectsToInsert, bool recursive) where T : BaseDto
 		{
-			var childObjectsInfo = theObjectToInsert.GetType()
+			var childProperties = typeof(T)
 				.GetPropertyAttributeTuples<RelativityObjectChildrenListAttribute>()
 				.Select(x => x.Item1);
-			foreach (var childPropertyInfo in childObjectsInfo)
-			{
-				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
-				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert) as IList;
-				if (childObjectsList == null)
-					continue;
 
-				foreach (var childObject in childObjectsList)
+			foreach (var childPropertyInfo in childProperties)
+			{
+				IEnumerable<BaseDto> GetObjectsToInsert(T theObjectToInsert)
 				{
-					var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
-					parentArtifactIdProperty.SetValue(childObject, theObjectToInsert.ArtifactId);					
+					return ((IEnumerable)childPropertyInfo.GetValue(theObjectToInsert))?
+						.Cast<BaseDto>()
+						.Select(childObject =>
+						{
+							var parentArtifactIdProperty = childObject.GetParentArtifactIdProperty();
+							parentArtifactIdProperty.SetValue(childObject, theObjectToInsert.ArtifactId);
+							return childObject;
+						});
 				}
 
-				this.InvokeGenericMethod(childType, nameof(Insert), childObjectsList, recursive);
+				var childObjectsToInsert = objectsToInsert.Select(GetObjectsToInsert)
+					.Where(x => x != null)
+					.SelectMany(x => x);
+
+				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
+
+				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(childObjectsToInsert, childType), recursive);
 			}
 		}
 
@@ -120,7 +127,7 @@ namespace Gravity.DAL.RSAPI
 					.Select(objectToInsert => (IEnumerable)objectToInsert.GetPropertyValue(propertyInfo.Name))
 					.Where(x => x != null)
 					.SelectMany(x => x.Cast<BaseDto>())
-					.Where(x => x != null && x.ArtifactId == 0);
+					.Where(x => x.ArtifactId == 0);
 
 				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
 
@@ -149,7 +156,7 @@ namespace Gravity.DAL.RSAPI
 			if (!parentOnly)
 			{
 				InsertUpdateFileFields(theObjectToInsert);
-				InsertChildListObjects(theObjectToInsert, recursive);
+				InsertChildListObjects(new[] { theObjectToInsert }, recursive);
 			}
 
 			return resultArtifactId;
@@ -177,12 +184,11 @@ namespace Gravity.DAL.RSAPI
 
 			if (recursive)
 			{
+				InsertChildListObjects(theObjectsToInsert, recursive);
+
 				foreach (var theObjectToInsert in theObjectsToInsert)
 				{
-				
-					var resultArtifactId = theObjectToInsert.ArtifactId;
 					InsertUpdateFileFields(theObjectToInsert);
-					InsertChildListObjects(theObjectToInsert, recursive);
 				}
 			}
 		}
