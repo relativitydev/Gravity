@@ -92,13 +92,14 @@ namespace Gravity.Base
 				return false;
 			}
 
-			var relativityValue = ConvertPropertyValue(property, fieldAttribute.FieldType, propertyValue);
+			var stringLength = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length;
+			var relativityValue = ConvertPropertyValue(fieldAttribute.FieldType, propertyValue, stringLength);
 
 			rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, relativityValue));
 			return true;
 		}
 
-		private static object ConvertPropertyValue(PropertyInfo property, RdoFieldType fieldType, object propertyValue)
+		internal static object ConvertPropertyValue(RdoFieldType fieldType, object propertyValue, int? stringLength = null)
 		{
 			switch (fieldType)
 			{
@@ -117,12 +118,12 @@ namespace Gravity.Base
 				//truncate fixed-length text
 				case RdoFieldType.FixedLengthText:
 					{
-						int stringLength = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length ?? 3000;
+						stringLength = stringLength ?? 3000;
 
 						string theString = propertyValue as string;
-						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLength)
+						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLength.Value)
 						{
-							theString = theString.Substring(0, (stringLength - 3)) + "...";
+							theString = theString.Substring(0, (stringLength.Value - 3)) + "...";
 						}
 
 						return theString;
@@ -142,7 +143,8 @@ namespace Gravity.Base
 				case RdoFieldType.MultipleObject:
 					{
 						return new FieldValueList<Artifact>(
-							((IEnumerable<object>) propertyValue).Select(x => new Artifact((x as BaseDto).ArtifactId)));
+							((IEnumerable<object>) propertyValue)
+								.Select(x => new Artifact((x as BaseDto).ArtifactId)));
 					}
 
 				case RdoFieldType.SingleChoice:

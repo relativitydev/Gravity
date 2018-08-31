@@ -30,7 +30,7 @@ namespace Gravity.Test.Helpers
         {
             RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
 
-            int testDtoId = gravityRsapiDao.Insert(testObject);
+            int testDtoId = gravityRsapiDao.Insert(testObject, ObjectFieldsDepthLevel.FullyRecursive);
 
             return testDtoId;
         }

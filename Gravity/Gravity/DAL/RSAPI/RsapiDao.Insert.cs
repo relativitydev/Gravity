@@ -64,96 +64,56 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		private void InsertChildListObjectsWithDynamicType(BaseDto theObjectToInsert, int resultArtifactId, PropertyInfo propertyInfo)
-		{
-			var childObjectsList = propertyInfo.GetValue(theObjectToInsert, null) as IList;
 
-			if (childObjectsList != null && childObjectsList?.Count != 0)
-			{
-				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
-				this.InvokeGenericMethod(childType, nameof(InsertChildListObjects), childObjectsList, resultArtifactId);
-			}
-		}
-
-		private static void SetParentArtifactID<T>(T objectToBeInserted, int parentArtifactId) where T : BaseDto
-		{
-			PropertyInfo parentArtifactIdProperty = objectToBeInserted.GetParentArtifactIdProperty();
-
-			if (parentArtifactIdProperty == null)
-			{
-				return;
-			}
-
-			parentArtifactIdProperty.SetValue(objectToBeInserted, parentArtifactId);
-			objectToBeInserted.ArtifactId = 0;
-		}
 		#endregion
 
-		internal void InsertChildListObjects<T>(IList<T> objectsToInserted, int parentArtifactId)
-			where T : BaseDto
+
+		private void InsertChildListObjects<T>(T theObjectToInsert, int resultArtifactId, bool recursive) where T : BaseDto
 		{
+
 			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-
-			bool isFilePropertyPresent = typeof(T).GetProperties().ToList().Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile)));
-
-			if (childObjectsInfo.Any() || isFilePropertyPresent)
+			foreach (var childPropertyInfo in childObjectsInfo)
 			{
-				foreach (var objectToBeInserted in objectsToInserted)
-				{
-					SetParentArtifactID(objectToBeInserted, parentArtifactId);
-					int insertedRdoArtifactID = InsertRdo(objectToBeInserted.ToRdo());
-					InsertUpdateFileFields(objectToBeInserted, insertedRdoArtifactID);
+				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
+				var childObjectsList = childPropertyInfo.GetValue(theObjectToInsert, null) as IList;
 
-					foreach (var childPropertyInfo in childObjectsInfo)
+				if (childObjectsList?.Count > 0)
+				{
+					foreach (var childObject in childObjectsList)
 					{
-						InsertChildListObjectsWithDynamicType(objectToBeInserted, insertedRdoArtifactID, childPropertyInfo);
+						var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
+						parentArtifactIdProperty.SetValue(childObject, resultArtifactId);
+						//TODO: bulk operation if no recursion
+						this.InvokeGenericMethod(childType, nameof(Insert), childObject, recursive);
 					}
 				}
 			}
-			else
-			{
-
-				foreach (var objectToBeInserted in objectsToInserted)
-				{
-					SetParentArtifactID(objectToBeInserted, parentArtifactId);
-				}
-
-				var rdosToBeInserted = objectsToInserted.Select(x => x.ToRdo()).ToArray();
-
-				rsapiProvider.Create(rdosToBeInserted);
-			}
 		}
 
-		private bool InsertSingleObjectFields(BaseDto objectToInsert)
+		private bool InsertSingleObjectFields(BaseDto objectToInsert, bool recursive)
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
 			{
+				var childType = propertyInfo.PropertyType;
 				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
 				if (attribute?.FieldType == RdoFieldType.SingleObject)
 				{
 					var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
-					if (fieldValue != null)
+					if (fieldValue?.ArtifactId == 0)
 					{
-						Type objType = fieldValue.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), fieldValue);
-						fieldValue.ArtifactId = (int)newArtifactId;
+						this.InvokeGenericMethod(childType, nameof(Insert), fieldValue, recursive);
 					}
 				}
 			}
 			return true;
 		}
 
-		private bool InsertMultipleObjectFields(BaseDto objectToInsert)
+		private bool InsertMultipleObjectFields(BaseDto objectToInsert, bool recursive)
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
 				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
 			{
-				var fieldGuid = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid;
-				if (fieldGuid == null)
-				{
-					continue;
-				}
-
+				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
 				IEnumerable<object> fieldValue = (IEnumerable<object>)objectToInsert.GetPropertyValue(propertyInfo.Name);
 				if (fieldValue == null)
 				{
@@ -162,39 +122,38 @@ namespace Gravity.DAL.RSAPI
 
 				foreach (var childObject in fieldValue)
 				{
-					//TODO: better test to see if contains value...if all fields are null, not need
-					if (((childObject as BaseDto).ArtifactId == 0))
+					if ((childObject as BaseDto).ArtifactId == 0)
 					{
-						Type objType = childObject.GetType();
-						var newArtifactId = this.InvokeGenericMethod(objType, nameof(Insert), childObject);
-						(childObject as BaseDto).ArtifactId = (int)newArtifactId;
-					}
-					else
-					{
-						//TODO: Consider update if fields have changed
-
+						//TODO: bulk operation if no recursion
+						this.InvokeGenericMethod(childType, nameof(Insert), childObject, recursive);
 					}
 				}
 			}
 			return true;
 		}
 
-		public int Insert<T>(T theObjectToInsert) where T : BaseDto
+		private int Insert<T>(T theObjectToInsert, bool recursive) where T : BaseDto 
+			=> Insert(theObjectToInsert, recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject);
+
+		public int Insert<T>(T theObjectToInsert, ObjectFieldsDepthLevel depthLevel) where T : BaseDto
 		{
+			var parentOnly = depthLevel == ObjectFieldsDepthLevel.OnlyParentObject;
+			var recursive = depthLevel == ObjectFieldsDepthLevel.FullyRecursive;
+
 			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
-			InsertSingleObjectFields(theObjectToInsert);
-			InsertMultipleObjectFields(theObjectToInsert);
+			if (!parentOnly)
+			{
+				InsertSingleObjectFields(theObjectToInsert, recursive);
+				InsertMultipleObjectFields(theObjectToInsert, recursive);
+			}
 
 			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
+			theObjectToInsert.ArtifactId = resultArtifactId;
 
-			InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
-
-			
-
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-			foreach (var childPropertyInfo in childObjectsInfo)
+			if (!parentOnly)
 			{
-				InsertChildListObjectsWithDynamicType(theObjectToInsert, resultArtifactId, childPropertyInfo);
+				InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
+				InsertChildListObjects(theObjectToInsert, resultArtifactId, recursive);
 			}
 
 			return resultArtifactId;

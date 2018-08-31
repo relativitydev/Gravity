@@ -34,7 +34,7 @@ namespace Gravity.DAL.RSAPI
 			//insert ones that do not exist
 			if (objectsToBeInserted.Any())
 			{
-				this.InvokeGenericMethod(typeof(T), nameof(InsertChildListObjects), objectsToBeInserted, parentArtifactId);
+				this.InvokeGenericMethod(typeof(T), nameof(InsertChildListObjects), objectsToBeInserted, parentArtifactId, true);
 			}
 
 			if (!objectsToBeUpdated.Any())
