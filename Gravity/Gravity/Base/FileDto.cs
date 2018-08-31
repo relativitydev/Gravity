@@ -15,8 +15,9 @@ namespace Gravity.Base
 		internal string GetMD5()
 		{
 			using (var md5 = MD5.Create())
+			using (var stream = GetStream())
 			{
-				byte[] byteHashedPassword = md5.ComputeHash(GetStream());
+				byte[] byteHashedPassword = md5.ComputeHash(stream);
 				return BitConverter.ToString(byteHashedPassword).Replace("-", "").ToLower();
 			}
 		}

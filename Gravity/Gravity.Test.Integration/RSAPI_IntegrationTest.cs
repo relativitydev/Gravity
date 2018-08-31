@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using kCura.Relativity.Client;
@@ -17,12 +17,11 @@ using Gravity.Extensions;
 using Gravity.Test.Helpers;
 using Choice = kCura.Relativity.Client.DTOs.Choice;
 using Artifact = kCura.Relativity.Client.DTOs.Artifact;
-using System.IO;
 
 namespace Gravity.Test.Integration
 {
 	[TestFixture]
-	public class RSAPI_IntegrationTest
+	public partial class RSAPI_IntegrationTest
 	{
 		#region Variables
 
@@ -160,6 +159,8 @@ namespace Gravity.Test.Integration
 		}
 		#endregion
 
+	
+
 		#region "Tests"
 
 		[Test, Description("Verify Test Object is Created")]
@@ -195,97 +196,6 @@ namespace Gravity.Test.Integration
 			TestWrapper(Inner);
 		}
 
-		[Test, Description("Verify file is created from byte array")]
-		public void Valid_Gravity_Object_Create_ByteArrayFile()
-		{
-			void Inner()
-			{
-				LogStart("Arrangement");
-
-				var testFile = new ByteArrayFileDto
-				{
-					FileName = "TestFile.txt",
-					ByteArray = new[] { (byte)'a' }
-				};
-
-				GravityLevelOne testObject = new GravityLevelOne()
-				{
-					Name = $"TestObject_WithBufferFile_{Guid.NewGuid()}",
-					FileField = testFile
-				};
-
-				LogEnd("Arrangement");
-
-				LogStart("Act");
-
-				var newRdoArtifactId = _testObjectHelper.GetDao().Insert(testObject);
-				var returnObject = _testObjectHelper.GetDao().Get<GravityLevelOne>(newRdoArtifactId, ObjectFieldsDepthLevel.OnlyParentObject);
-
-				var returnFile = (ByteArrayFileDto)returnObject.FileField;
-
-				LogEnd("Act");
-
-				LogStart("Assertion");
-
-				Assert.AreEqual(testFile.FileName, returnFile.FileName);
-				CollectionAssert.AreEqual(testFile.ByteArray, returnFile.ByteArray);
-
-				LogEnd("Assertion");
-			}
-			TestWrapper(Inner);
-		}
-
-		[Test, Description("Verify file is created from file on disk")]
-		public void Valid_Gravity_Object_Create_DiskFile()
-		{
-			void Inner()
-			{
-				LogStart("Arrangement");
-
-				var fileName = "TestFile.txt";
-
-				var testFile = new FilePathFileDto
-				{
-					FilePath = Path.Combine(Path.GetTempPath(), fileName)
-				};
-
-				GravityLevelOne testObject = new GravityLevelOne()
-				{
-					Name = $"TestObject_WithDiskFile_{Guid.NewGuid()}",
-					FileField = testFile
-				};
-
-				File.WriteAllBytes(testFile.FilePath, new[] { (byte)'a' });
-
-				try
-				{
-					LogEnd("Arrangement");
- 
-					LogStart("Act");
-
-					var newRdoArtifactId = _testObjectHelper.GetDao().Insert(testObject);
-					var returnObject = _testObjectHelper.GetDao().Get<GravityLevelOne>(newRdoArtifactId, ObjectFieldsDepthLevel.OnlyParentObject);
-
-					var returnFile = (ByteArrayFileDto)returnObject.FileField;
-
-					LogEnd("Act");
-
-					LogStart("Assertion");
-
-					Assert.AreEqual(fileName, returnFile.FileName);
-					CollectionAssert.AreEqual(File.ReadAllBytes(testFile.FilePath), returnFile.ByteArray);
-
-					LogEnd("Assertion");
-				}
-				finally
-				{
-					File.Delete(testFile.FilePath);
-				}
-
-				
-			}
-			TestWrapper(Inner);
-		}
 
 		[Test, Description("Verify RelativityObject field created correctly using Gravity"),
 		 TestCaseSource(typeof(TestCaseDefinition), nameof(TestCaseDefinition.SimpleFieldReadWriteTestCases))]
