@@ -25,7 +25,7 @@ namespace Gravity.Base
 		protected abstract Stream GetStream();
 	}
 
-	public class FilePathFileDto : FileDto
+	public class DiskFileDto : FileDto
 	{
 		public string FilePath { get; set; }
 
@@ -47,10 +47,10 @@ namespace Gravity.Base
 
 		public string FileName { get; set; }
 
-		public FilePathFileDto WriteToFile(string filePath)
+		public DiskFileDto WriteToFile(string filePath)
 		{
 			File.WriteAllBytes(filePath, this.ByteArray);
-			return new FilePathFileDto
+			return new DiskFileDto
 			{
 				FilePath = filePath
 			};

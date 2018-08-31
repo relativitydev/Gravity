@@ -61,7 +61,7 @@ namespace Gravity.DAL.RSAPI
 			}
 			else
 			{
-				FilePathFileDto temporaryFileDto = null;
+				DiskFileDto temporaryFileDto = null;
 				if (fileDto is ByteArrayFileDto arrayFileDto)
 				{
 					//TODO: check file name not null or empty
@@ -70,7 +70,7 @@ namespace Gravity.DAL.RSAPI
 
 				try
 				{
-					var filePath = (temporaryFileDto ?? (FilePathFileDto)fileDto).FilePath;
+					var filePath = (temporaryFileDto ?? (DiskFileDto)fileDto).FilePath;
 					rsapiProvider.UploadFile(fileFieldArtifactId, objectArtifactId, filePath);
 					fileMd5Cache.Set(fieldGuid, objectArtifactId, currentMD5);
 				}

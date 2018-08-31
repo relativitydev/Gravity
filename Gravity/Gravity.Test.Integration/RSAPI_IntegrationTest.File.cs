@@ -21,9 +21,9 @@ namespace Gravity.Test.Integration
 			};
 		}
 
-		private static FilePathFileDto GetDiskFile()
+		private static DiskFileDto GetDiskFile()
 		{
-			var testFile = new FilePathFileDto
+			var testFile = new DiskFileDto
 			{
 				FilePath = Path.Combine(Path.GetTempPath(), "TestFile.txt")
 			};
@@ -257,7 +257,7 @@ namespace Gravity.Test.Integration
 					FileField = GetDiskFile()
 				};
 
-				FilePathFileDto GetFileField() => (FilePathFileDto)testObject.FileField;
+				DiskFileDto GetFileField() => (DiskFileDto)testObject.FileField;
 
 				try
 				{
@@ -270,7 +270,7 @@ namespace Gravity.Test.Integration
 					File.Delete(GetFileField().FilePath);
 					if (replaceExistingObject)
 					{
-						testObject.FileField = new FilePathFileDto();
+						testObject.FileField = new DiskFileDto();
 					}
 					GetFileField().FilePath = Path.Combine(Path.GetTempPath(), "TestFile2.txt");
 					File.WriteAllBytes(GetFileField().FilePath, new[] { (byte)(updateContent ? 66 : 65) });
@@ -310,7 +310,7 @@ namespace Gravity.Test.Integration
 					FileField = diskFile
 				};
 
-				FilePathFileDto GetFileField() => (FilePathFileDto)testObject.FileField;
+				DiskFileDto GetFileField() => (DiskFileDto)testObject.FileField;
 
 				try
 				{
@@ -377,7 +377,7 @@ namespace Gravity.Test.Integration
 				}
 				finally
 				{
-					File.Delete(((FilePathFileDto)testObject.FileField).FilePath);
+					File.Delete(((DiskFileDto)testObject.FileField).FilePath);
 				}
 			}
 			TestWrapper(Inner);
