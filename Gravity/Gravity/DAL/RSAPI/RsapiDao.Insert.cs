@@ -27,12 +27,12 @@ namespace Gravity.DAL.RSAPI
 			return resultArtifactId;
 		}
 
-		protected void InsertUpdateFileFields(BaseDto objectToInsert, int parentId)
+		protected void InsertUpdateFileFields(BaseDto objectToInsert)
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
 			{
 				RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
-				InsertUpdateFileField(relativityFile, parentId);
+				InsertUpdateFileField(relativityFile, objectToInsert.ArtifactId);
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace Gravity.DAL.RSAPI
 		#endregion
 
 
-		private void InsertChildListObjects(BaseDto theObjectToInsert, int resultArtifactId, bool recursive)
+		private void InsertChildListObjects(BaseDto theObjectToInsert, bool recursive)
 		{
 			var childObjectsInfo = theObjectToInsert.GetType()
 				.GetPropertyAttributeTuples<RelativityObjectChildrenListAttribute>()
@@ -83,49 +83,49 @@ namespace Gravity.DAL.RSAPI
 				foreach (var childObject in childObjectsList)
 				{
 					var parentArtifactIdProperty = ((BaseDto)childObject).GetParentArtifactIdProperty();
-					parentArtifactIdProperty.SetValue(childObject, resultArtifactId);					
+					parentArtifactIdProperty.SetValue(childObject, theObjectToInsert.ArtifactId);					
 				}
 
 				this.InvokeGenericMethod(childType, nameof(Insert), childObjectsList, recursive);
 			}
 		}
 
-		private bool InsertSingleObjectFields(BaseDto objectToInsert, bool recursive)
+		private void InsertSingleObjectFields<T>(IEnumerable<T> objectsToInsert, bool recursive) where T : BaseDto
 		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
+			var singleObjectProperties =
+				typeof(T).GetProperties()
+				.Where(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.SingleObject);
+
+			foreach (var propertyInfo in singleObjectProperties)
 			{
+				var childObjectsToInsert = objectsToInsert
+					.Select(objectToInsert => (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name))
+					.Where(x => x != null && x.ArtifactId == 0);
+
 				var childType = propertyInfo.PropertyType;
-				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
-				if (attribute?.FieldType == RdoFieldType.SingleObject)
-				{
-					var fieldValue = (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name);
-					if (fieldValue?.ArtifactId == 0)
-					{
-						this.InvokeGenericMethod(childType, nameof(Insert), fieldValue, recursive);
-					}
-				}
+
+				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(childObjectsToInsert, childType), recursive);
 			}
-			return true;
 		}
 
-		private bool InsertMultipleObjectFields(BaseDto objectToInsert, bool recursive)
+		private void InsertMultipleObjectFields<T>(IEnumerable<T> objectsToInsert, bool recursive) where T : BaseDto
 		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c =>
-				c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject))
+			var multipleObjectProperties =
+				typeof(T).GetProperties()
+				.Where(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject);
+
+			foreach (var propertyInfo in multipleObjectProperties)
 			{
+				var childObjectsToInsert = objectsToInsert
+					.Select(objectToInsert => (IEnumerable)objectToInsert.GetPropertyValue(propertyInfo.Name))
+					.Where(x => x != null)
+					.SelectMany(x => x.Cast<BaseDto>())
+					.Where(x => x != null && x.ArtifactId == 0);
+
 				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
-				var fieldValue = ((IEnumerable)objectToInsert.GetPropertyValue(propertyInfo.Name))?
-					.Cast<BaseDto>()
-					.Where(x => x.ArtifactId == 0);
 
-				if (fieldValue == null)
-				{
-					continue;
-				}
-
-				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(fieldValue, childType), recursive);
+				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(childObjectsToInsert, childType), recursive);
 			}
-			return true;
 		}
 
 		private int Insert<T>(T theObjectToInsert, bool recursive) where T : BaseDto 
@@ -139,8 +139,8 @@ namespace Gravity.DAL.RSAPI
 			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
 			if (!parentOnly)
 			{
-				InsertSingleObjectFields(theObjectToInsert, recursive);
-				InsertMultipleObjectFields(theObjectToInsert, recursive);
+				InsertSingleObjectFields(new[] { theObjectToInsert }, recursive);
+				InsertMultipleObjectFields(new[] { theObjectToInsert }, recursive);
 			}
 
 			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
@@ -148,8 +148,8 @@ namespace Gravity.DAL.RSAPI
 
 			if (!parentOnly)
 			{
-				InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
-				InsertChildListObjects(theObjectToInsert, resultArtifactId, recursive);
+				InsertUpdateFileFields(theObjectToInsert);
+				InsertChildListObjects(theObjectToInsert, recursive);
 			}
 
 			return resultArtifactId;
@@ -162,13 +162,10 @@ namespace Gravity.DAL.RSAPI
 				return;
 			}
 
-			foreach (var theObjectToInsert in theObjectsToInsert)
+			if (recursive)
 			{
-				if (recursive)
-				{
-					InsertSingleObjectFields(theObjectToInsert, recursive);
-					InsertMultipleObjectFields(theObjectToInsert, recursive);
-				}
+				InsertSingleObjectFields(theObjectsToInsert, recursive);
+				InsertMultipleObjectFields(theObjectsToInsert, recursive);
 			}
 
 			var rdos = theObjectsToInsert.Select(x => x.ToRdo()).ToList();
@@ -178,13 +175,14 @@ namespace Gravity.DAL.RSAPI
 				theObjectsToInsert[i].ArtifactId = resultData[i].ArtifactID;
 			}
 
-			foreach (var theObjectToInsert in theObjectsToInsert)
+			if (recursive)
 			{
-				if (recursive)
+				foreach (var theObjectToInsert in theObjectsToInsert)
 				{
+				
 					var resultArtifactId = theObjectToInsert.ArtifactId;
-					InsertUpdateFileFields(theObjectToInsert, resultArtifactId);
-					InsertChildListObjects(theObjectToInsert, resultArtifactId, recursive);
+					InsertUpdateFileFields(theObjectToInsert);
+					InsertChildListObjects(theObjectToInsert, recursive);
 				}
 			}
 		}

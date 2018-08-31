@@ -109,7 +109,7 @@ namespace Gravity.DAL.RSAPI
 
 			if (!parentOnly)
 			{
-				InsertUpdateFileFields(theObjectToUpdate, theObjectToUpdate.ArtifactId);
+				InsertUpdateFileFields(theObjectToUpdate);
 				UpdateChildListObjects(theObjectToUpdate, theObjectToUpdate.ArtifactId, recursive);
 			}
 		}
