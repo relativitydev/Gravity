@@ -90,10 +90,10 @@ namespace Gravity.DAL.RSAPI
 			return new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
 		}
 
-		public List<T> Get<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)
+		public List<T> Get<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			List<RDO> objectsRdos = GetRdos(artifactIDs);
+			List<RDO> objectsRdos = GetRdos(artifactIDs.ToArray());
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
 		}
 

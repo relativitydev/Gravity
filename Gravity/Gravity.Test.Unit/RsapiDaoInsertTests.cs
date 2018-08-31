@@ -9,7 +9,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +16,7 @@ using System.Threading.Tasks;
 using G1 = Gravity.Test.TestClasses.GravityLevelOne;
 using G2 = Gravity.Test.TestClasses.GravityLevel2;
 using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
-using RdoBoolExpr = System.Linq.Expressions.Expression<System.Func<kCura.Relativity.Client.DTOs.RDO, bool>>;
+using RdoCondition = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 
 using static Gravity.Test.Helpers.TestObjectHelper;
 
@@ -56,7 +55,7 @@ namespace Gravity.Test.Unit
 			};
 
 			//checks that matches inserted object
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoCondition matchingRdoCondition = rdo =>
 					rdo[FieldGuid<G1>(nameof(G1.BoolField))].Value.Equals(true)
 				&& rdo[FieldGuid<G1>(nameof(G1.CurrencyField))].Value.Equals(.5M)
 				&& rdo[FieldGuid<G1>(nameof(G1.DateTimeField))].Value.Equals(new DateTime(2000, 1, 1))
@@ -65,7 +64,7 @@ namespace Gravity.Test.Unit
 				&& rdo[FieldGuid<G1>(nameof(G1.IntegerField))].Value.Equals(2)
 				&& rdo[FieldGuid<G1>(nameof(G1.LongTextField))].Value.Equals("LongText");
 
-			InsertObject(objectToInsert, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
+			InsertObject(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
@@ -77,11 +76,11 @@ namespace Gravity.Test.Unit
 			};
 
 			//checks that matches inserted object
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoCondition matchingRdoCondition = rdo =>
 				rdo[FieldGuid<G1>(nameof(G1.SingleChoice))].ValueAsSingleChoice.Guids.Single() 
 					== SingleChoiceFieldChoices.SingleChoice2.GetRelativityObjectAttributeGuidValue();
 
-			InsertObject(objectToInsert, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
+			InsertObject(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
@@ -93,13 +92,13 @@ namespace Gravity.Test.Unit
 			};
 
 			//checks that matches inserted object
-			RdoBoolExpr matchingRdoExpression = rdo =>
+			RdoCondition matchingRdoCondition = rdo =>
 				Enumerable.SequenceEqual(
 					rdo[FieldGuid<G1>(nameof(G1.MultipleChoiceFieldChoices))].ValueAsMultipleChoice.Select(x => x.Guids.Single()),				
 					new[] { MultipleChoiceFieldChoices.MultipleChoice2, MultipleChoiceFieldChoices.MultipleChoice3 }
 						.Select(x => x.GetRelativityObjectAttributeGuidValue()));
 
-			InsertObject(objectToInsert, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
+			InsertObject(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test, Ignore("File behavior not defined yet")]
@@ -118,16 +117,16 @@ namespace Gravity.Test.Unit
 			};
 
 			//G2 object created with its fields, not just as a stub
-			Func<RDO, bool> matchingG2Expression = rdo => 
+			RdoCondition matchingG2Condition = rdo => 
 				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2>(nameof(G2.Name))) && f.ValueAsFixedLengthText == "G2");
 
 			//G1 contains G2 object
-			RdoBoolExpr matchingG1Expression = rdo =>
+			RdoCondition matchingG1Condition = rdo =>
 				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2Obj))) && f.ValueAsSingleObject.ArtifactID == g2Id);
 
-			SetupInsertManyExpression(x => matchingG2Expression(x.Single()), g2Id);
+			SetupInsertManyCondition(x => matchingG2Condition(x.Single()), g2Id);
 
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
@@ -141,9 +140,9 @@ namespace Gravity.Test.Unit
 			};
 
 			//since only parent object, G2 object never inserted
-			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
+			RdoCondition matchingG1Condition = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].Value == null;
 
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.OnlyParentObject);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.OnlyParentObject);
 
 			Assert.AreEqual(0, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
@@ -159,8 +158,8 @@ namespace Gravity.Test.Unit
 			};
 
 			//even though recursive, will be no update of G2 object because already exists
-			RdoBoolExpr matchingG1Expression = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2Id;
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
+			RdoCondition matchingG1Condition = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2Id;
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
@@ -189,16 +188,16 @@ namespace Gravity.Test.Unit
 			   rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2>(nameof(G2.Name))) && f.ValueAsFixedLengthText == name);
 
 			//parent RDO contains both items
-			RdoBoolExpr matchingG1Expression = rdo =>
+			RdoCondition matchingG1Condition = rdo =>
 				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs)))
 					&& f.GetValueAsMultipleObject<Artifact>().Select(x => x.ArtifactID).SequenceEqual(new[] { g2aId, g2bId }));
 
-			SetupInsertManyExpression(
+			SetupInsertManyCondition(
 				rdos => g2Func(rdos[0], "G2A") && g2Func(rdos[1], "G2B") && rdos.Count == 2,
 				g2aId, g2bId
 			);
 			
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 			CollectionAssert.AreEqual(new[] { g2aId, g2bId }, objectToInsert.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
 		}
@@ -212,10 +211,10 @@ namespace Gravity.Test.Unit
 			};
 
 			//parent RDO doesn't insert these objects
-			RdoBoolExpr matchingG1Expression = rdo =>
+			RdoCondition matchingG1Condition = rdo =>
 				rdo.Fields.Any(f => !f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))));
 
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.OnlyParentObject);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.OnlyParentObject);
 
 			CollectionAssert.AreEqual(new[] { 0, 0 }, objectToInsert.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
 		}
@@ -236,11 +235,11 @@ namespace Gravity.Test.Unit
 			};
 
 			//only create parent object, not children
-			RdoBoolExpr matchingG1Expression = rdo =>
+			RdoCondition matchingG1Condition = rdo =>
 				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs)))
 					&& f.GetValueAsMultipleObject<Artifact>().Select(x => x.ArtifactID).SequenceEqual(new[] { g2aId, g2bId }));
 
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FullyRecursive);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FullyRecursive);
 		}
 
 		[Test, Ignore("No Level-3 object for testing")]
@@ -268,14 +267,14 @@ namespace Gravity.Test.Unit
 					&& rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G2c>(nameof(G2c.Name))) && f.ValueAsFixedLengthText == name);
 
 			//parent RDO contains both items
-			RdoBoolExpr matchingG1Expression = rdo => rdo.ArtifactTypeGuids.Contains(BaseDto.GetObjectTypeGuid<G1>());
+			RdoCondition matchingG1Condition = rdo => rdo.ArtifactTypeGuids.Contains(BaseDto.GetObjectTypeGuid<G1>());
 
-			SetupInsertManyExpression(
+			SetupInsertManyCondition(
 				rdos => g2cFunc(rdos[0], "G2cA") && g2cFunc(rdos[1], "G2cB") && rdos.Count == 2,
 				g2caId, g2cbId
 			);
 
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.FirstLevelOnly);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 			CollectionAssert.AreEqual(new[] { g2caId, g2cbId }, objectToInsert.GravityLevel2Childs.Select(x => x.ArtifactId));
 		}
@@ -296,20 +295,20 @@ namespace Gravity.Test.Unit
 			};
 
 			//dont create children since non-recursive
-			RdoBoolExpr matchingG1Expression = rdo => rdo.ArtifactTypeGuids.Contains(BaseDto.GetObjectTypeGuid<G1>());
+			RdoCondition matchingG1Condition = rdo => rdo.ArtifactTypeGuids.Contains(BaseDto.GetObjectTypeGuid<G1>());
 
-			InsertObject(objectToInsert, matchingG1Expression, ObjectFieldsDepthLevel.OnlyParentObject);
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		void InsertObject(G1 objectToInsert, RdoBoolExpr rootExpression, ObjectFieldsDepthLevel depthLevel)
+		void InsertObject(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
 		{
-			mockProvider.Setup(x => x.CreateSingle(It.Is(rootExpression))).Returns(10);
+			SetupInsertManyCondition(x => x.Count == 1 && rootCondition(x.Single()), 10);
 			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, depthLevel);
 			Assert.AreEqual(10, insertedId);
 			Assert.AreEqual(10, objectToInsert.ArtifactId);
 		}
 
-		public void SetupInsertManyExpression(Func<List<RDO>, bool> condition, params int[] resultIds)
+		public void SetupInsertManyCondition(Func<List<RDO>, bool> condition, params int[] resultIds)
 		{
 			mockProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))

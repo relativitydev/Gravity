@@ -15,19 +15,8 @@ namespace Gravity.DAL.RSAPI
 	public partial class RsapiDao
 	{
 		#region RDO INSERT Protected Stuff
-		protected int InsertRdo(RDO newRdo)
-		{
-			var resultArtifactId = rsapiProvider.CreateSingle(newRdo);
 
-			if (resultArtifactId <= 0)
-			{
-				throw new ArgumentException("Was not able to insert new RDO with resultInt <= 0, with name " + newRdo.TextIdentifier);
-			}
-
-			return resultArtifactId;
-		}
-
-		protected void InsertUpdateFileFields(BaseDto objectToInsert)
+		private void InsertUpdateFileFields(BaseDto objectToInsert)
 		{
 			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
 			{
@@ -36,7 +25,7 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		protected void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
+		private void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
 		{
 			if (relativityFile?.FileValue == null)
 			{
@@ -135,41 +124,26 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-		private int Insert<T>(T theObjectToInsert, bool recursive) where T : BaseDto 
-			=> Insert(theObjectToInsert, recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject);
+		private void Insert<T>(IList<T> theObjectsToInsert, bool recursive) where T : BaseDto 
+			=> Insert(theObjectsToInsert, recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject);
 
 		public int Insert<T>(T theObjectToInsert, ObjectFieldsDepthLevel depthLevel) where T : BaseDto
 		{
-			var parentOnly = depthLevel == ObjectFieldsDepthLevel.OnlyParentObject;
-			var recursive = depthLevel == ObjectFieldsDepthLevel.FullyRecursive;
-
-			//TODO: should think about some sort of transaction type around this.  If any parts of this fail, it should all fail
-			if (!parentOnly)
-			{
-				InsertSingleObjectFields(new[] { theObjectToInsert }, recursive);
-				InsertMultipleObjectFields(new[] { theObjectToInsert }, recursive);
-			}
-
-			int resultArtifactId = InsertRdo(theObjectToInsert.ToRdo());
-			theObjectToInsert.ArtifactId = resultArtifactId;
-
-			if (!parentOnly)
-			{
-				InsertUpdateFileFields(theObjectToInsert);
-				InsertChildListObjects(new[] { theObjectToInsert }, recursive);
-			}
-
-			return resultArtifactId;
+			Insert<T>(new[] { theObjectToInsert }, depthLevel);
+			return theObjectToInsert.ArtifactId;
 		}
 
-		public void Insert<T>(IList<T> theObjectsToInsert, bool recursive) where T : BaseDto
+		public void Insert<T>(IList<T> theObjectsToInsert, ObjectFieldsDepthLevel depthLevel) where T : BaseDto
 		{
 			if (theObjectsToInsert.Count == 0)
 			{
 				return;
 			}
 
-			if (recursive)
+			var parentOnly = depthLevel == ObjectFieldsDepthLevel.OnlyParentObject;
+			var recursive = depthLevel == ObjectFieldsDepthLevel.FullyRecursive;
+
+			if (!parentOnly)
 			{
 				InsertSingleObjectFields(theObjectsToInsert, recursive);
 				InsertMultipleObjectFields(theObjectsToInsert, recursive);
@@ -182,7 +156,7 @@ namespace Gravity.DAL.RSAPI
 				theObjectsToInsert[i].ArtifactId = resultData[i].ArtifactID;
 			}
 
-			if (recursive)
+			if (!parentOnly)
 			{
 				InsertChildListObjects(theObjectsToInsert, recursive);
 
