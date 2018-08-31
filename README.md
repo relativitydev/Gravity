@@ -68,7 +68,12 @@ public class DemoPurchaseOrder : BaseDto
 }
 ```
 
-* **Note:** For property of type `User` use `kCura.Relativity.Client.DTOs.User` and for property of type `FileField` use `Gravity.Base.RelativityFile`
+* **Note:** 
+  * For property of type `User` use `kCura.Relativity.Client.DTOs.User` 
+  * For property of type `FileField` use `Gravity.Base.FileDto`
+    * If the file is only going to be read from the server, or you can keep the files entirely in memory, use the `Gravity.Base.ByteArrayFileDto` subclass. This is the class returned any `Get` requests.
+    * If you want to use files stored on disk AND don't need to read the files from the server, you can use the `Gravity.Base.DiskFileDto` subclass.
+    * Otherwise, use the base class and cast as necessary.
 
 For Choice field you must create a enum and decorate it with the appropriate attributes:
 
