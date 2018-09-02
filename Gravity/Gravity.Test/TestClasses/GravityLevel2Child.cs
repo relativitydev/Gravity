@@ -11,6 +11,6 @@ namespace Gravity.Test.TestClasses
 		public int GavityLevelOneArtifactId { get; set; }
 
 		[RelativityObjectField("DAD68D2A-F740-4473-8047-E89C5C58D987", RdoFieldType.FixedLengthText, 255)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 	}
 }

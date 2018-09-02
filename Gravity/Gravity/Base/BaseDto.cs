@@ -51,8 +51,6 @@ namespace Gravity.Base
 		// If you need that one, you need to use MasterArtifactID from inheriting class BaseMasterDto
 		public int ArtifactId { get; set; }
 
-		public abstract string Name { get; set; }
-
 		protected BaseDto()
 		{
 		}
