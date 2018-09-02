@@ -32,6 +32,7 @@ Before using the CRUD/Q methods in Gravity you will have to create a model and d
 * `RelativityObject` - Specifies the type Guid of the RDO you are targeting.
 * `RelativityObjectField` - Specifies the type Guid and the "RdoFieldType" of the RDO field you are targeting.
 * `RelativityObjectChildrenList` - Used to decorate a List of child RDOs as a object List.
+* `RelativityObjectFieldParentArtifactId` - If the RDO is a child object, used to specify that the RDO field contains the ParentArtifactID
 
 The following example demonstrates a RDO represented as a Model:
 ```csharp
@@ -89,15 +90,18 @@ public enum OrderType
 To use Gravity for RSAPI operations, you must instantiate an `RsapiDao` object using the `RsapiDao` constructor, with `IHelper` and `WorkspaceId` as parameters.
 
 Supported RSAPIDao methods:
- - `Get<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)` - Get DTO by Artifact ID and specific depth level of child objects and object     fields.
- - `Get<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)` - Get DTOs by Artifact IDs and specific depth level of child objects and object
- fields.
+ - `Get<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)` - Get DTO by Artifact ID.
+ - `Get<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel)` - Get DTOs by Artifact IDs.
  - `List<T> Query<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)` - Get all DTOs of type matching an optional condition
  - `Delete<T>(T theObjectToDelete)` - Delete object recursively (includes child objects).
  - `Delete<T>(int objectToDeleteId)`- Delete object recursively (includes child objects) by Artifact ID.
- - `Insert<T>(BaseDto theObjectToInsert)` - Insert Relativity object from RDO.
- - `Update<T>(BaseDto theObjectToUpdate)` - Update Relativity object from RDO.
- - `UpdateField<T>(int rdoID, Guid fieldGuid, object value)` - Update field value by GUID and RDO Artifact ID
+ - `Insert<T>(BaseDto theObjectToInsert, ObjectFieldsDepthLevel depthLevel)` - Insert Relativity object from RDO, updating the RDO with its new ArtifactID.
+ - `Insert<T>(IList<BaseDto> theObjectsToInsert, ObjectFieldsDepthLevel depthLevel)` - Insert Relativity objects from RDOs, updating the RDOs with their new ArtifactIDs.
+ - `Update<T>(BaseDto theObjectToUpdate, ObjectFieldsDepthLevel depthLevel)` - Update Relativity object from RDO, inserting any non-existing children.
+ - `Update<T>(IList<BaseDto> theObjectsToUpdate, ObjectFieldsDepthLevel depthLevel)` - Update Relativity objects from RDOs, inserting any non-existing children.
+ - `UpdateField<T>(int rdoID, Guid fieldGuid, object value)` - Update field value by GUID and RDO Artifact ID *[limited support]*
+
+Where available, the `depthLevel` parameter controls whether (and how deeply) to recurse into object fields and child object lists.
 
 ### Example
 
