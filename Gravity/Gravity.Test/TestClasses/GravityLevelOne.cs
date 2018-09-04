@@ -31,7 +31,7 @@ namespace Gravity.Test.TestClasses
 		public DateTime? DateTimeField { get; set; }
 
 		[RelativityObjectField("06575EC1-7DE4-47C0-A763-AA135C1F29BA", RdoFieldType.File)]
-		public RelativityFile FileField { get; set; }
+		public FileDto FileField { get; set; }
 
 		[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject)]
 		public IList<GravityLevel2> GravityLevel2MultipleObjs { get; set; } = new List<GravityLevel2>();

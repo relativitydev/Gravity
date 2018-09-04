@@ -28,9 +28,9 @@ namespace Gravity.DAL.RSAPI
 			if (!TryGetRelativityFieldValue<T>(fieldProperty, value, out rdoValue))
 				return;
 
-			if (rdoValue is RelativityFile rdoValueFile)
+			if (rdoValue is FileDto rdoValueFile)
 			{
-				InsertUpdateFileField(rdoValueFile, rdoID);
+				InsertUpdateFileField(fieldGuid, rdoID, rdoValueFile);
 				return;
 			}
 
@@ -104,7 +104,7 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			if ((fieldAttributeValue.FieldType == RdoFieldType.File)
-				&& value.GetType().BaseType?.IsAssignableFrom(typeof(RelativityFile)) == true)
+				&& value.GetType().BaseType?.IsAssignableFrom(typeof(FileDto)) == true)
 			{
 				rdoValue = value; return true;
 			}

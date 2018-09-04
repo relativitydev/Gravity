@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -16,42 +16,65 @@ namespace Gravity.DAL.RSAPI
 	{
 		#region RDO INSERT Protected Stuff
 
-		private void InsertUpdateFileFields(BaseDto objectToInsert)
+		protected void InsertUpdateFileFields(BaseDto objectToInsert)
+			=> InsertUpdateFileFields(objectToInsert, objectToInsert.ArtifactId);
+
+		//TODO: remove this signature entirely
+		protected void InsertUpdateFileFields(BaseDto objectToInsert, int parentId)
 		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties().Where(c => c.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.File))
+			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
 			{
-				RelativityFile relativityFile = propertyInfo.GetValue(objectToInsert) as RelativityFile;
-				InsertUpdateFileField(relativityFile, objectToInsert.ArtifactId);
+				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
+				if (attribute?.FieldType != RdoFieldType.File)
+					continue;
+
+				var relativityFile = (FileDto)propertyInfo.GetValue(objectToInsert);
+				InsertUpdateFileField(attribute.FieldGuid, parentId, relativityFile);
 			}
 		}
 
-		private void InsertUpdateFileField(RelativityFile relativityFile, int parentId)
-		{
-			if (relativityFile?.FileValue == null)
+		protected void InsertUpdateFileField(Guid fieldGuid, int objectArtifactId, FileDto fileDto)
+		{			
+			var currentMD5 = fileDto?.GetMD5() ?? "";
+
+			if (fileMd5Cache.Get(fieldGuid, objectArtifactId) == currentMD5) //in cache and matches
 			{
 				return;
 			}
 
-			if (relativityFile.FileValue.Path != null)
+			var fileFieldArtifactId = this.guidCache.Get(fieldGuid);
+
+			if (fileDto == null)
 			{
-				rsapiProvider.UploadFile(relativityFile, parentId, relativityFile.FileValue.Path);
+				rsapiProvider.ClearFile(fileFieldArtifactId, objectArtifactId);
 			}
-			else if (!string.IsNullOrEmpty(relativityFile.FileMetadata.FileName))
+			else
 			{
-				string fileName = Path.GetTempPath() + relativityFile.FileMetadata.FileName;
-				File.WriteAllBytes(fileName, relativityFile.FileValue.Data);
+				DiskFileDto temporaryFileDto = null;
+				if (fileDto is ByteArrayFileDto arrayFileDto)
+				{
+					//TODO: check file name not null or empty
+					temporaryFileDto = arrayFileDto.WriteToFile(Path.Combine(Path.GetTempPath(), arrayFileDto.FileName));
+				}
 
 				try
 				{
-					rsapiProvider.UploadFile(relativityFile, parentId, fileName);
+					var filePath = (temporaryFileDto ?? (DiskFileDto)fileDto).FilePath;
+					rsapiProvider.UploadFile(fileFieldArtifactId, objectArtifactId, filePath);
+					fileMd5Cache.Set(fieldGuid, objectArtifactId, currentMD5);
 				}
 				finally
 				{
-					invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(fileName));
+					if (temporaryFileDto != null)
+					{
+						invokeWithRetryService.InvokeVoidMethodWithRetry(() => File.Delete(temporaryFileDto.FilePath));
+					}
 				}
-
 			}
+
+			fileMd5Cache.Set(fieldGuid, objectArtifactId, currentMD5);
 		}
+
 
 
 		#endregion

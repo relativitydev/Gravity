@@ -28,6 +28,7 @@ namespace Gravity.Test.Unit
 	public class RsapiDaoUpdateTests
 	{
 		private const int G1ArtifactId = 10;
+		private const int FileFieldId = 44;
 		Mock<IRsapiProvider> mockProvider;
 
 		[SetUp]
@@ -401,7 +402,8 @@ namespace Gravity.Test.Unit
 			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2caExpression(x[0]));
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
 			mockProvider.Setup(x => x.ReadSingle(g2ccId)).Returns(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
-			mockProvider.Setup(x => x.DeleteSingle(g2ccId));
+			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(y => y.Single() == g2ccId)))
+				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
 
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
 			CollectionAssert.AreEqual(
@@ -414,6 +416,11 @@ namespace Gravity.Test.Unit
 		{
 			objectToUpdate.ArtifactId = G1ArtifactId;
 			SetupUpdateManyCondition(x => x.Count == 1 && x[0].ArtifactID == G1ArtifactId && rootExpression(x[0]));
+
+			//setup clearing the non-present file
+			mockProvider.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
+				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+			mockProvider.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
 
 			new RsapiDao(mockProvider.Object).Update(objectToUpdate, depthLevel);
 		}
