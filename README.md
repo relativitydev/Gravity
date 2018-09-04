@@ -9,7 +9,7 @@ Gravity was originally created by TSD Services.   Through their generosity and l
 We would like to recognize the following Relativity Development Partners who have made significant contributions to the Gravity project:
 
 <p align="center>
-	<img src="http://www.tsdservices.com/wp-content/uploads/2015/03/TSD_Logo-TM-for-website.png">  
+	<img src="https://cdn.tsd.com/wp-content/uploads/2018/07/New-LOGO-TSD-6-66px.png">  
 </p>
 
 ![TSD Services](http://www.tsdservices.com/wp-content/uploads/2015/03/TSD_Logo-TM-for-website.png "TSD Services")  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![MILYLI](http://milyli.com/wp-content/uploads/2014/07/milyli_header-regular.png "MILYLI")
