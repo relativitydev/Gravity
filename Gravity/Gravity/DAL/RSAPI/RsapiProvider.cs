@@ -46,7 +46,7 @@ namespace Gravity.DAL.RSAPI
 
 		#region File Operations
 
-		public KeyValuePair<DownloadResponse, Stream> DownloadFile(int fieldId, int objectArtifactId)
+		public void ClearFile(int fieldId, int objectArtifactId)
 		{
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
@@ -59,11 +59,31 @@ namespace Gravity.DAL.RSAPI
 					}
 				};
 
-				return InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Download(fileRequest));
+				InvokeProxyWithRetry(proxyToWorkspace, proxy => proxy.Clear(fileRequest));
 			}
 		}
 
-		public void UploadFile(RelativityFile relativityFile, int parentId, string fileName)
+		public Tuple<FileMetadata, MemoryStream> DownloadFile(int fieldId, int objectArtifactId)
+		{
+			using (IRSAPIClient proxyToWorkspace = CreateProxy())
+			{
+				var fileRequest = new FileRequest(proxyToWorkspace.APIOptions)
+				{
+					Target =
+					{
+						FieldId = fieldId,
+						ObjectArtifactId = objectArtifactId
+					}
+				};
+
+				return InvokeProxyWithRetry(proxyToWorkspace, proxy => {
+					var download = proxy.Download(fileRequest);
+					return Tuple.Create(download.Key.Metadata, (MemoryStream)download.Value);
+				});
+			}
+		}
+
+		public void UploadFile(int fieldId, int parentId, string fileName)
 		{
 			using (IRSAPIClient proxyToWorkspace = CreateProxy())
 			{
@@ -77,7 +97,7 @@ namespace Gravity.DAL.RSAPI
 					Overwrite = true,
 					Target =
 					{
-						FieldId = relativityFile.ArtifactTypeId,
+						FieldId = fieldId,
 						ObjectArtifactId = parentId
 					}
 				};
