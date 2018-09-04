@@ -154,17 +154,17 @@ namespace Gravity.Test.Unit
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		[Test, Ignore("File behavior not defined yet")]
+		[Test, Ignore("TODO: Implement")]
 		public void Update_FileField_Add()
 		{
 		}
 
-		[Test, Ignore("File behavior not defined yet")]
+		[Test, Ignore("TODO: Implement")]
 		public void Update_FileField_Remove()
 		{
 		}
 
-		[Test, Ignore("File behavior not defined yet")]
+		[Test, Ignore("TODO: Implement")]
 		public void Update_FileField_Modify()
 		{
 		}
@@ -403,7 +403,7 @@ namespace Gravity.Test.Unit
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
 			mockProvider.Setup(x => x.ReadSingle(g2ccId)).Returns(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
 			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(y => y.Single() == g2ccId)))
-				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
+				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet>());
 
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
 			CollectionAssert.AreEqual(
