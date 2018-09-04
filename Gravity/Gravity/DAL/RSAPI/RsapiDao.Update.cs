@@ -97,7 +97,9 @@ namespace Gravity.DAL.RSAPI
 				//TODO: replace with bulk delete call
 				foreach (var artifactId in existingChildren.Except(childObjectsToUpdate.Select(x => x.ArtifactId)))
 				{
-					this.InvokeGenericMethod(childType, nameof(Delete), artifactId);
+					this.InvokeGenericMethod(childType, nameof(Delete), new object[] {
+						artifactId,
+						recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject });
 				}
 			}
 		}
@@ -137,22 +139,22 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			var objectsToUpdateLookup = theObjectsToUpdate.ToLookup(x => x.ArtifactId != 0);
+			var existingObjectsToUpdate = objectsToUpdateLookup[true].ToList();
+			var newObjectsToUpdate = objectsToUpdateLookup[false].ToList();
 
-			if (objectsToUpdateLookup[true].Any())
+			if (existingObjectsToUpdate.Any())
 			{ 
-				rsapiProvider.Update(objectsToUpdateLookup[true].Select(x => x.ToRdo(true)).ToList());
+				rsapiProvider.Update(existingObjectsToUpdate.Select(x => x.ToRdo(true)).ToList());
+				InsertUpdateFileFields(existingObjectsToUpdate, false);
 			}
-			if (objectsToUpdateLookup[false].Any())
+			if (newObjectsToUpdate.Any())
 			{
-				ExecuteObjectInsert(objectsToUpdateLookup[false].ToList());
+				ExecuteObjectInsert(newObjectsToUpdate);
+				InsertUpdateFileFields(newObjectsToUpdate, true);
 			}
 
 			if (!parentOnly)
 			{
-				foreach (var theObjectToUpdate in theObjectsToUpdate)
-				{
-					InsertUpdateFileFields(theObjectToUpdate);
-				}
 				UpdateChildListObjects(theObjectsToUpdate, recursive);
 			}
 		}

@@ -16,20 +16,22 @@ namespace Gravity.DAL.RSAPI
 	{
 		#region RDO INSERT Protected Stuff
 
-		protected void InsertUpdateFileFields(BaseDto objectToInsert)
-			=> InsertUpdateFileFields(objectToInsert, objectToInsert.ArtifactId);
-
-		//TODO: remove this signature entirely
-		protected void InsertUpdateFileFields(BaseDto objectToInsert, int parentId)
+		protected void InsertUpdateFileFields<T>(IEnumerable<T> objectsToInsert, bool objectsAreNew) where T : BaseDto
 		{
-			foreach (var propertyInfo in objectToInsert.GetType().GetProperties())
+			foreach (var propertyInfo in typeof(T).GetProperties())
 			{
 				var attribute = propertyInfo.GetCustomAttribute<RelativityObjectFieldAttribute>();
 				if (attribute?.FieldType != RdoFieldType.File)
 					continue;
 
-				var relativityFile = (FileDto)propertyInfo.GetValue(objectToInsert);
-				InsertUpdateFileField(attribute.FieldGuid, parentId, relativityFile);
+				foreach (var objectToInsert in objectsToInsert)
+				{ 
+					var relativityFile = (FileDto)propertyInfo.GetValue(objectToInsert);
+					if (relativityFile == null && objectsAreNew)
+						continue; //if new objects, not clearing anything;
+
+					InsertUpdateFileField(attribute.FieldGuid, objectToInsert.ArtifactId, relativityFile);
+				}
 			}
 		}
 
@@ -173,15 +175,11 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			ExecuteObjectInsert(theObjectsToInsert);
+			InsertUpdateFileFields(theObjectsToInsert, true);
 
 			if (!parentOnly)
 			{
 				InsertChildListObjects(theObjectsToInsert, recursive);
-
-				foreach (var theObjectToInsert in theObjectsToInsert)
-				{
-					InsertUpdateFileFields(theObjectToInsert);
-				}
 			}
 		}
 
