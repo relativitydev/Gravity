@@ -37,7 +37,7 @@ namespace Gravity.DAL.RSAPI
 				ArtifactTypeGuid = BaseDto.GetObjectTypeGuid<T>(),
 				Condition = queryCondition,
 				Fields = BaseDto.GetFieldsGuids<T>().Select(x => new FieldValue(x)).ToList()
-		};
+			};
 
 			return rsapiProvider.Query(query).SelectMany(x => x.GetResultData());
 		}
@@ -64,15 +64,30 @@ namespace Gravity.DAL.RSAPI
 			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel));
 		}
 
+		private List<int> GetAllChildIds<T>(int parentArtifactID) where T : BaseDto
+		{
+			Query<RDO> query = new Query<RDO>()
+			{
+				ArtifactTypeGuid = BaseDto.GetObjectTypeGuid<T>(),
+				Condition = GetChildDtoQueryCondition<T>(parentArtifactID),
+			};
+
+			return rsapiProvider.Query(query).SelectMany(x => x.GetResultData()).Select(x => x.ArtifactID).ToList();
+		}
+
 		internal IEnumerable<T> GetAllChildDTOs<T>(int parentArtifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
+		{
+			return Query<T>(GetChildDtoQueryCondition<T>(parentArtifactID), depthLevel);
+		}
+
+		private static Condition GetChildDtoQueryCondition<T>(int parentArtifactID) where T : BaseDto
 		{
 			var parentFieldGuid = typeof(T)
 				.GetPropertyAttributeTuples<RelativityObjectFieldParentArtifactIdAttribute>()
 				.First().Item2.FieldGuid;
 
-			Condition queryCondition = new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
-			return Query<T>(queryCondition, depthLevel);
+			return new WholeNumberCondition(parentFieldGuid, NumericConditionEnum.EqualTo, parentArtifactID);
 		}
 
 		public List<T> Get<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)
