@@ -94,13 +94,13 @@ namespace Gravity.DAL.RSAPI
 
 			foreach (var propertyInfo in singleObjectProperties)
 			{
-				var childObjectsToInsert = objectsToInsert
+				var associatedObjectsToInsert = objectsToInsert
 					.Select(objectToInsert => (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name))
 					.Where(x => x != null && x.ArtifactId == 0);
 
-				var childType = propertyInfo.PropertyType;
+				var associatedType = propertyInfo.PropertyType;
 
-				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(childObjectsToInsert, childType), recursive);
+				this.InvokeGenericMethod(associatedType, nameof(Insert), MakeGenericList(associatedObjectsToInsert, associatedType), recursive);
 			}
 		}
 
@@ -112,15 +112,15 @@ namespace Gravity.DAL.RSAPI
 
 			foreach (var propertyInfo in multipleObjectProperties)
 			{
-				var childObjectsToInsert = objectsToInsert
+				var associatedObjectsToInsert = objectsToInsert
 					.Select(objectToInsert => (IEnumerable)objectToInsert.GetPropertyValue(propertyInfo.Name))
 					.Where(x => x != null)
 					.SelectMany(x => x.Cast<BaseDto>())
 					.Where(x => x.ArtifactId == 0);
 
-				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
+				var associatedType = propertyInfo.PropertyType.GetEnumerableInnerType();
 
-				this.InvokeGenericMethod(childType, nameof(Insert), MakeGenericList(childObjectsToInsert, childType), recursive);
+				this.InvokeGenericMethod(associatedType, nameof(Insert), MakeGenericList(associatedObjectsToInsert, associatedType), recursive);
 			}
 		}
 

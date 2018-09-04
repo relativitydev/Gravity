@@ -14,7 +14,7 @@ namespace Gravity.DAL.RSAPI
 	public partial class RsapiDao
 	{
 		
-		[Obsolete("This class will be replaced by a version that gets the field via lambda")]
+		[Obsolete("This method will be replaced by a version that gets the field via lambda")]
 		public void UpdateField<T>(int rdoID, Guid fieldGuid, object value)
 				where T : BaseDto
 		{
