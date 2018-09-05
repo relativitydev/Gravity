@@ -10,7 +10,7 @@ namespace Gravity.Test.TestClasses
 	public class GravityLevelOne : BaseDto
 	{
 		[RelativityObjectField("E1FA93B9-C2DB-442A-9978-84EEB6B61A3F", RdoFieldType.FixedLengthText, 255)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[RelativityObjectField("1A7A55A7-C22C-421A-BFE9-CDC1107ABEA3", RdoFieldType.FixedLengthText, 100)]
 		public string FixedTextField { get; set; }
