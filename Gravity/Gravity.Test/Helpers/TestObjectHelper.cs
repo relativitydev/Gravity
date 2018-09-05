@@ -1,4 +1,4 @@
-﻿using Gravity.DAL.RSAPI;
+using Gravity.DAL.RSAPI;
 using Relativity.API;
 using System;
 using System.Collections.Generic;
@@ -41,5 +41,8 @@ namespace Gravity.Test.Helpers
 
 			return stubRdo;
 		}
+
+		public static Guid FieldGuid<T>(string fieldName)
+			=> typeof(T).GetProperty(fieldName).GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 	}
 }

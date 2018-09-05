@@ -59,7 +59,7 @@ namespace Gravity.DAL.RSAPI
 				foreach (var artifactId in artifactIds)
 				{
 					//TODO: amend so can pass in all artifact IDs instead of looping over artifacts
-					var thisChildTypeIds = (List<int>)this.InvokeGenericMethod(childType, nameof(GetAllChildIds), artifactId);
+					var thisChildTypeIds = (List<int>)this.InvokeGenericMethod(childType, nameof(GetAllChildIds), new[] { artifactId });
 
 					//recurse with child objects and next recursion level
 					this.InvokeGenericMethod(childType, nameof(PopulateArtifactsToDeleteList),

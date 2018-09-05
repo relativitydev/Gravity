@@ -29,7 +29,7 @@ namespace Gravity.Base
 
 		public object GetPropertyValue(string propertyName)
 		{
-			return this.GetType().GetProperty(propertyName).GetValue(this, null);
+			return this.GetType().GetProperty(propertyName).GetValue(this);
 		}
 
 		public PropertyInfo GetParentArtifactIdProperty()
@@ -57,12 +57,14 @@ namespace Gravity.Base
 		{
 		}
 
-		public RDO ToRdo()
+		public RDO ToRdo() => ToRdo(false);
+
+		public RDO ToRdo(bool includeAllProperties)
 		{
 			RelativityObjectAttribute objectTypeAttribute = this.GetType().GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO rdo = new RDO(objectTypeAttribute.ObjectTypeGuid, ArtifactId);
 
-			if (this.GetParentArtifactIdProperty()?.GetValue(this, null) is int parentId)
+			if (this.GetParentArtifactIdProperty()?.GetValue(this) is int parentId)
 			{
 				rdo.ParentArtifact = new Artifact(parentId);
 			}
@@ -70,12 +72,12 @@ namespace Gravity.Base
 			foreach (PropertyInfo property in this.GetType().GetPublicProperties())
 			{
 				object propertyValue = property.GetValue(this);
-				if (propertyValue == null)
+				if (propertyValue == null && !includeAllProperties)
 				{
 					continue;
 				}
 
-				if (TryAddSimplePropertyValue(rdo, property, propertyValue)) { continue; }
+				TryAddSimplePropertyValue(rdo, property, propertyValue);
 			}
 
 			return rdo;
@@ -92,14 +94,19 @@ namespace Gravity.Base
 				return false;
 			}
 
-			var relativityValue = ConvertPropertyValue(property, fieldAttribute.FieldType, propertyValue);
+			var relativityValue = ConvertPropertyValue(fieldAttribute.FieldType, propertyValue, fieldAttribute.Length);
 
 			rdo.Fields.Add(new FieldValue(fieldAttribute.FieldGuid, relativityValue));
 			return true;
 		}
 
-		private static object ConvertPropertyValue(PropertyInfo property, RdoFieldType fieldType, object propertyValue)
+		internal static object ConvertPropertyValue(RdoFieldType fieldType, object propertyValue, int? stringLength = null)
 		{
+			if (propertyValue == null)
+			{
+				return null;
+			}
+
 			switch (fieldType)
 			{
 				case RdoFieldType.Currency:
@@ -117,12 +124,12 @@ namespace Gravity.Base
 				//truncate fixed-length text
 				case RdoFieldType.FixedLengthText:
 					{
-						int stringLength = property.GetCustomAttribute<RelativityObjectFieldAttribute>().Length ?? 3000;
+						stringLength = stringLength ?? 3000;
 
 						string theString = propertyValue as string;
-						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLength)
+						if (string.IsNullOrEmpty(theString) == false && theString.Length > stringLength.Value)
 						{
-							theString = theString.Substring(0, (stringLength - 3)) + "...";
+							theString = theString.Substring(0, (stringLength.Value - 3)) + "...";
 						}
 
 						return theString;
@@ -141,8 +148,13 @@ namespace Gravity.Base
 
 				case RdoFieldType.MultipleObject:
 					{
-						return new FieldValueList<Artifact>(
-							((IEnumerable<object>) propertyValue).Select(x => new Artifact((x as BaseDto).ArtifactId)));
+						var objectList = new FieldValueList<Artifact>(
+								((IEnumerable)propertyValue)
+								.Cast<BaseDto>()
+								.Select(x => new Artifact(x.ArtifactId))
+								.Where(x => x.ArtifactID > 0));
+
+						return objectList.Any() ? objectList : null;
 					}
 
 				case RdoFieldType.SingleChoice:

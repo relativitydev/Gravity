@@ -35,11 +35,11 @@ namespace Gravity.Test.Integration
 		{
 			if (testObject.ArtifactId == 0)
 			{
-				testObject.ArtifactId = rsapiDao.Insert(testObject);
+				testObject.ArtifactId = rsapiDao.Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 			}
 			else
 			{
-				rsapiDao.Update(testObject);
+				rsapiDao.Update(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 			}
 			var returnObject = rsapiDao.Get<GravityLevelOne>(testObject.ArtifactId, ObjectFieldsDepthLevel.OnlyParentObject);
 			return (ByteArrayFileDto)returnObject.FileField;
@@ -205,7 +205,7 @@ namespace Gravity.Test.Integration
 					Name = $"TestObject_WithBufferFile_{Guid.NewGuid()}",
 					FileField = GetByteArrayFile()
 				};
-				testObject.ArtifactId = rsapiDao.Insert(testObject);
+				testObject.ArtifactId = rsapiDao.Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 				LogEnd("Arrangement");
 
@@ -261,7 +261,7 @@ namespace Gravity.Test.Integration
 
 				try
 				{
-					testObject.ArtifactId = rsapiDao.Insert(testObject);
+					testObject.ArtifactId = rsapiDao.Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 					LogEnd("Arrangement");
 
@@ -314,7 +314,7 @@ namespace Gravity.Test.Integration
 
 				try
 				{
-					testObject.ArtifactId = rsapiDao.Insert(testObject);
+					testObject.ArtifactId = rsapiDao.Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 					LogEnd("Arrangement");
 
@@ -354,7 +354,7 @@ namespace Gravity.Test.Integration
 					Name = $"TestObject_WithBufferFile_{Guid.NewGuid()}",
 					FileField = GetByteArrayFile()
 				};
-				testObject.ArtifactId = rsapiDao.Insert(testObject);
+				testObject.ArtifactId = rsapiDao.Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 				LogEnd("Arrangement");
 

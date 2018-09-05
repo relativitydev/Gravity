@@ -179,7 +179,7 @@ namespace Gravity.Test.Integration
 				//Act
 				LogStart("Act");
 
-				var newRdoArtifactId = _testObjectHelper.GetDao().Insert(testObject);
+				var newRdoArtifactId = _testObjectHelper.GetDao().Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 				LogEnd("Act");
 
@@ -233,7 +233,7 @@ namespace Gravity.Test.Integration
 				//Act
 				LogStart("Act");
 
-				var newRdoArtifactId = _testObjectHelper.GetDao().Insert(testObject);
+				var newRdoArtifactId = _testObjectHelper.GetDao().Insert(testObject, ObjectFieldsDepthLevel.FirstLevelOnly);
 
 				//read artifactID from RSAPI
 				RDO newObject = _client.Repositories.RDO.ReadSingle(newRdoArtifactId);
@@ -354,7 +354,7 @@ namespace Gravity.Test.Integration
 						break;
 					case RdoFieldType.SingleObject:
 						int objectToAttach =
-								_testObjectHelper.GetDao().Insert(sampleData as GravityLevel2);
+								_testObjectHelper.GetDao().Insert(sampleData as GravityLevel2, ObjectFieldsDepthLevel.FirstLevelOnly);
 						dto.Fields.Add(new FieldValue(testFieldGuid, objectToAttach));
 						expectedData = (sampleData as GravityLevel2).Name;
 						break;
@@ -365,7 +365,7 @@ namespace Gravity.Test.Integration
 						foreach (GravityLevel2 child in gravityLevel2s)
 						{
 							objectToAttachID =
-								_testObjectHelper.GetDao().Insert(child);
+								_testObjectHelper.GetDao().Insert(child, ObjectFieldsDepthLevel.FirstLevelOnly);
 							objects.Add(new Artifact(objectToAttachID));
 							(expectedData as Dictionary<int, string>).Add(objectToAttachID, child.Name);
 						}
