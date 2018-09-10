@@ -1,5 +1,5 @@
 
-A sample is available in the [Gravity.Demo](Gravity.Demo) solution. To try it, install the latest RAP in the Installers subfolder, which will create new objects types in your Relativity workspace and add a few members. 
+A sample is available in the [Gravity.Demo](https://github.com/relativitydev/Gravity/tree/development/Gravity/Gravity.Test/RelativityApplication) solution. To try it, install the latest RAP in the Installers subfolder, which will create new objects types in your Relativity workspace and add a few members. 
 
 After the application is installed, you can modify and execute the tests in [Gravity.Test](Gravity/Gravity.Test).
 
