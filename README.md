@@ -14,7 +14,7 @@ We would like to recognize the following Relativity Development Partners who hav
 
 ![TSD Services](https://cdn.tsd.com/wp-content/uploads/2017/07/TSD-Services-logo-april-2017-Favicon-5.png "TSD Services")  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![MILYLI](http://milyli.com/wp-content/uploads/2014/07/milyli_header-regular.png "MILYLI")
 
-This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
+This is also available as a [nuget package](https://www.nuget.org/packages/RelativityDev.Gravity).
 
 ## Target Frameworks
 * .NET 4.5.1, .NET 4.6.2
