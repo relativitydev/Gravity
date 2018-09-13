@@ -1,4 +1,4 @@
-﻿using Gravity.DAL.RSAPI;
+using Gravity.DAL.RSAPI;
 using Relativity.API;
 using System;
 using System.Collections.Generic;
@@ -26,20 +26,10 @@ namespace Gravity.Test.Helpers
             _retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
         }
 
-        public int CreateTestObjectWithGravity<T>(T testObject) where T : BaseDto
-        {
-            RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
-
-            int testDtoId = gravityRsapiDao.Insert(testObject);
-
-            return testDtoId;
-        }
-
-        public T ReturnTestObjectWithGravity<T>(int artifactId) where T : BaseDto, new()
-        {
-            RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
-            return gravityRsapiDao.Get<T>(artifactId,ObjectFieldsDepthLevel.FirstLevelOnly);
-        }
+		public RsapiDao GetDao()
+		{
+			return new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
+		}
 
 		public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto
 		{
@@ -51,5 +41,8 @@ namespace Gravity.Test.Helpers
 
 			return stubRdo;
 		}
+
+		public static Guid FieldGuid<T>(string fieldName)
+			=> typeof(T).GetProperty(fieldName).GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 	}
 }

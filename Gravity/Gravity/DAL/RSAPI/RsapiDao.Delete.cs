@@ -4,74 +4,69 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Gravity.Base;
-using Gravity.Exceptions;
 using Gravity.Extensions;
 
 namespace Gravity.DAL.RSAPI
 {
 	public partial class RsapiDao
 	{
-		#region RDO DELETE Protected stuff
-		protected void DeleteRDO(int artifactId)
+		public void Delete<T>(int objectToDeleteId, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new()
 		{
-			rsapiProvider.DeleteSingle(artifactId);
-		}
+			var maxRecursionLevel =
+				depthLevel == ObjectFieldsDepthLevel.OnlyParentObject ? 0
+				: depthLevel == ObjectFieldsDepthLevel.FirstLevelOnly ? 1
+				: int.MaxValue;
 
-		protected void DeleteRDO(Guid artifactGuid)
-		{
-			rsapiProvider.DeleteSingle(artifactGuid);
-		}
+			//artifactID / recursion level tuple for items to delete
+			var artifactsToDeleteList = new List<Tuple<int, int>>();
 
-		protected void DeleteRDOs(List<int> artifactIds)
-		{
-			rsapiProvider.Delete(artifactIds)
-				.GetResultData(); //ensure no exceptions
-		}
-		#endregion
+			//populate artifacts to delete
+			PopulateArtifactsToDeleteList<T>(artifactsToDeleteList, maxRecursionLevel, new[] { objectToDeleteId }, 0);
 
-		internal void DeleteChildObjects<T>(IList<T> parentObjectList, List<int> artifactIds) where T : BaseDto
-		{
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
+			//order by items to delete by how deep in hierarchy they are
+			//so don't run into "can't delete" issues
+			var deleteSets = artifactsToDeleteList
+				.ToLookup(x => x.Item2, x => x.Item1)
+				.OrderByDescending(x => x.Key);
 
-			foreach (var parentObject in parentObjectList)
+			foreach (var deleteSet in deleteSets)
 			{
-				DeleteChildObjectsInner(parentObject, childObjectsInfo);
+				rsapiProvider.Delete(deleteSet.ToList()).GetResultData();
 			}
 
-			DeleteRDOs(artifactIds);
 		}
 
-		public void Delete<T>(T theObjectToDelete) where T : BaseDto
+		internal void PopulateArtifactsToDeleteList<T>(
+			List<Tuple<int, int>> artifactsToDeleteList,
+			int maxRecursionLevel,
+			IList<int> artifactIds,
+			int currentRecursionLevel) where T : BaseDto
 		{
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-			DeleteChildObjectsInner(theObjectToDelete, childObjectsInfo);
-			DeleteRDO(theObjectToDelete.ArtifactId);
-		}
+			if (!artifactIds.Any())
+				return;
 
-		public void Delete<T>(int objectToDeleteId) where T : BaseDto, new()
-		{
-			T theObjectToDelete = Get<T>(objectToDeleteId, Base.ObjectFieldsDepthLevel.FullyRecursive);
-			Delete(theObjectToDelete);
-		}
+			if (currentRecursionLevel > maxRecursionLevel)
+				throw new ArgumentOutOfRangeException(nameof(currentRecursionLevel), "Exceeded maximum recursion level.");
 
-		private void DeleteChildObjectsInner<T>(T theObjectToDelete, IEnumerable<PropertyInfo> childProperties) 
-			where T : BaseDto
-		{
+			artifactsToDeleteList.AddRange(artifactIds.Select(a => Tuple.Create(a, currentRecursionLevel)));
+
+			var childProperties = BaseDto.GetRelativityObjectChildrenListProperties<T>();
+
 			foreach (var propertyInfo in childProperties)
 			{
-
-				var thisChildTypeObj = propertyInfo.GetValue(theObjectToDelete, null) as IList;
-
-				List<int> thisArtifactIDs = thisChildTypeObj.Cast<object>()
-					.Select(item => ((BaseDto)item).ArtifactId)
-					.ToList();
-
-				if (thisArtifactIDs.Count != 0)
+				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
+				foreach (var artifactId in artifactIds)
 				{
-					Type childType = propertyInfo.PropertyType.GetEnumerableInnerType();
-					this.InvokeGenericMethod(childType, nameof(DeleteChildObjects), thisChildTypeObj, thisArtifactIDs);
+					//TODO: amend so can pass in all artifact IDs instead of looping over artifacts
+					var thisChildTypeIds = (List<int>)this.InvokeGenericMethod(childType, nameof(GetAllChildIds), new[] { artifactId });
+
+					//recurse with child objects and next recursion level
+					this.InvokeGenericMethod(childType, nameof(PopulateArtifactsToDeleteList),
+						artifactsToDeleteList, maxRecursionLevel, thisChildTypeIds, currentRecursionLevel + 1);
 				}
 			}
+
 		}
 	}
 }

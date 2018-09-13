@@ -44,12 +44,6 @@ namespace Gravity.Extensions
 					case RdoFieldType.Empty:
 						newValueObject = null;
 						break;
-					case RdoFieldType.File:
-						if (theFieldValue.Value != null) // value is file name string
-						{
-							newValueObject = new RelativityFile(theFieldValue.ArtifactID);
-						}
-						break;
 					case RdoFieldType.FixedLengthText:
 						newValueObject = theFieldValue.ValueAsFixedLengthText;
 						break;

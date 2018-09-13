@@ -10,7 +10,7 @@ namespace Gravity.Test.TestClasses
 	public class GravityLevelOne : BaseDto
 	{
 		[RelativityObjectField("E1FA93B9-C2DB-442A-9978-84EEB6B61A3F", RdoFieldType.FixedLengthText, 255)]
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 		[RelativityObjectField("1A7A55A7-C22C-421A-BFE9-CDC1107ABEA3", RdoFieldType.FixedLengthText, 100)]
 		public string FixedTextField { get; set; }
@@ -31,7 +31,7 @@ namespace Gravity.Test.TestClasses
 		public DateTime? DateTimeField { get; set; }
 
 		[RelativityObjectField("06575EC1-7DE4-47C0-A763-AA135C1F29BA", RdoFieldType.File)]
-		public RelativityFile FileField { get; set; }
+		public FileDto FileField { get; set; }
 
 		[RelativityObjectField("D0770889-8A4D-436A-9647-33419B96E37E", RdoFieldType.MultipleObject)]
 		public IList<GravityLevel2> GravityLevel2MultipleObjs { get; set; } = new List<GravityLevel2>();
