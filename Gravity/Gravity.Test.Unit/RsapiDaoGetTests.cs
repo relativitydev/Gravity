@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Artifact = kCura.Relativity.Client.DTOs.Artifact;
 using Choice = kCura.Relativity.Client.DTOs.Choice;
 
 namespace Gravity.Test.Unit
@@ -26,6 +27,22 @@ namespace Gravity.Test.Unit
 			var dao = new RsapiDao(GetChoiceRsapiProvider(null, null));
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.AreEqual(RootArtifactID, dto.ArtifactId);
+		}
+
+		[Test]
+		public void Get_MultiObject_FirstLevelOnly()
+		{
+			/*
+			//test MultiObject fields with varying degrees of recursion
+			int[] multiObjectIds = new int[] {1,2,3};
+			var dao = new RsapiDao(GetMultipleObjectRsapiProvider(multiObjectIds));
+			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
+			for(int i = 0; i < multiObjectIds.Length; i++)
+			{
+				Assert.AreEqual(multiObjectIds[i], dto.GravityLevel2MultipleObjs.ElementAt(i).ArtifactId);
+			}
+			*/
+			throw new NotImplementedException();
 		}
 
 		[Test]
@@ -45,11 +62,27 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
-		[Ignore("TODO: Implement")]
+		public void Get_SingleObject_FirstLevelOnly()
+		{
+			//test single object fields with one level of recursion
+			int singleObjectLevel2ArtifactId = 1;
+			int singleObjectLevel3ArtifactId = 2;
+			var dao = new RsapiDao(GetObjectRsapiProvider(singleObjectLevel2ArtifactId, singleObjectLevel3ArtifactId));
+			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
+			Assert.AreEqual(singleObjectLevel2ArtifactId, dto.GravityLevel2Obj.ArtifactId);
+			Assert.IsNull(dto.GravityLevel2Obj.GravityLevel3SingleObj);
+		}
+
+		[Test]
 		public void Get_SingleObject_Recursive()
 		{
 			//test single object fields with varying degrees of recursion
-			throw new NotImplementedException();
+			int singleObjectLevel2ArtifactId = 25;
+			int singleObjectLevel3ArtifactId = 26;
+			var dao = new RsapiDao(GetObjectRsapiProvider(singleObjectLevel2ArtifactId, singleObjectLevel3ArtifactId));
+			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FullyRecursive);
+			Assert.AreEqual(singleObjectLevel2ArtifactId, dto.GravityLevel2Obj.ArtifactId);
+			Assert.AreEqual(singleObjectLevel3ArtifactId, dto.GravityLevel2Obj.GravityLevel3SingleObj.ArtifactId);
 		}
 
 		[Test]
@@ -169,5 +202,70 @@ namespace Gravity.Test.Unit
 
 			return providerMock.Object;
 		}
+
+		private IRsapiProvider GetObjectRsapiProvider(int singleLevel2ArtifactId, int singleLevel3ArtifactId)
+		{
+			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
+
+			// setup the RDO Read
+			var singleLevel1Guid = typeof(GravityLevelOne)
+				.GetProperty(nameof(GravityLevelOne.GravityLevel2Obj))
+				.GetCustomAttribute<RelativityObjectFieldAttribute>()
+				.FieldGuid;
+
+			var singleLevel2Guid = typeof(GravityLevel2)
+				.GetProperty(nameof(GravityLevel2.GravityLevel3SingleObj))
+				.GetCustomAttribute<RelativityObjectFieldAttribute>()
+				.FieldGuid;
+
+			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
+			var level2Rdo = TestObjectHelper.GetStubRDO<GravityLevel2>(singleLevel2ArtifactId);
+			var level3Rdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleLevel3ArtifactId);
+
+			level1Rdo[singleLevel1Guid].ValueAsSingleObject = level2Rdo;
+			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
+			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
+			providerMock.Setup(x => x.ReadSingle(singleLevel2ArtifactId)).Returns(level2Rdo);
+			providerMock.Setup(x => x.ReadSingle(singleLevel3ArtifactId)).Returns(level3Rdo);
+
+			// setup the child object query
+			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+		
+			return providerMock.Object;
+		}
+
+		/*
+		private IRsapiProvider GetMultipleObjectRsapiProvider(int[] multipleObjectIds)
+		{
+			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
+
+			// setup the RDO Read
+			var multipleLevel1Guid = typeof(GravityLevelOne)
+				.GetProperty(nameof(GravityLevelOne.GravityLevel2MultipleObjs))
+				.GetCustomAttribute<RelativityObjectFieldAttribute>()
+				.FieldGuid;
+
+			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
+			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
+
+			FieldValueList<RDO> fieldValueList = new FieldValueList<RDO>();
+			foreach (int objectId in multipleObjectIds)
+			{
+				fieldValueList.Add(TestObjectHelper.GetStubRDO<GravityLevel2>(objectId));
+			}
+			level1Rdo[multipleLevel1Guid].SetValueAsMultipleObject(fieldValueList);
+			int count = 0;
+			foreach (int objectId in multipleObjectIds)
+			{
+				providerMock.Setup(x => x.ReadSingle(objectId)).Returns(fieldValueList.ElementAt(count));
+				count++;
+			}
+
+			// setup the child object query
+			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+
+			return providerMock.Object;
+		}
+		*/
 	}
 }

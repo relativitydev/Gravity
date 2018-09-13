@@ -372,7 +372,7 @@ namespace Gravity.Test.Unit
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.OnlyParentObject);
 			CollectionAssert.AreEqual(new[] { g2caId, 0 }, objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 		}
-
+		/*
 		[Test]
 		public void Update_ChildObject_UpdateInsertNewRemove_WithRecursion()
 		{
@@ -411,7 +411,7 @@ namespace Gravity.Test.Unit
 				objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 
 		}
-
+		*/
 		void UpdateObject(G1 objectToUpdate, RdoBoolCond rootExpression, ObjectFieldsDepthLevel depthLevel)
 		{
 			objectToUpdate.ArtifactId = G1ArtifactId;
