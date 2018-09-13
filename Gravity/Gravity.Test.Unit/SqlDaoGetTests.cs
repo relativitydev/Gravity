@@ -21,21 +21,21 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void GetRelativityObjectSlim()
 		{
-			GravityLevelOne gravityLvlOne = sqlDao.GetRelativityObject<GravityLevelOne>(gravityLvlOneId, Base.ObjectFieldsDepthLevel.OnlyParentObject);
+			GravityLevelOne gravityLvlOne = sqlDao.Get<GravityLevelOne>(gravityLvlOneId, Base.ObjectFieldsDepthLevel.OnlyParentObject);
 			Assert.IsNull(gravityLvlOne.GravityLevel2Obj);
 		}
 
 		[Test]
 		public void GetRelativityObjectFirstLvl()
 		{
-			GravityLevelOne gravityLvlOne = sqlDao.GetRelativityObject<GravityLevelOne>(gravityLvlOneId, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
+			GravityLevelOne gravityLvlOne = sqlDao.Get<GravityLevelOne>(gravityLvlOneId, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.IsNotNull(gravityLvlOne.GravityLevel2Obj);
 		}
 
 		[Test]
 		public void GetRelativityObject()
 		{
-			GravityLevelOne gravityLvlOne = sqlDao.GetRelativityObject<GravityLevelOne>(gravityLvlOneId, Base.ObjectFieldsDepthLevel.FullyRecursive);
+			GravityLevelOne gravityLvlOne = sqlDao.Get<GravityLevelOne>(gravityLvlOneId, Base.ObjectFieldsDepthLevel.FullyRecursive);
 			Assert.AreEqual(gravityLvlOneId, gravityLvlOne.ArtifactId);
 		}
 	}

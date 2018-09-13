@@ -16,7 +16,7 @@ namespace Gravity.DAL.SQL
 {
 	public partial class SqlDao
 	{
-		public T GetRelativityObject<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)
+		public T Get<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
 			return GetRelativityObjectWithParent<T>(artifactId, depthLevel, null);
@@ -482,7 +482,7 @@ namespace Gravity.DAL.SQL
 
 			if (depthLevel != ObjectFieldsDepthLevel.OnlyParentObject)
 			{
-				childObject = (T)this.InvokeGenericMethod(typeof(T), nameof(GetRelativityObject), artifactId, depthLevel);
+				childObject = (T)this.InvokeGenericMethod(typeof(T), nameof(Get), artifactId, depthLevel);
 			}
 			else
 			{
