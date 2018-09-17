@@ -372,7 +372,7 @@ namespace Gravity.Test.Unit
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.OnlyParentObject);
 			CollectionAssert.AreEqual(new[] { g2caId, 0 }, objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 		}
-		/*
+		
 		[Test]
 		public void Update_ChildObject_UpdateInsertNewRemove_WithRecursion()
 		{
@@ -403,7 +403,7 @@ namespace Gravity.Test.Unit
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
 			mockProvider.Setup(x => x.ReadSingle(g2ccId)).Returns(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
 			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(y => y.Single() == g2ccId)))
-				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet>());
+				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
 
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
 			CollectionAssert.AreEqual(
@@ -411,7 +411,7 @@ namespace Gravity.Test.Unit
 				objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 
 		}
-		*/
+		
 		void UpdateObject(G1 objectToUpdate, RdoBoolCond rootExpression, ObjectFieldsDepthLevel depthLevel)
 		{
 			objectToUpdate.ArtifactId = G1ArtifactId;
