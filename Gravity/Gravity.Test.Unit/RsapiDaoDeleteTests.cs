@@ -9,6 +9,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,6 +22,8 @@ namespace Gravity.Test.Unit
 		const int rootId = 1;
 		const int level2Id_1 = 10;
 		const int level2Id_2 = 20;
+		const int level3Id_1 = 30;
+		const int level3Id_2 = 40;
 
 		Mock<IRsapiProvider> mockProvider;
 
@@ -61,6 +64,8 @@ namespace Gravity.Test.Unit
 		public void Delete_LevelOneRecursion_ChildObjects()
 		{
 			SetupQuery<GravityLevel2Child>(rootId, new[] { level2Id_1, level2Id_2 });
+			SetupQuery<GravityLevel3Child>(level2Id_1, new int[0]);
+			SetupQuery<GravityLevel3Child>(level2Id_2, new int[0]);
 			//delete will occur on both levels
 			SetupDelete(new[] { level2Id_1, level2Id_2 });
 			SetupDelete(new[] { rootId });
@@ -68,17 +73,30 @@ namespace Gravity.Test.Unit
 			//succeeds if has child objects; deletes child objects
 		}
 
-		[Test, Ignore("No children of child objects defined")]
-		public void Delete_LevelOneRecustion_LevelTwoObjects()
+		[Test]
+		public void Delete_LevelOneRecursion_LevelTwoObjects()
 		{
 			//fails if has nested child objects
 			//in such case does not delete other child objects either
+			SetupQuery<GravityLevel2Child>(rootId, new[] { level2Id_1, level2Id_2});
+			SetupQuery<GravityLevel3Child>(level2Id_1, new[] { level3Id_1 });
+			SetupQuery<GravityLevel3Child>(level2Id_2, new[] { level3Id_2 });
+			SetupDelete(new[] { level2Id_1, level2Id_2 });
+			SetupDelete(new[] { rootId });
+			Assert.Throws<ArgumentOutOfRangeException>(() => ExecuteDelete(ObjectFieldsDepthLevel.FirstLevelOnly));
 		}
 
-		[Test, Ignore("No children of child objects defined")]
+		[Test]
 		public void Delete_Recursive_LevelTwoObjects()
 		{
 			//deletes deeply nested child objects
+			SetupQuery<GravityLevel2Child>(rootId, new[] { level2Id_1, level2Id_2 });
+			SetupQuery<GravityLevel3Child>(level2Id_1, new[] { level3Id_1 });
+			SetupQuery<GravityLevel3Child>(level2Id_2, new[] { level3Id_2 });
+			SetupDelete(new[] { level3Id_1, level3Id_2 });
+			SetupDelete(new[] { level2Id_1, level2Id_2 });
+			SetupDelete(new[] { rootId });
+			ExecuteDelete(ObjectFieldsDepthLevel.FullyRecursive);
 		}
 
 		private void SetupDelete(int[] artifactIds)
