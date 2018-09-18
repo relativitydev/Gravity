@@ -8,13 +8,13 @@ using Gravity.Base;
 namespace Gravity.Test.TestClasses
 {
 	[Serializable]
-	[RelativityObject("BAF1304D-7B0B-4E9F-BE7A-634ED2DF8EB6")]
+	[RelativityObject("71244AF1-4800-471F-A3E1-9E02C1A5411F")]
 	public class GravityLevel3Child : BaseDto
 	{
-		[RelativityObjectFieldParentArtifactId("EDE1FE54-CA19-4CCD-BD26-F458814B373B")]
-		public int GavityLevelTwoArtifactId { get; set; }
+		[RelativityObjectFieldParentArtifactId("8C306DF6-CBD4-41BC-8572-51BC88A3C8CA")]
+		public int GavityLevelTwoChildArtifactId { get; set; }
 
-		[RelativityObjectField("02E68AB7-DF37-4287-9F24-49688A4E13B3", RdoFieldType.FixedLengthText, 255)]
+		[RelativityObjectField("2105B985-583E-49FA-9D68-72F98EE3C25E", RdoFieldType.FixedLengthText, 255)]
 		public string Name { get; set; }
 	}
 }
