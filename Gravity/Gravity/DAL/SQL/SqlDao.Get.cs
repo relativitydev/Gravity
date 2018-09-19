@@ -1,8 +1,4 @@
-﻿using Gravity.Base;
-using Gravity.Extensions;
-using Gravity.Resources.SQL.Get;
-using kCura.Relativity.Client;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -11,6 +7,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Gravity.Base;
+using Gravity.Extensions;
+using Gravity.Resources.SQL.Get;
+using kCura.Relativity.Client.DTOs;
 
 namespace Gravity.DAL.SQL
 {
@@ -33,7 +33,8 @@ namespace Gravity.DAL.SQL
 			DataRow objRow = dtTable.Rows[0];
 
 			returnObject = objRow.ToHydratedDto<T>(fieldsGuidsToColumnNameMappings, parentArtifactId);
-			PopulateChoices(fieldsGuidsToColumnNameMappings, returnObject, dtTable);
+			PopulateChoices(fieldsGuidsToColumnNameMappings, returnObject);
+			PopulateFiles(fieldsGuidsToColumnNameMappings, returnObject, objRow);
 
 			switch (depthLevel)
 			{
@@ -66,7 +67,8 @@ namespace Gravity.DAL.SQL
 			}
 		}
 
-		private void PopulateChoices<T>(Dictionary<Guid, string> fieldsGuidsToColumnNameMappings, T dto, DataTable dtTable) where T : BaseDto, new()
+		private void PopulateChoices<T>(Dictionary<Guid, string> fieldsGuidsToColumnNameMappings, T dto)
+			where T : BaseDto, new()
 		{
 			foreach ((PropertyInfo property, RelativityObjectFieldAttribute fieldAttribute)
 				in dto.GetType().GetPropertyAttributeTuples<RelativityObjectFieldAttribute>())
@@ -96,9 +98,37 @@ namespace Gravity.DAL.SQL
 			}
 		}
 
+		private void PopulateFiles<T>(Dictionary<Guid, string> fieldsGuidsToColumnNameMappings, T dto, DataRow objRow)
+			where T : BaseDto
+		{
+			object fileDto;
+
+			foreach ((PropertyInfo property, RelativityObjectFieldAttribute fieldAttribute)
+						in dto.GetType()
+							.GetPropertyAttributeTuples<RelativityObjectFieldAttribute>()
+							.Where(x => x.Item2.FieldType == RdoFieldType.File))
+			{
+				fileDto = null;
+
+				// Substract "Name" appendix from column name
+				var columnName = fieldsGuidsToColumnNameMappings[fieldAttribute.FieldGuid]
+					.Substring(0, fieldsGuidsToColumnNameMappings[fieldAttribute.FieldGuid].Length - 4);
+				
+				if (property.PropertyType == (typeof(FileDto))
+				&& objRow.IsNull(columnName) == false)
+				{
+					int fieldArtifactId = GetArtifactIdByArtifactGuid(fieldAttribute.FieldGuid);
+					fileDto = GetFileByFileId(fieldArtifactId, Convert.ToInt32(objRow[columnName]));
+				}
+
+				property.SetValue(dto, fileDto);
+			}
+		}
+
 		private object GetChildObjectRecursively(Dictionary<Guid, string> fieldsGuidsToColumnNameMappings, BaseDto baseDto, DataRow objRow, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
 		{
 			var relativityObjectFieldAttibutes = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
+			object returnObj = null;
 
 			Type objectType = property.PropertyType.IsGenericType && (property.PropertyType.GetGenericTypeDefinition() == typeof(IEnumerable<>)
 							|| property.PropertyType.GetGenericTypeDefinition() == typeof(IList<>)) ?
@@ -109,20 +139,30 @@ namespace Gravity.DAL.SQL
 				var fieldType = relativityObjectFieldAttibutes.FieldType;
 				var fieldGuid = relativityObjectFieldAttibutes.FieldGuid;
 
-				if (fieldType == RdoFieldType.MultipleObject)
-				{
-					IEnumerable<int> multipleObjectsArtifactIds = GetMultipleObjectChildrenArtifactIds(baseDto.ArtifactId, relativityObjectFieldAttibutes.FieldGuid);
-					return this.InvokeGenericMethod(objectType, nameof(GetMultipleChildObjectsByArtifactIds), multipleObjectsArtifactIds, depthLevel);
-				}
+				string columnName = fieldsGuidsToColumnNameMappings.FirstOrDefault(x => x.Key == relativityObjectFieldAttibutes.FieldGuid).Value;
 
-				if (fieldType == RdoFieldType.SingleObject)
+				switch (fieldType)
 				{
-					string columnName = fieldsGuidsToColumnNameMappings.FirstOrDefault(x => x.Key == relativityObjectFieldAttibutes.FieldGuid).Value;
-					int singleObjectArtifactId = objRow[columnName] != DBNull.Value ? Convert.ToInt32(objRow[columnName]) : 0;
+					case RdoFieldType.MultipleObject:
+						IEnumerable<int> multipleObjectsArtifactIds = GetMultipleObjectChildrenArtifactIds(baseDto.ArtifactId, relativityObjectFieldAttibutes.FieldGuid);
+						returnObj = this.InvokeGenericMethod(objectType, nameof(GetMultipleChildObjectsByArtifactIds), multipleObjectsArtifactIds, depthLevel);
+						break;
 
-					return singleObjectArtifactId == 0
-						? Activator.CreateInstance(objectType)
-						: this.InvokeGenericMethod(objectType, nameof(GetSingleChildObjectBasedOnDepthLevelByArtifactId), singleObjectArtifactId, depthLevel);
+					case RdoFieldType.SingleObject:
+						int singleObjectArtifactId = objRow[columnName] != DBNull.Value ? Convert.ToInt32(objRow[columnName]) : 0;
+
+						returnObj = singleObjectArtifactId == 0
+							? Activator.CreateInstance(objectType)
+							: this.InvokeGenericMethod(objectType, nameof(GetSingleChildObjectBasedOnDepthLevelByArtifactId), singleObjectArtifactId, depthLevel);
+						break;
+
+					case RdoFieldType.User:
+						if (property.PropertyType == typeof(User)
+							&& objRow.IsNull(columnName) == false)
+						{
+							returnObj = GetUserBasedOnDepthLevelByArtifactId(Convert.ToInt32(objRow[columnName]));
+						}
+						break;
 				}
 			}
 
@@ -143,21 +183,10 @@ namespace Gravity.DAL.SQL
 					}
 				}
 
-				return returnList;
+				returnObj = returnList;
 			}
 
-			if (property.GetValue(baseDto, null) is RelativityFile relativityFile)
-			{
-				int fieldArtifactId = GetArtifactIdByArtifactGuid(relativityObjectFieldAttibutes.FieldGuid);
-				return GetFileByFileId(fieldArtifactId, relativityFile.ArtifactTypeId);
-			}
-
-			if (property.GetValue(baseDto, null) is kCura.Relativity.Client.DTOs.User user)
-			{
-				return GetUserBasedOnDepthLevelByArtifactId(user.ArtifactID);
-			}
-
-			return null;
+			return returnObj;
 		}
 
 		private Dictionary<Guid, string> GetArtifactGuidsMappingsToColumnNames(IEnumerable<Guid> guids)
@@ -377,36 +406,34 @@ namespace Gravity.DAL.SQL
 
 		private string GenerateSelectStatementForObject(int artifactId, string objectName)
 		{
-			StringBuilder selectBuilder = new StringBuilder();
+			StringBuilder selectBuilder = new StringBuilder(512);
 
 			selectBuilder.Append("SELECT TOP 1 * ");
 			selectBuilder.Append($"FROM [EDDSDBO].[{objectName}] ");
-			selectBuilder.Append($"WHERE ArtifactID={artifactId}");
+			selectBuilder.Append($"WHERE [ArtifactID] = {artifactId}");
 
 			return selectBuilder.ToString();
 		}
 
-		private RelativityFile GetFileByFileId(int fieldArtifactId, int? fileId)
+		private object GetFileByFileId(int fieldArtifactId, int fileId)
 		{
-			List<SqlParameter> sqlParameters = new List<SqlParameter>();
-			sqlParameters.Add(new SqlParameter("FileId", (int)fileId));
+			FileDto relativityFile = null;
+
+			var sqlParameters = new List<SqlParameter>();
+			sqlParameters.Add(new SqlParameter("FileId", fileId));
 			string query = string.Format(SQLGetResource.GetFileInfoByFileId, fieldArtifactId);
 
 			using (var reader = dbContext.ExecuteParameterizedSQLStatementAsReader(query, sqlParameters.ToArray()))
 			{
 				while (reader.Read())
 				{
-					RelativityFile file = new RelativityFile(fieldArtifactId);
-					file.FileMetadata = new FileMetadata() { FileName = reader.GetString(1), FileSize = reader.GetInt32(2) };
-
-					string location = reader.GetString(3);
-					file.FileValue = new FileValue(location, GetFileBytesByLocation(location));
-
-					return file;
+					// TODO: Implement Caching for SQL
+					string location = reader.GetString(0);
+					relativityFile = new ByteArrayFileDto(location);
 				}
 			}
 
-			return null;
+			return relativityFile;
 		}
 
 		private List<T> GetChoicesValuesByArtifactIds<T>(List<int> choiceArtifactIds)
@@ -430,17 +457,16 @@ namespace Gravity.DAL.SQL
 						returnList.Add(choiceValue);
 					}
 				}
-				return returnList?.Count() < 0 && isNullableType ? null : returnList;
 
+				return returnList?.Count() < 0 && isNullableType ? null : returnList;
 			}
 
 			return null;
 		}
 
-
-		private kCura.Relativity.Client.DTOs.User GetUserBasedOnDepthLevelByArtifactId(int artifactId)
+		private User GetUserBasedOnDepthLevelByArtifactId(int artifactId)
 		{
-			kCura.Relativity.Client.DTOs.User user = new kCura.Relativity.Client.DTOs.User(artifactId);
+			var user = new User(artifactId);
 
 			List<SqlParameter> sqlParameters = new List<SqlParameter>();
 			sqlParameters.Add(new SqlParameter("CaseUserArtifactId", artifactId));
@@ -450,8 +476,8 @@ namespace Gravity.DAL.SQL
 			{
 				while (reader.Read())
 				{
-					user.SetValueByPropertyName("FirstName", reader.GetString(0));
-					user.SetValueByPropertyName("LastName", reader.GetString(1));
+					user.FirstName = reader.GetString(0);
+					user.LastName = reader.GetString(1);
 				}
 			}
 
@@ -501,18 +527,6 @@ namespace Gravity.DAL.SQL
 			string selectSql = GenerateSelectStatementForObject(artifactId, objectName);
 
 			return dbContext.ExecuteSqlStatementAsDataTable(selectSql);
-		}
-
-		private byte[] GetFileBytesByLocation(string location)
-		{
-			byte[] fileBytes = null;
-
-			if (File.Exists(location))
-			{
-				fileBytes = invokeWithRetryService.InvokeWithRetry(() => File.ReadAllBytes(location));
-			}
-
-			return fileBytes;
 		}
 	}
 }

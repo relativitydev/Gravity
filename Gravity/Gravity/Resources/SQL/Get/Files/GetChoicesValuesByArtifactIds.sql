@@ -1,3 +1,3 @@
 SELECT [Name]
   FROM [EDDSDBO].[Code] (NOLOCK)
-  WHERE ArtifactID IN (%%ArtifactIds%%)
+  WHERE [ArtifactID] IN (%%ArtifactIds%%)

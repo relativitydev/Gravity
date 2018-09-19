@@ -23,10 +23,7 @@ namespace Gravity.Test.Integration
 
 		private static DiskFileDto GetDiskFile()
 		{
-			var testFile = new DiskFileDto
-			{
-				FilePath = Path.Combine(Path.GetTempPath(), "TestFile.txt")
-			};
+			var testFile = new DiskFileDto(Path.Combine(Path.GetTempPath(), "TestFile.txt"));
 			File.WriteAllBytes(testFile.FilePath, new byte[] { 65 });
 			return testFile;
 		}

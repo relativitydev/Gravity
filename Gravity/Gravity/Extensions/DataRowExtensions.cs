@@ -1,5 +1,4 @@
 ﻿using Gravity.Base;
-using kCura.Relativity.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -35,16 +34,11 @@ namespace Gravity.Extensions
 						break;
 
 					case RdoFieldType.Decimal:
-						newValue = objRow.IsNull(columnName) ? Decimal.Zero : Convert.ToDecimal(objRow[columnName]);
+						newValue = objRow.IsNull(columnName) ? decimal.Zero : Convert.ToDecimal(objRow[columnName]);
 						break;
 
 					case RdoFieldType.Date:
 						newValue = objRow.IsNull(columnName) ? DateTime.MinValue : Convert.ToDateTime(objRow[columnName]);
-						break;
-
-					case RdoFieldType.File:
-						int fileId = objRow.IsNull(columnName.Substring(0, columnName.Length - 4)) ? 0 : (int)objRow[columnName.Substring(0, columnName.Length - 4)];
-						newValue = new RelativityFile(fileId);
 						break;
 
 					case RdoFieldType.FixedLengthText:
@@ -59,18 +53,8 @@ namespace Gravity.Extensions
 					case RdoFieldType.MultipleObject:
 					case RdoFieldType.SingleChoice:
 					case RdoFieldType.SingleObject:
-						break;
-
 					case RdoFieldType.User:
-						if (property.PropertyType == typeof(User))
-						{
-							int userArtifactId = objRow.IsNull(columnName) ? 0 : Convert.ToInt32(objRow[columnName]);
-
-							if (userArtifactId > 0)
-							{
-								newValue = new User() { ArtifactID = userArtifactId };
-							}
-						}
+					case RdoFieldType.File:
 						break;
 
 					case RdoFieldType.WholeNumber:

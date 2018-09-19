@@ -23,57 +23,46 @@ namespace Gravity.DAL.SQL
 		{
 			this.helper = helper;
 			this.workspaceId = workspaceId;
-			this.dbContext = helper.GetDBContext(workspaceId);
-			this.masterDbContext = helper.GetDBContext(-1);
-			this.batchSize = DefaultBatchSize;
+			dbContext = helper.GetDBContext(workspaceId);
+			masterDbContext = helper.GetDBContext(-1);
+			batchSize = DefaultBatchSize;
 
 			if (invokeWithRetrySettings == null)
 			{
 				InvokeWithRetrySettings defaultSettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts, SharedConstants.sleepTimeInMiliseconds);
-				this.invokeWithRetryService = new InvokeWithRetryService(defaultSettings);
+				invokeWithRetryService = new InvokeWithRetryService(defaultSettings);
 			}
 			else
 			{
-				this.invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings);
+				invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings);
 			}
 		}
 
 		#region SQL Dao Not Implemented operations
 
 		[Obsolete("SQL Dao Insert is not implemented yet.", true)]
-		public int Insert<T>(T obj)
-			where T : BaseDto
-		{
-			throw new NotImplementedException();
-		}
+		public int Insert<T>(T obj, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto => throw new NotImplementedException();
 
-		[Obsolete("SQL Dao Get by artifactIDs is not implemented yet.", true)]
-		public List<T> Get<T>(int[] artifactIDs, ObjectFieldsDepthLevel depthLevel)
-			where T : BaseDto, new()
-		{
-			throw new NotImplementedException();
-		}
+		[Obsolete("SQL Dao Bulk Insert is not implemented yet.", true)]
+		public void Insert<T>(IList<T> objs, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto => throw new NotImplementedException();
+
+		[Obsolete("SQL Dao Bulk Get by artifactIDs is not implemented yet.", true)]
+		public List<T> Get<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new() => throw new NotImplementedException();
 
 		[Obsolete("SQL Dao Update is not implemented yet.", true)]
-		public void Update<T>(T obj)
-			where T : BaseDto
-		{
-			throw new NotImplementedException();
-		}
+		public void Update<T>(T obj, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto => throw new NotImplementedException();
+
+		[Obsolete("SQL Dao Bulk Update is not implemented yet.", true)]
+		public void Update<T>(IList<T> objs, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto => throw new NotImplementedException();
 
 		[Obsolete("SQL Dao Delete is not implemented yet.", true)]
-		public void Delete<T>(int artifactID)
-			where T : BaseDto, new()
-		{
-			throw new NotImplementedException();
-		}
-
-		[Obsolete("SQL Dao Delete is not implemented yet.", true)]
-		public void Delete<T>(T obj)
-			where T : BaseDto
-		{
-			throw new NotImplementedException();
-		}
+		public void Delete<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new() => throw new NotImplementedException();
 
 		#endregion
 	}

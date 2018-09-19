@@ -1,16 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gravity.Base
 {
 	public abstract class FileDto
 	{
-		internal FileDto() { }
+		protected FileDto(string filePath) { }
+
+		protected FileDto() { }
 
 		internal string GetMD5()
 		{
@@ -27,15 +25,19 @@ namespace Gravity.Base
 
 	public class DiskFileDto : FileDto
 	{
+		public DiskFileDto() { }
+
+		public DiskFileDto(string filePath)
+			: base(filePath)
+		{
+			FilePath = filePath;
+		}
+		
 		public string FilePath { get; set; }
 
 		public ByteArrayFileDto StoreInMemory()
 		{
-			return new ByteArrayFileDto
-			{
-				ByteArray = File.ReadAllBytes(this.FilePath),
-				FileName = Path.GetFileName(this.FilePath)
-			};
+			return new ByteArrayFileDto(FilePath);
 		}
 
 		protected override Stream GetStream() => File.OpenRead(FilePath);
@@ -43,17 +45,23 @@ namespace Gravity.Base
 
 	public class ByteArrayFileDto : FileDto
 	{
+		public ByteArrayFileDto() { }
+
+		public ByteArrayFileDto(string filePath)
+			: base(filePath)
+		{
+			ByteArray = File.ReadAllBytes(filePath);
+			FileName = Path.GetFileName(filePath);
+		}
+
 		public byte[] ByteArray { get; set; }
 
 		public string FileName { get; set; }
 
 		public DiskFileDto WriteToFile(string filePath)
 		{
-			File.WriteAllBytes(filePath, this.ByteArray);
-			return new DiskFileDto
-			{
-				FilePath = filePath
-			};
+			File.WriteAllBytes(filePath, ByteArray);
+			return new DiskFileDto(filePath);
 		}
 
 		protected override Stream GetStream() => new MemoryStream(ByteArray);

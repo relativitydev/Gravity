@@ -1,3 +1,3 @@
 SELECT [ArtifactType]
   FROM [EDDSDBO].[ArtifactType] (NOLOCK)
-  WHERE ArtifactTypeID = @ArtifactTypeID
+  WHERE [ArtifactTypeID] = @ArtifactTypeID

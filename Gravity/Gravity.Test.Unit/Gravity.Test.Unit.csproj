@@ -20,6 +20,9 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="kCura.Crypto">
+      <HintPath>..\..\..\kCura Crypto\kCura.Crypto.dll</HintPath>
+    </Reference>
     <Reference Include="System.Configuration" />
     <Reference Include="System.Runtime.Serialization">
       <Private>True</Private>
