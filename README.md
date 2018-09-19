@@ -4,7 +4,7 @@ Open Source Community: **Gravity** is an [ORM framework](https://en.wikipedia.or
 
 While this project is hosted on the RelativityDev account, support is only available through the Relativity developer community. You are welcome to use the code and solution as you see fit within the confines of the license it is released under. However, if you are looking for support or modifications to the solution, we suggest reaching out to a Relativity Development Partner.
 
-Gravity was originally created by TSD Services.   Through their generosity and leadership, they have released the project as open source.  It is an active project and has contributions from other Relativity Development Partners.  Anyone who has a need is invited to use and contribute to the project.
+Gravity was originally created by TSD Services.   Through their generosity and leadership, they have released the project as open source.  It is an active project and has contributions from other Relativity Development Partners.  Anyone who has a need is invited to use and contribute to the project.  If you are interested in contributing, check out the open issues and Wiki pages.
 
 We would like to recognize the following Relativity Development Partners who have made significant contributions to the Gravity project:
 
@@ -14,7 +14,7 @@ We would like to recognize the following Relativity Development Partners who hav
 
 ![TSD Services](https://cdn.tsd.com/wp-content/uploads/2017/07/TSD-Services-logo-april-2017-Favicon-5.png "TSD Services")  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![MILYLI](http://milyli.com/wp-content/uploads/2014/07/milyli_header-regular.png "MILYLI")
 
-This is also available as a [nuget package](https://www.nuget.org/packages/Gravity/).
+This is also available as a [nuget package](https://www.nuget.org/packages/RelativityDev.Gravity).
 
 ## Target Frameworks
 * .NET 4.5.1, .NET 4.6.2
@@ -70,9 +70,9 @@ public class DemoPurchaseOrder : BaseDto
 ```
 
 * **Note:** 
-  * For property of type `User` use `kCura.Relativity.Client.DTOs.User` 
+  * For property of type `User` use `kCura.Relativity.Client.DTOs.User` *[limited support]*
   * For property of type `FileField` use `Gravity.Base.FileDto`
-    * If the file is only going to be read from the server, or you can keep the files entirely in memory, use the `Gravity.Base.ByteArrayFileDto` subclass. This is the class returned any `Get` requests.
+    * If the file is only going to be read from the server, or you can keep the files entirely in memory, use the `Gravity.Base.ByteArrayFileDto` subclass. This is the class returned by any `Get` requests.
     * If you want to use files stored on disk AND don't need to read the files from the server, you can use the `Gravity.Base.DiskFileDto` subclass.
     * Otherwise, use the base class and cast as necessary.
 
@@ -92,21 +92,22 @@ public enum OrderType
 }
 ```
 
-To use Gravity for RSAPI operations, you must instantiate an `RsapiDao` object using the `RsapiDao` constructor, with `IHelper` and `WorkspaceId` as parameters.
+To use Gravity for RSAPI operations, you must instantiate an `RsapiDao` object using the `RsapiDao` constructor, with `IHelper` and `workspaceId` as parameters.
 
-Supported RSAPIDao methods:
+Supported IGravityDao methods:
  - `Get<T>(int artifactId, ObjectFieldsDepthLevel depthLevel)` - Get DTO by Artifact ID.
  - `Get<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel)` - Get DTOs by Artifact IDs.
- - `List<T> Query<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)` - Get all DTOs of type matching an optional condition
- - `Delete<T>(T theObjectToDelete)` - Delete object recursively (includes child objects).
  - `Delete<T>(int objectToDeleteId)`- Delete object recursively (includes child objects) by Artifact ID.
- - `Insert<T>(BaseDto theObjectToInsert, ObjectFieldsDepthLevel depthLevel)` - Insert Relativity object from RDO, updating the RDO with its new ArtifactID.
- - `Insert<T>(IList<BaseDto> theObjectsToInsert, ObjectFieldsDepthLevel depthLevel)` - Insert Relativity objects from RDOs, updating the RDOs with their new ArtifactIDs.
+ - `Insert<T>(T theObjectToInsert, ObjectFieldsDepthLevel depthLevel)` - Insert Relativity object from RDO, updating the RDO with its new ArtifactID.
+ - `Insert<T>(IList<T> theObjectsToInsert, ObjectFieldsDepthLevel depthLevel)` - Insert Relativity objects from RDOs, updating the RDOs with their new ArtifactIDs.
  - `Update<T>(BaseDto theObjectToUpdate, ObjectFieldsDepthLevel depthLevel)` - Update Relativity object from RDO, inserting any non-existing children.
- - `Update<T>(IList<BaseDto> theObjectsToUpdate, ObjectFieldsDepthLevel depthLevel)` - Update Relativity objects from RDOs, inserting any non-existing children.
+ - `Update<T>(IList<T> theObjectsToUpdate, ObjectFieldsDepthLevel depthLevel)` - Update Relativity objects from RDOs, inserting any non-existing children.
  - `UpdateField<T>(int rdoID, Guid fieldGuid, object value)` - Update field value by GUID and RDO Artifact ID *[limited support]*
 
-Where available, the `depthLevel` parameter controls whether (and how deeply) to recurse into object fields and child object lists.
+Additional methods supported by RsapiDao:
+ - `List<T> Query<T>(Condition queryCondition = null, ObjectFieldsDepthLevel depthLevel = ObjectFieldsDepthLevel.FirstLevelOnly)` - Get all DTOs of type matching an optional RSAPI query condition
+
+Where available, the `depthLevel` parameter controls whether (and how deeply) to recurse into object fields and child object lists. The recursion options are `OnlyParentObject`, `FirstLevelOnly`, and `FullyRecursive`.
 
 ### Example
 
