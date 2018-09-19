@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Gravity.Base;
 
 namespace Gravity.Test.TestClasses
@@ -12,5 +13,11 @@ namespace Gravity.Test.TestClasses
 
 		[RelativityObjectField("DAD68D2A-F740-4473-8047-E89C5C58D987", RdoFieldType.FixedLengthText, 255)]
 		public string Name { get; set; }
+
+		[RelativityObjectField("0D560507-E026-43E0-8453-DDC9CC7235CB", RdoFieldType.SingleObject)]
+		public GravityLevel3 GravityLevel3Obj { get; set; }
+
+		[RelativityObjectChildrenList]
+		public IList<GravityLevel3Child> GravityLevel3Childs { get; set; } = new List<GravityLevel3Child>();
 	}
 }
