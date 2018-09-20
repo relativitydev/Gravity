@@ -262,9 +262,37 @@ namespace Gravity.Test.Unit
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
 
-		[Test, Ignore("No third-level objects")]
+		[Test]
 		public void Update_SingleObject_InsertNewWithUpdatePropertyRecursion()
 		{
+			const int g2id = 20;
+			const int g3id = 30;
+
+			var objectToUpdate = new G1 {
+				GravityLevel2Obj = new G2 {
+					Name = "G2",
+					ArtifactId = g2id,
+					GravityLevel3SingleObj = new G3 {
+						Name = "NewName",
+						ArtifactId = g3id
+					}
+				}
+			};
+
+			RdoBoolCond matchingRdoExpression = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2id;
+			RdoBoolCond matchingG2Expression = rdo =>
+				rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2";
+			RdoBoolCond matchingG3Expression = rdo =>
+				rdo[FieldGuid<G3>(nameof(G3.Name))].ValueAsFixedLengthText == "G3";
+
+			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2Expression(x[0]));
+			SetupInsertManyCondition(x => x.Count == 1 && matchingG2Expression(x[0]), g3id);
+			SetupChildQuery(g2id);
+			SetupMultipleLevelChildQuery(g3id);
+			SetupDeleteChild();
+
+			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FullyRecursive);
 		}
 
 		[Test]
@@ -336,14 +364,13 @@ namespace Gravity.Test.Unit
 			CollectionAssert.AreEqual(new[] { g2aId, g2bId }, objectToUpdate.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
 		}
 
-
-		[Test, Ignore("No third-level objects")]
+		[Test]
 		public void Update_MultipleObject_InsertNewWithUpdatePropertyRecursion()
 		{
 			const int g2aId = 20;
 			const int g2bId = 30;
 			const int g3aId = 40;
-			//const int g3bId = 50;
+			const int g3bId = 50;
 
 			var objectToUpdate = new G1 
 			{
@@ -357,8 +384,13 @@ namespace Gravity.Test.Unit
 						}
 					},
 					new G2 {
-						ArtifactId = 0,
-						Name = "G2B"
+						ArtifactId = g2bId,
+						Name = "G2B",
+						GravityLevel3SingleObj = new GravityLevel3() 
+						{
+							ArtifactId = g3bId,
+							Name = "G3B"
+						}
 					}
 				}
 			};
@@ -368,17 +400,19 @@ namespace Gravity.Test.Unit
 					.Select(x => x.ArtifactID)
 					.SequenceEqual(new[] {g2aId, g2bId});
 			RdoBoolCond matchingG2aExpression = rdo =>
-				rdo.ArtifactID == g2aId && rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2A";
+				rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2A";
 			RdoBoolCond matchingG2bExpression = rdo =>
-				rdo.ArtifactID == 0 && rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2B";
+				rdo[FieldGuid<G2>(nameof(G2.Name))].ValueAsFixedLengthText == "G2B";
 
-			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2aExpression(x[0]));
-			SetupInsertManyCondition(x => x.Count == 1 && matchingG2bExpression(x[0]), g2bId);
+			SetupUpdateManyCondition(x => x.Count == 2 && (matchingG2aExpression(x[0]) || matchingG2bExpression(x[0])));
+			SetupInsertManyCondition(x => x.Count == 1 && matchingG2bExpression(x[0]), g3bId);
 			SetupChildQuery(g2aId,g2bId);
+			SetupMultipleLevelChildQuery(g3aId);
+			SetupDeleteChild();
 
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.FullyRecursive);
-			CollectionAssert.AreEqual(new int[] { g2aId, g2bId }, objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
-			//CollectionAssert.AreEqual(new int[] { g3aId, g3bId },objectToUpdate.GravityLevel2Childs.Select(x => x.GravityLevel3Obj.ArtifactId));
+			CollectionAssert.AreEqual(new int[] { g2aId, g2bId }, objectToUpdate.GravityLevel2MultipleObjs.Select(x => x.ArtifactId));
+			CollectionAssert.AreEqual(new int[] { g3aId, g3bId },objectToUpdate.GravityLevel2MultipleObjs.Select(x => x.GravityLevel3SingleObj.ArtifactId));
 		}
 
 		[TestCase(true)]
@@ -412,8 +446,8 @@ namespace Gravity.Test.Unit
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.OnlyParentObject);
 			CollectionAssert.AreEqual(new[] { g2caId, 0 }, objectToUpdate.GravityLevel2Childs.Select(x => x.ArtifactId));
 		}
-		
-		[Test,Ignore("Failing")]
+
+		[Test]
 		public void Update_ChildObject_UpdateInsertNewRemove_WithRecursion()
 		{
 			const int g2caId = 20;
@@ -439,7 +473,7 @@ namespace Gravity.Test.Unit
 					&& rdo.ParentArtifact.ArtifactID == G1ArtifactId;
 
 			SetupChildQuery(g2caId, g2cbId);
-			SetupDeleteChild(new int[] {g2caId});
+			SetupDeleteChild();
 			SetupMultipleLevelChildQuery(g2caId,g2cbId);
 			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2caExpression(x[0]));
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
@@ -494,9 +528,9 @@ namespace Gravity.Test.Unit
 				.Returns(new[] { level3ArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
 		}
 
-		private void SetupDeleteChild(int[] artifactIds)
+		private void SetupDeleteChild()
 		{
-			mockProvider.Setup(x => x.Delete(artifactIds))
+			mockProvider.Setup(x => x.Delete(It.IsAny<List<int>>()))
 				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
 		}
 		
