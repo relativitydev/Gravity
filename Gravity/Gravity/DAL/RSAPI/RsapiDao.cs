@@ -26,13 +26,14 @@ namespace Gravity.DAL.RSAPI
 		private RsapiDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity,
 				InvokeWithRetryService invokeWithRetryService,
 				int batchSize = DefaultBatchSize)
-			: this(new RsapiProvider(servicesManager, executionIdentity, invokeWithRetryService, workspaceId, batchSize))
+			: this(new RsapiProvider(servicesManager, executionIdentity, invokeWithRetryService, workspaceId, batchSize), invokeWithRetryService)
 		{
-			this.invokeWithRetryService = invokeWithRetryService;
 		}
 
-		public RsapiDao(IRsapiProvider rsapiProvider)
+		public RsapiDao(IRsapiProvider rsapiProvider, InvokeWithRetryService invokeWithRetryService)
 		{
+			this.invokeWithRetryService = invokeWithRetryService;
+
 			this.rsapiProvider = rsapiProvider;
 			this.choiceCache = new ChoiceCache(this.rsapiProvider);
 			this.guidCache = new ArtifactGuidCache(this.rsapiProvider);

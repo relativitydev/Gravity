@@ -116,6 +116,6 @@ namespace Gravity.Test.Unit
 		}
 
 		private void ExecuteDelete(ObjectFieldsDepthLevel depthLevel)
-			=> new RsapiDao(mockProvider.Object).Delete<GravityLevelOne>(rootId, depthLevel);
+			=> new RsapiDao(mockProvider.Object, null).Delete<GravityLevelOne>(rootId, depthLevel);
 	}
 }

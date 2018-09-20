@@ -24,7 +24,7 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void Get_BlankRDO()
 		{
-			var dao = new RsapiDao(GetChoiceRsapiProvider(null, null));
+			var dao = new RsapiDao(GetChoiceRsapiProvider(null, null), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.AreEqual(RootArtifactID, dto.ArtifactId);
 		}
@@ -35,7 +35,7 @@ namespace Gravity.Test.Unit
 			//test MultiObject fields with one level of recursion
 			int[] multiObjectIds = new int[] { 1 , 2 , 3 };
 			int[] singleObjectLevel3ArtifactIds = new int[] { 5 , 6 , 7 };
-			var dao = new RsapiDao(GetMultipleObjectRsapiProvider(multiObjectIds, singleObjectLevel3ArtifactIds));
+			var dao = new RsapiDao(GetMultipleObjectRsapiProvider(multiObjectIds, singleObjectLevel3ArtifactIds), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			for(int i = 0; i < multiObjectIds.Length; i++)
 			{
@@ -50,7 +50,7 @@ namespace Gravity.Test.Unit
 			//test MultiObject fields with varying degrees of recursion
 			int[] multiObjectIds = new int[] { 1, 2, 3 };
 			int[] singleObjectLevel3ArtifactIds = new int[] { 5 , 6 , 7 };
-			var dao = new RsapiDao(GetMultipleObjectRsapiProvider(multiObjectIds, singleObjectLevel3ArtifactIds));
+			var dao = new RsapiDao(GetMultipleObjectRsapiProvider(multiObjectIds, singleObjectLevel3ArtifactIds), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FullyRecursive);
 			for (int i = 0; i < multiObjectIds.Length; i++)
 			{
@@ -65,7 +65,7 @@ namespace Gravity.Test.Unit
 			//test ChildObject fields with varying degrees of recursion
 			int[] multiChildObjectIds = new int[] { 1, 2, 3 };
 			int[] singleObjectLevel3Ids = new int[] { 4 , 5 , 6 };
-			var dao = new RsapiDao(GetChildObjectRsapiProvider(multiChildObjectIds,singleObjectLevel3Ids));
+			var dao = new RsapiDao(GetChildObjectRsapiProvider(multiChildObjectIds,singleObjectLevel3Ids), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			for (int i = 0; i < multiChildObjectIds.Length; i++)
 			{
@@ -80,7 +80,7 @@ namespace Gravity.Test.Unit
 			//test ChildObject fields with varying degrees of recursion
 			int[] multiChildObjectIds = new int[] { 1, 2, 3 };
 			int[] singleObjectLevel3Ids = new int[] { 4, 5, 6 };
-			var dao = new RsapiDao(GetChildObjectRsapiProvider(multiChildObjectIds,singleObjectLevel3Ids));
+			var dao = new RsapiDao(GetChildObjectRsapiProvider(multiChildObjectIds,singleObjectLevel3Ids), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FullyRecursive);
 			for (int i = 0; i < multiChildObjectIds.Length; i++)
 			{
@@ -95,7 +95,7 @@ namespace Gravity.Test.Unit
 			//test single object fields with one level of recursion
 			int singleObjectLevel2ArtifactId = 1;
 			int singleObjectLevel3ArtifactId = 2;
-			var dao = new RsapiDao(GetObjectRsapiProvider(singleObjectLevel2ArtifactId, singleObjectLevel3ArtifactId));
+			var dao = new RsapiDao(GetObjectRsapiProvider(singleObjectLevel2ArtifactId, singleObjectLevel3ArtifactId), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.AreEqual(singleObjectLevel2ArtifactId, dto.GravityLevel2Obj.ArtifactId);
 			Assert.IsNull(dto.GravityLevel2Obj.GravityLevel3SingleObj);
@@ -107,7 +107,7 @@ namespace Gravity.Test.Unit
 			//test single object fields with varying degrees of recursion
 			int singleObjectLevel2ArtifactId = 25;
 			int singleObjectLevel3ArtifactId = 26;
-			var dao = new RsapiDao(GetObjectRsapiProvider(singleObjectLevel2ArtifactId, singleObjectLevel3ArtifactId));
+			var dao = new RsapiDao(GetObjectRsapiProvider(singleObjectLevel2ArtifactId, singleObjectLevel3ArtifactId), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FullyRecursive);
 			Assert.AreEqual(singleObjectLevel2ArtifactId, dto.GravityLevel2Obj.ArtifactId);
 			Assert.AreEqual(singleObjectLevel3ArtifactId, dto.GravityLevel2Obj.GravityLevel3SingleObj.ArtifactId);
@@ -118,7 +118,7 @@ namespace Gravity.Test.Unit
 		{
 			var fileArray = new byte[] { 2 };
 			var fileName = "filename.dat";
-			var dao = new RsapiDao(GetFileRsapiProvider(fileName, fileArray));
+			var dao = new RsapiDao(GetFileRsapiProvider(fileName, fileArray), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.OnlyParentObject);
 			CollectionAssert.AreEqual(fileArray, ((ByteArrayFileDto)dto.FileField).ByteArray);
 			Assert.AreEqual(fileName, ((ByteArrayFileDto)dto.FileField).FileName);
@@ -127,7 +127,7 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void Get_SkipsDownloadIfNoFile()
 		{
-			var dao = new RsapiDao(GetFileRsapiProvider(null, null));
+			var dao = new RsapiDao(GetFileRsapiProvider(null, null), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.OnlyParentObject);
 			Assert.Null(dto.FileField);
 		}
@@ -135,7 +135,7 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void Get_SingleChoice_InEnum()
 		{
-			var dao = new RsapiDao(GetChoiceRsapiProvider(2, null));
+			var dao = new RsapiDao(GetChoiceRsapiProvider(2, null), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			Assert.AreEqual(SingleChoiceFieldChoices.SingleChoice2, dto.SingleChoice);
 		}
@@ -143,14 +143,14 @@ namespace Gravity.Test.Unit
 		[Test]
 		public void Get_SingleChoice_NotInEnum()
 		{
-			var dao = new RsapiDao(GetChoiceRsapiProvider(5, null));
+			var dao = new RsapiDao(GetChoiceRsapiProvider(5, null), null);
 			Assert.Throws<InvalidOperationException>(() => dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly));
 		}
 
 		[Test]
 		public void Get_MultipleChoice_AllInEnum()
 		{
-			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 11, 13 }));
+			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 11, 13 }), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
 			CollectionAssert.AreEquivalent(
 				new[] { MultipleChoiceFieldChoices.MultipleChoice1, MultipleChoiceFieldChoices.MultipleChoice3 },
@@ -162,7 +162,7 @@ namespace Gravity.Test.Unit
 		public void Get_MultipleChoice_NotAllInEnum()
 		{
 			//first item is in an enum, but not in our enum
-			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 3, 13 }));
+			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 3, 13 }), null);
 			Assert.Throws<InvalidOperationException>(() => dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly));
 
 		}

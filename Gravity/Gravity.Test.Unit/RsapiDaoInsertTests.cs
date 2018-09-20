@@ -303,7 +303,7 @@ namespace Gravity.Test.Unit
 		void InsertObject(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
 		{
 			SetupInsertManyCondition(x => x.Count == 1 && rootCondition(x.Single()), 10);
-			var insertedId = new RsapiDao(mockProvider.Object).Insert(objectToInsert, depthLevel);
+			var insertedId = new RsapiDao(mockProvider.Object, null).Insert(objectToInsert, depthLevel);
 			Assert.AreEqual(10, insertedId);
 			Assert.AreEqual(10, objectToInsert.ArtifactId);
 		}
