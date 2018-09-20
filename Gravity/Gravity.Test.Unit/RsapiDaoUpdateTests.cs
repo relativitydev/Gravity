@@ -498,7 +498,7 @@ namespace Gravity.Test.Unit
 				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
 			mockProvider.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
 
-			new RsapiDao(mockProvider.Object).Update(objectToUpdate, depthLevel);
+			new RsapiDao(mockProvider.Object, null).Update(objectToUpdate, depthLevel);
 		}
 		
 		private void SetupSingleObjectQuery(params int[] resultArtifactIds)
