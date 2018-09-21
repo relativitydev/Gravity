@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -19,6 +19,13 @@ namespace Gravity.DAL.SQL
 			where T : BaseDto, new()
 		{
 			return GetRelativityObjectWithParent<T>(artifactId, depthLevel, null);
+		}
+
+		//TODO: optimize
+		public List<T> Get<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new()
+		{
+			return artifactIDs.Select(x => Get<T>(x, depthLevel)).ToList();
 		}
 
 		private T GetRelativityObjectWithParent<T>(int artifactId, ObjectFieldsDepthLevel depthLevel, int? parentArtifactId)
