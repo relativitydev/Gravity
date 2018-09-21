@@ -262,48 +262,48 @@
       <ColumnName>SystemLastModifiedOn</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001658</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001667</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>ArtifactID</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001660</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001669</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>Edit</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001659</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
-      <ColumnName>GravityLevel2</ColumnName>
+      <ArtifactViewFieldId>1001668</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
+      <ColumnName>GravityLevel2Child</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001662</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001671</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>Name</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001661</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001670</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>AccessControlListIsInherited</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001656</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001665</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>SystemCreatedBy</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001654</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001663</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>SystemCreatedOn</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001657</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001666</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>SystemLastModifiedBy</ColumnName>
     </ArtifactViewField>
     <ArtifactViewField>
-      <ArtifactViewFieldId>1001655</ArtifactViewFieldId>
-      <ArtifactTypeId>1000047</ArtifactTypeId>
+      <ArtifactViewFieldId>1001664</ArtifactViewFieldId>
+      <ArtifactTypeId>1000048</ArtifactTypeId>
       <ColumnName>SystemLastModifiedOn</ColumnName>
     </ArtifactViewField>
   </ArtifactViewFields>
@@ -323,7 +323,7 @@
   </Assemblies>
   <ResourceFiles />
   <ExternalTabs />
-  <ExtractionDate>2018-09-17T18:25:01.5405212Z</ExtractionDate>
+  <ExtractionDate>2018-09-18T16:38:38.1927683Z</ExtractionDate>
   <Guid>b8bf7f6e-9e04-4536-aca0-968a31f28aa5</Guid>
   <Name>Gravity Demo</Name>
   <Objects>
@@ -2049,11 +2049,21 @@
             </LayoutField>
           </LayoutFields>
           <LayoutTexts />
-          <LayoutViews />
+          <LayoutViews>
+            <LayoutView>
+              <ConnectorFieldArtifactId>0</ConnectorFieldArtifactId>
+              <LayoutArtifactId>1039457</LayoutArtifactId>
+              <LinkViewArtifactId>1039521</LinkViewArtifactId>
+              <Order>1</Order>
+              <RenderLinksInPopup>false</RenderLinksInPopup>
+              <ViewArtifactId>1039521</ViewArtifactId>
+              <CategoryID xsi:nil="true" />
+            </LayoutView>
+          </LayoutViews>
           <Name>Gravity Level 2 Child Layout</Name>
           <Notes />
           <Order>0</Order>
-          <ApplicationVersion>1.0.0.12</ApplicationVersion>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </Layout>
       </Layouts>
       <Name>Gravity Level 2 Child</Name>
@@ -2659,17 +2669,7 @@
             </LayoutField>
           </LayoutFields>
           <LayoutTexts />
-          <LayoutViews>
-            <LayoutView>
-              <ConnectorFieldArtifactId>0</ConnectorFieldArtifactId>
-              <LayoutArtifactId>1039458</LayoutArtifactId>
-              <LinkViewArtifactId>1039510</LinkViewArtifactId>
-              <Order>1</Order>
-              <RenderLinksInPopup>false</RenderLinksInPopup>
-              <ViewArtifactId>1039510</ViewArtifactId>
-              <CategoryID xsi:nil="true" />
-            </LayoutView>
-          </LayoutViews>
+          <LayoutViews />
           <Name>Gravity Level 2 Layout</Name>
           <Notes />
           <Order>0</Order>
@@ -3056,7 +3056,7 @@
           <DashboardArtifactID xsi:nil="true" />
         </View>
       </Views>
-      <ApplicationVersion>1.0.0.0</ApplicationVersion>
+      <ApplicationVersion>1.0.0.14</ApplicationVersion>
     </Object>
     <Object>
       <ActiveSyncs />
@@ -3428,7 +3428,7 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
-          <ApplicationVersion>1.0.0.13</ApplicationVersion>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
       </SystemFields>
       <SystemLayouts />
@@ -3490,19 +3490,19 @@
     </Object>
     <Object>
       <ActiveSyncs />
-      <ArtifactId>1039512</ArtifactId>
-      <DescriptorArtifactTypeId>1000047</DescriptorArtifactTypeId>
+      <ArtifactId>1039523</ArtifactId>
+      <DescriptorArtifactTypeId>1000048</DescriptorArtifactTypeId>
       <Fields />
-      <Guid>baf1304d-7b0b-4e9f-be7a-634ed2df8eb6</Guid>
+      <Guid>71244af1-4800-471f-a3e1-9e02c1a5411f</Guid>
       <KeyWords />
       <Layouts>
         <Layout>
           <OverwriteProtection>true</OverwriteProtection>
-          <ArtifactId>1039511</ArtifactId>
+          <ArtifactId>1039522</ArtifactId>
           <Categories>
             <Category>
-              <CategoryId>1000406</CategoryId>
-              <LayoutArtifactId>1039511</LayoutArtifactId>
+              <CategoryId>1000407</CategoryId>
+              <LayoutArtifactId>1039522</LayoutArtifactId>
               <Order>0</Order>
               <Title>Default Category</Title>
               <Collapsible>false</Collapsible>
@@ -3512,19 +3512,19 @@
               <Type>0</Type>
             </Category>
           </Categories>
-          <Guid>ea10dd32-5954-4201-8721-9d4ad080f5f6</Guid>
+          <Guid>162f8fa4-5652-45a5-86c5-0915d5b2073f</Guid>
           <Keywords />
-          <LayoutArtifactTypeId>1000047</LayoutArtifactTypeId>
+          <LayoutArtifactTypeId>1000048</LayoutArtifactTypeId>
           <LayoutFields>
             <LayoutField>
-              <CategoryId>1000406</CategoryId>
+              <CategoryId>1000407</CategoryId>
               <ColSpan>1</ColSpan>
               <Column>1</Column>
-              <FieldArtifactId>1039508</FieldArtifactId>
+              <FieldArtifactId>1039519</FieldArtifactId>
               <FieldDisplayTypeId>16</FieldDisplayTypeId>
               <FullTextFieldHeight xsi:nil="true" />
               <IsReadOnly>false</IsReadOnly>
-              <LayoutArtifactId>1039511</LayoutArtifactId>
+              <LayoutArtifactId>1039522</LayoutArtifactId>
               <Order>0</Order>
               <PickerViewArtifactId xsi:nil="true" />
               <RepeatColumn xsi:nil="true" />
@@ -3533,14 +3533,14 @@
               <ShowNameColumn>true</ShowNameColumn>
             </LayoutField>
             <LayoutField>
-              <CategoryId>1000406</CategoryId>
+              <CategoryId>1000407</CategoryId>
               <ColSpan>1</ColSpan>
               <Column>1</Column>
-              <FieldArtifactId>1039509</FieldArtifactId>
+              <FieldArtifactId>1039520</FieldArtifactId>
               <FieldDisplayTypeId>0</FieldDisplayTypeId>
               <FullTextFieldHeight xsi:nil="true" />
               <IsReadOnly>false</IsReadOnly>
-              <LayoutArtifactId>1039511</LayoutArtifactId>
+              <LayoutArtifactId>1039522</LayoutArtifactId>
               <Order>1</Order>
               <PickerViewArtifactId xsi:nil="true" />
               <RepeatColumn xsi:nil="true" />
@@ -3554,14 +3554,14 @@
           <Name>Gravity Level 3 Child Layout</Name>
           <Notes />
           <Order>0</Order>
-          <ApplicationVersion>1.0.0.13</ApplicationVersion>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </Layout>
       </Layouts>
       <Name>Gravity Level 3 Child</Name>
       <Notes />
       <ObjectRules />
       <MassOperations />
-      <ParentArtifactTypeId>1000045</ParentArtifactTypeId>
+      <ParentArtifactTypeId>1000044</ParentArtifactTypeId>
       <EnableShapshotAuditing>true</EnableShapshotAuditing>
       <SamplingEnabled>true</SamplingEnabled>
       <PersistentListsEnabled>false</PersistentListsEnabled>
@@ -3571,8 +3571,8 @@
       <SystemFields>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039503</ArtifactId>
-          <ArtifactViewFieldId>1001654</ArtifactViewFieldId>
+          <ArtifactId>1039514</ArtifactId>
+          <ArtifactViewFieldId>1001663</ArtifactViewFieldId>
           <AssociativeArtifactTypeId xsi:nil="true" />
           <Codes />
           <CodeTypeId xsi:nil="true" />
@@ -3580,14 +3580,14 @@
           <DisplayName>System Created On</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>0</FieldCategoryId>
           <FieldTypeId>2</FieldTypeId>
           <FilterType>CustomOnly</FilterType>
           <FormatString>g</FormatString>
           <FriendlyName />
-          <Guids>eb542bdb-eea1-4aed-9b8e-964d9bd0cf04</Guids>
-          <Guid>eb542bdb-eea1-4aed-9b8e-964d9bd0cf04</Guid>
+          <Guids>449bf1d8-3b23-4404-b391-9c1c161685a9</Guids>
+          <Guid>449bf1d8-3b23-4404-b391-9c1c161685a9</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3619,11 +3619,12 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039504</ArtifactId>
-          <ArtifactViewFieldId>1001655</ArtifactViewFieldId>
+          <ArtifactId>1039515</ArtifactId>
+          <ArtifactViewFieldId>1001664</ArtifactViewFieldId>
           <AssociativeArtifactTypeId xsi:nil="true" />
           <Codes />
           <CodeTypeId xsi:nil="true" />
@@ -3631,14 +3632,14 @@
           <DisplayName>System Last Modified On</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>0</FieldCategoryId>
           <FieldTypeId>2</FieldTypeId>
           <FilterType>CustomOnly</FilterType>
           <FormatString>g</FormatString>
           <FriendlyName />
-          <Guids>50ee1604-cdbe-4639-aa5e-bf2bbad9b87b</Guids>
-          <Guid>50ee1604-cdbe-4639-aa5e-bf2bbad9b87b</Guid>
+          <Guids>75acfa90-0c25-467a-bf81-a7e2bf376b22</Guids>
+          <Guid>75acfa90-0c25-467a-bf81-a7e2bf376b22</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3670,11 +3671,12 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039505</ArtifactId>
-          <ArtifactViewFieldId>1001656</ArtifactViewFieldId>
+          <ArtifactId>1039516</ArtifactId>
+          <ArtifactViewFieldId>1001665</ArtifactViewFieldId>
           <AssociativeArtifactTypeId xsi:nil="true" />
           <Codes />
           <CodeTypeId xsi:nil="true" />
@@ -3682,14 +3684,14 @@
           <DisplayName>System Created By</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>0</FieldCategoryId>
           <FieldTypeId>0</FieldTypeId>
           <FilterType>Search</FilterType>
           <FormatString />
           <FriendlyName />
-          <Guids>2ba51968-258d-4e95-9f6f-21d4180972da</Guids>
-          <Guid>2ba51968-258d-4e95-9f6f-21d4180972da</Guid>
+          <Guids>0aa71baa-e951-43d5-8f18-468ba4beac69</Guids>
+          <Guid>0aa71baa-e951-43d5-8f18-468ba4beac69</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3721,11 +3723,12 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039506</ArtifactId>
-          <ArtifactViewFieldId>1001657</ArtifactViewFieldId>
+          <ArtifactId>1039517</ArtifactId>
+          <ArtifactViewFieldId>1001666</ArtifactViewFieldId>
           <AssociativeArtifactTypeId xsi:nil="true" />
           <Codes />
           <CodeTypeId xsi:nil="true" />
@@ -3733,14 +3736,14 @@
           <DisplayName>System Last Modified By</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>0</FieldCategoryId>
           <FieldTypeId>0</FieldTypeId>
           <FilterType>Search</FilterType>
           <FormatString />
           <FriendlyName />
-          <Guids>ad0a685f-803e-4b30-8ebb-1543d30d57a3</Guids>
-          <Guid>ad0a685f-803e-4b30-8ebb-1543d30d57a3</Guid>
+          <Guids>224a3a3c-74fc-48d9-84d4-526a9526eabf</Guids>
+          <Guid>224a3a3c-74fc-48d9-84d4-526a9526eabf</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3772,11 +3775,12 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039507</ArtifactId>
-          <ArtifactViewFieldId>1001658</ArtifactViewFieldId>
+          <ArtifactId>1039518</ArtifactId>
+          <ArtifactViewFieldId>1001667</ArtifactViewFieldId>
           <AssociativeArtifactTypeId xsi:nil="true" />
           <Codes />
           <CodeTypeId xsi:nil="true" />
@@ -3784,14 +3788,14 @@
           <DisplayName>Artifact ID</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>0</FieldCategoryId>
           <FieldTypeId>1</FieldTypeId>
           <FilterType>CustomOnly</FilterType>
           <FormatString />
           <FriendlyName />
-          <Guids>32602cf5-5059-49f6-b0e9-13ebc833012a</Guids>
-          <Guid>32602cf5-5059-49f6-b0e9-13ebc833012a</Guid>
+          <Guids>f3b1a686-2474-47f7-b80d-44f8e14dd316</Guids>
+          <Guid>f3b1a686-2474-47f7-b80d-44f8e14dd316</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3823,26 +3827,27 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039508</ArtifactId>
-          <ArtifactViewFieldId>1001659</ArtifactViewFieldId>
-          <AssociativeArtifactTypeId>1000045</AssociativeArtifactTypeId>
+          <ArtifactId>1039519</ArtifactId>
+          <ArtifactViewFieldId>1001668</ArtifactViewFieldId>
+          <AssociativeArtifactTypeId>1000044</AssociativeArtifactTypeId>
           <Codes />
           <CodeTypeId xsi:nil="true" />
           <ConnectorFieldArtifactId xsi:nil="true" />
-          <DisplayName>GravityLevel2</DisplayName>
+          <DisplayName>GravityLevel2Child</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>11</FieldCategoryId>
           <FieldTypeId>10</FieldTypeId>
           <FilterType>Search</FilterType>
           <FormatString />
           <FriendlyName />
-          <Guids>ede1fe54-ca19-4ccd-bd26-f458814b373b</Guids>
-          <Guid>ede1fe54-ca19-4ccd-bd26-f458814b373b</Guid>
+          <Guids>8c306df6-cbd4-41bc-8572-51bc88a3c8ca</Guids>
+          <Guid>8c306df6-cbd4-41bc-8572-51bc88a3c8ca</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3874,12 +3879,12 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
-          <ApplicationVersion>1.0.0.13</ApplicationVersion>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
         <SystemField>
           <AllowHTML>false</AllowHTML>
-          <ArtifactId>1039509</ArtifactId>
-          <ArtifactViewFieldId>1001662</ArtifactViewFieldId>
+          <ArtifactId>1039520</ArtifactId>
+          <ArtifactViewFieldId>1001671</ArtifactViewFieldId>
           <AssociativeArtifactTypeId xsi:nil="true" />
           <Codes />
           <CodeTypeId xsi:nil="true" />
@@ -3887,14 +3892,14 @@
           <DisplayName>Name</DisplayName>
           <DisplayValueFalse />
           <DisplayValueTrue />
-          <FieldArtifactTypeId>1000047</FieldArtifactTypeId>
+          <FieldArtifactTypeId>1000048</FieldArtifactTypeId>
           <FieldCategoryId>2</FieldCategoryId>
           <FieldTypeId>0</FieldTypeId>
           <FilterType>Search</FilterType>
           <FormatString />
           <FriendlyName />
-          <Guids>02e68ab7-df37-4287-9f24-49688a4e13b3</Guids>
-          <Guid>02e68ab7-df37-4287-9f24-49688a4e13b3</Guid>
+          <Guids>2105b985-583e-49fa-9d68-72f98ee3c25e</Guids>
+          <Guid>2105b985-583e-49fa-9d68-72f98ee3c25e</Guid>
           <ImportBehavior xsi:nil="true" />
           <EnableDataGrid>false</EnableDataGrid>
           <OverlayBehavior xsi:nil="true" />
@@ -3926,29 +3931,29 @@
           <FieldTreeView xsi:nil="true" />
           <SiblingFieldArtifactID xsi:nil="true" />
           <AutoAddChoices>false</AutoAddChoices>
-          <ApplicationVersion>1.0.0.13</ApplicationVersion>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
         </SystemField>
       </SystemFields>
       <SystemLayouts />
       <SystemViews />
       <Tab>
-        <ArtifactId>1039513</ArtifactId>
+        <ArtifactId>1039524</ArtifactId>
         <DisplayOrder>4</DisplayOrder>
-        <Guid>9d161df2-e7dc-4d53-9e5f-857c5fd0742b</Guid>
+        <Guid>c51ef1a2-b3d6-4f4e-b203-7485fee05921</Guid>
         <IsDefault>false</IsDefault>
         <Name>Gravity Level 3 Child</Name>
-        <ObjectArtifactTypeId>1000047</ObjectArtifactTypeId>
+        <ObjectArtifactTypeId>1000048</ObjectArtifactTypeId>
         <ParentArtifactId>1039398</ParentArtifactId>
         <TabDisplay>0</TabDisplay>
         <Visible>true</Visible>
-        <ApplicationVersion>1.0.0.13</ApplicationVersion>
+        <ApplicationVersion>1.0.0.14</ApplicationVersion>
       </Tab>
       <Views>
         <View>
-          <ArtifactId>1039510</ArtifactId>
-          <ArtifactTypeId>1000047</ArtifactTypeId>
+          <ArtifactId>1039521</ArtifactId>
+          <ArtifactTypeId>1000048</ArtifactTypeId>
           <AvailableInObjectTab>true</AvailableInObjectTab>
-          <Guid>7b47d8c2-fbf0-49cc-8d0b-92f51192b8ae</Guid>
+          <Guid>d052db2b-f8f2-4f16-a8e5-d8bdb48277bd</Guid>
           <IsRelationalIndexView>false</IsRelationalIndexView>
           <IsReport>false</IsReport>
           <IsVisible>true</IsVisible>
@@ -3964,12 +3969,12 @@
           <ViewCriteria />
           <ViewFields>
             <ViewField>
-              <ArtifactViewFieldId>1001660</ArtifactViewFieldId>
+              <ArtifactViewFieldId>1001669</ArtifactViewFieldId>
               <IsEditable>false</IsEditable>
               <Order>0</Order>
             </ViewField>
             <ViewField>
-              <ArtifactViewFieldId>1001662</ArtifactViewFieldId>
+              <ArtifactViewFieldId>1001671</ArtifactViewFieldId>
               <IsEditable>false</IsEditable>
               <Order>1</Order>
             </ViewField>
@@ -3980,16 +3985,16 @@
           <PayloadArtifactViewFieldId xsi:nil="true" />
           <DisplayArtifactViewFieldId xsi:nil="true" />
           <GroupDefinitionArtifactViewFieldID xsi:nil="true" />
-          <ApplicationVersion>1.0.0.13</ApplicationVersion>
+          <ApplicationVersion>1.0.0.14</ApplicationVersion>
           <DashboardArtifactID xsi:nil="true" />
         </View>
       </Views>
-      <ApplicationVersion>1.0.0.13</ApplicationVersion>
+      <ApplicationVersion>1.0.0.14</ApplicationVersion>
     </Object>
   </Objects>
   <ParentTabs />
   <RelativityVersion>9.6.146.60</RelativityVersion>
-  <Version>1.0.0.13</Version>
+  <Version>1.0.0.14</Version>
   <TabDisplay>false</TabDisplay>
   <OriginSignature>0ff52a69-30e6-4d89-ab9e-ade74db5f8cf</OriginSignature>
   <MasterScripts />
@@ -4007,7 +4012,7 @@
       <ExecutionType>10</ExecutionType>
       <Order>1</Order>
       <AssemblyName>Gravity.Demo.EventHandler.dll</AssemblyName>
-      <ApplicationVersion>1.0.0.13</ApplicationVersion>
+      <ApplicationVersion>1.0.0.14</ApplicationVersion>
       <RunTarget>0</RunTarget>
     </InstallEventHandler>
   </InstallEventHandlers>
@@ -4025,7 +4030,7 @@
     <Id>1039454</Id>
     <Id>1039455</Id>
     <Id>1039496</Id>
-    <Id>1039510</Id>
+    <Id>1039521</Id>
   </ViewIds>
   <DashboardIds />
   <LayoutIds>
@@ -4033,7 +4038,7 @@
     <Id>1039457</Id>
     <Id>1039458</Id>
     <Id>1039497</Id>
-    <Id>1039511</Id>
+    <Id>1039522</Id>
   </LayoutIds>
   <FieldIds>
     <Id>1039399</Id>
@@ -4075,8 +4080,13 @@
     <Id>1039495</Id>
     <Id>1039500</Id>
     <Id>1039502</Id>
-    <Id>1039508</Id>
-    <Id>1039509</Id>
+    <Id>1039514</Id>
+    <Id>1039515</Id>
+    <Id>1039516</Id>
+    <Id>1039517</Id>
+    <Id>1039518</Id>
+    <Id>1039519</Id>
+    <Id>1039520</Id>
   </FieldIds>
   <ChoiceIds>
     <Id>1039437</Id>
@@ -4091,14 +4101,14 @@
     <Id>1039418</Id>
     <Id>1039428</Id>
     <Id>1039498</Id>
-    <Id>1039512</Id>
+    <Id>1039523</Id>
   </ObjectTypeIds>
   <TabIds>
     <Id>1039408</Id>
     <Id>1039419</Id>
     <Id>1039429</Id>
     <Id>1039499</Id>
-    <Id>1039513</Id>
+    <Id>1039524</Id>
   </TabIds>
   <CustomPageIds />
   <Locked>true</Locked>
