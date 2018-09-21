@@ -6,9 +6,7 @@ namespace Gravity.Base
 {
 	public abstract class FileDto
 	{
-		protected FileDto(string filePath) { }
-
-		protected FileDto() { }
+		internal FileDto() { }
 
 		internal string GetMD5()
 		{
@@ -25,19 +23,20 @@ namespace Gravity.Base
 
 	public class DiskFileDto : FileDto
 	{
-		public DiskFileDto() { }
-
 		public DiskFileDto(string filePath)
-			: base(filePath)
 		{
 			FilePath = filePath;
 		}
-		
+
 		public string FilePath { get; set; }
 
 		public ByteArrayFileDto StoreInMemory()
 		{
-			return new ByteArrayFileDto(FilePath);
+			return new ByteArrayFileDto() 
+			{
+				ByteArray = File.ReadAllBytes(FilePath),
+				FileName = Path.GetFileName(FilePath)
+			};
 		}
 
 		protected override Stream GetStream() => File.OpenRead(FilePath);
@@ -45,15 +44,6 @@ namespace Gravity.Base
 
 	public class ByteArrayFileDto : FileDto
 	{
-		public ByteArrayFileDto() { }
-
-		public ByteArrayFileDto(string filePath)
-			: base(filePath)
-		{
-			ByteArray = File.ReadAllBytes(filePath);
-			FileName = Path.GetFileName(filePath);
-		}
-
 		public byte[] ByteArray { get; set; }
 
 		public string FileName { get; set; }

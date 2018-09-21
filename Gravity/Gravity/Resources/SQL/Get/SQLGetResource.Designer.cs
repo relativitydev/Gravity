@@ -72,13 +72,13 @@ namespace Gravity.Resources.SQL.Get {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SELECT artg.ArtifactGuid, artvfld.[ColumnName]
+        ///   Looks up a localized string similar to SELECT artg.[ArtifactGuid], artvfld.[ColumnName]
         ///	FROM [EDDSDBO].[ArtifactViewField] artvfld (NOLOCK)
-        ///	INNER JOIN [EDDSDBO].[Field] fld (NOLOCK)
-        ///	ON fld.ArtifactViewFieldID = artvfld.ArtifactViewFieldID
-        ///	INNER JOIN [EDDSDBO].[ArtifactGuid] artg (NOLOCK)
+        ///	JOIN [EDDSDBO].[Field] fld (NOLOCK)
+        ///	ON fld.[ArtifactViewFieldID] = artvfld.[ArtifactViewFieldID]
+        ///	JOIN [EDDSDBO].[ArtifactGuid] artg (NOLOCK)
         ///	ON fld.ArtifactID = artg.ArtifactID
-        ///  WHERE artg.ArtifactGuid IN (%%ArtifactGuids%%).
+        ///  WHERE artg.[ArtifactGuid] IN (%%ArtifactGuids%%).
         /// </summary>
         internal static string GetArtifactGuidsMappingToColumnNames {
             get {
@@ -100,7 +100,7 @@ namespace Gravity.Resources.SQL.Get {
         /// <summary>
         ///   Looks up a localized string similar to SELECT [ArtifactType]
         ///  FROM [EDDSDBO].[ArtifactType] (NOLOCK)
-        ///  WHERE ArtifactTypeID = @ArtifactTypeID.
+        ///  WHERE [ArtifactTypeID] = @ArtifactTypeID.
         /// </summary>
         internal static string GetArtifactTypeByArtifactTypeId {
             get {
@@ -110,10 +110,10 @@ namespace Gravity.Resources.SQL.Get {
         
         /// <summary>
         ///   Looks up a localized string similar to SELECT OT.[DescriptorArtifactTypeID]
-        ///  FROM [EDDSDBO].[ArtifactGuid] as AG (NOLOCK)
-        ///  INNER JOIN [EDDSDBO].[ObjectType] as OT (NOLOCK)
-        ///  ON AG.ArtifactID = OT.ArtifactID 
-        ///  WHERE AG.ArtifactGuid = @ArtifactGuid.
+        ///  FROM [EDDSDBO].[ArtifactGuid] AS AG (NOLOCK)
+        ///  JOIN [EDDSDBO].[ObjectType] AS OT (NOLOCK)
+        ///  ON AG.[ArtifactID] = OT.[ArtifactID]
+        ///  WHERE AG.[ArtifactGuid] = @ArtifactGuid.
         /// </summary>
         internal static string GetArtifactTypeIdByArtifactGuid {
             get {
@@ -124,29 +124,7 @@ namespace Gravity.Resources.SQL.Get {
         /// <summary>
         ///   Looks up a localized string similar to SELECT [ArtifactID]
         ///  FROM [EDDSDBO].[Artifact] (NOLOCK)
-        ///  WHERE ParentArtifactID = @ParentID.
-        /// </summary>
-        internal static string GetChildrenArtifactIDs {
-            get {
-                return ResourceManager.GetString("GetChildrenArtifactIDs", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SELECT [ArtifactID]
-        ///  FROM [EDDSDBO].[Artifact] (NOLOCK)
-        ///  WHERE ParentArtifactID = @ParentID AND ArtifactTypeID = @ArtifactTypeID.
-        /// </summary>
-        internal static string GetChildrenArtifactIDsByParentAndType {
-            get {
-                return ResourceManager.GetString("GetChildrenArtifactIDsByParentAndType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SELECT [ArtifactID]
-        ///  FROM [EDDSDBO].[Artifact] (NOLOCK)
-        ///  WHERE ParentArtifactID = @ParentID AND ArtifactTypeID = @ArtifactTypeID
+        ///  WHERE [ParentArtifactID] = @ParentID AND [ArtifactTypeID] = @ArtifactTypeID
         ///  ORDER BY [ArtifactID]
         ///  OFFSET %%OffsetRows%% ROWS
         ///  FETCH NEXT @FetchRows ROWS ONLY.
@@ -176,19 +154,20 @@ namespace Gravity.Resources.SQL.Get {
         ///--DECLARE @ArtifactID int
         ///--DECLARE @ChoiceFieldArtifactGuid uniqueidentifier
         ///
-        ///DECLARE @ChoiceFieldArtifactID int
-        ///DECLARE @ChoiceFieldCodeTypeID int
+        ///DECLARE @ChoiceFieldArtifactID INT
+        ///DECLARE @ChoiceFieldCodeTypeID INT
         ///
-        ///SELECT @ChoiceFieldArtifactID=[ArtifactID]
+        ///SELECT @ChoiceFieldArtifactID = [ArtifactID]
         ///  FROM [EDDSDBO].[ArtifactGuid] (NOLOCK)
-        ///  where ArtifactGuid=@ChoiceFieldArtifactGuid
+        ///  WHERE [ArtifactGuid] = @ChoiceFieldArtifactGuid
         ///
-        ///SELECT @ChoiceFieldCodeTypeID=[CodeTypeID] FROM Field (NOLOCK)
-        ///	WHERE [ArtifactID] = @ChoiceFieldArtifactID
+        ///SELECT @ChoiceFieldCodeTypeID = [CodeTypeID] 
+        ///  FROM Field (NOLOCK)
+        ///  WHERE [ArtifactID] = @ChoiceFieldArtifactID
         ///
-        ///DECLARE @sqlGetChildrenArtifactIDs nvarchar(500)
+        ///DECLARE @sqlGetChildrenArtifactIDs NVARCHAR(500)
         ///SET @sqlGetChildrenArtifactIDs =
-        ///	N&apos;SELECT [Co [rest of string was truncated]&quot;;.
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string GetChoicesArtifactIDs {
             get {
@@ -199,7 +178,7 @@ namespace Gravity.Resources.SQL.Get {
         /// <summary>
         ///   Looks up a localized string similar to SELECT [Name]
         ///  FROM [EDDSDBO].[Code] (NOLOCK)
-        ///  WHERE ArtifactID IN (%%ArtifactIds%%).
+        ///  WHERE [ArtifactID] IN (%%ArtifactIds%%).
         /// </summary>
         internal static string GetChoicesValuesByArtifactIds {
             get {
@@ -208,13 +187,9 @@ namespace Gravity.Resources.SQL.Get {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to   SELECT [ObjectArtifactID]
-        ///      ,[Filename]
-        ///      ,[Size]
-        ///      ,[Location]
+        ///   Looks up a localized string similar to   SELECT [Location]
         ///  FROM [EDDSDBO].[File{0}] (NOLOCK)
-        ///  WHERE [FileID] = @FileId
-        ///.
+        ///  WHERE [FileID] = @FileId.
         /// </summary>
         internal static string GetFileInfoByFileId {
             get {
@@ -229,16 +204,16 @@ namespace Gravity.Resources.SQL.Get {
         ///--SET @ArtifactID = 1068172
         ///--SET @MultipleObjectFieldArtifactGuid = &apos;d0770889-8a4d-436a-9647-33419b96e37e&apos;
         ///
-        ///DECLARE @MultipleObjectFieldArtifactID int
+        ///DECLARE @MultipleObjectFieldArtifactID INT
         ///
-        ///SELECT @MultipleObjectFieldArtifactID=[ArtifactID]
+        ///SELECT @MultipleObjectFieldArtifactID = [ArtifactID]
         ///  FROM [EDDSDBO].[ArtifactGuid] (NOLOCK)
-        ///  where ArtifactGuid=@MultipleObjectFieldArtifactGuid
+        ///  WHERE ArtifactGuid = @MultipleObjectFieldArtifactGuid
         ///
         ///-- SELECT @MultipleObjectFieldArtifactID
         ///
-        ///DECLARE @RelationalTableSchemaName nvarchar(100)
-        ///DECLARE @ [rest of string was truncated]&quot;;.
+        ///DECLARE @RelationalTableSchemaName NVARCHAR(100)
+        ///DECLA [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string GetMultipleObjectArtifactIDs {
             get {
@@ -249,7 +224,7 @@ namespace Gravity.Resources.SQL.Get {
         /// <summary>
         ///   Looks up a localized string similar to SELECT [{0}]
         ///  FROM [EDDSDBO].[{1}] (NOLOCK)
-        ///  WHERE ArtifactID=@ArtifactID.
+        ///  WHERE [ArtifactID] = @ArtifactID.
         /// </summary>
         internal static string GetSingleObjectArtifactIDFormat {
             get {
@@ -260,10 +235,10 @@ namespace Gravity.Resources.SQL.Get {
         /// <summary>
         ///   Looks up a localized string similar to SELECT TOP 1  [FirstName]
         ///      ,[LastName]
-        ///  FROM [EDDSDBO].[User] as instUser (NOLOCK)
-        ///  INNER JOIN [EDDSDBO].[UserCaseUser] as caseUser (NOLOCK)
-        ///  ON instUser.ArtifactID = caseUser.UserArtifactID
-        ///  WHERE caseUser.CaseUserArtifactID = @CaseUserArtifactId and caseUser.CaseArtifactID = @CaseArtifactId.
+        ///  FROM [EDDSDBO].[User] AS instUser (NOLOCK)
+        ///  JOIN [EDDSDBO].[UserCaseUser] AS caseUser (NOLOCK)
+        ///  ON instUser.[ArtifactID] = caseUser.[UserArtifactID]
+        ///  WHERE caseUser.[CaseUserArtifactID] = @CaseUserArtifactId AND caseUser.[CaseArtifactID] = @CaseArtifactId.
         /// </summary>
         internal static string GetUserDataByIdAndWorkspace {
             get {

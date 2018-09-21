@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading;
+using Gravity.Globals;
 
 namespace Gravity.Utils
 {
@@ -59,6 +60,16 @@ namespace Gravity.Utils
 
 				Thread.Sleep(settings.SleepTimeInMiliseconds);
 			}
+		}
+		
+		public static InvokeWithRetryService GetInvokeWithRetryService(InvokeWithRetrySettings invokeWithRetrySettings)
+		{
+			if (invokeWithRetrySettings == null)
+			{
+				invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts, SharedConstants.sleepTimeInMiliseconds);
+			}
+
+			return new InvokeWithRetryService(invokeWithRetrySettings);
 		}
 	}
 }

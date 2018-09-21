@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Gravity.Base;
-using Gravity.Globals;
 using Gravity.Utils;
 using Relativity.API;
 
@@ -9,33 +8,27 @@ namespace Gravity.DAL.SQL
 {
 	public partial class SqlDao : IGravityDao
 	{
-		private const int DefaultBatchSize = 1000;
+		private const int defaultBatchSize = 1000;
 
 		protected int workspaceId;
-		protected IHelper helper;
 		protected IDBContext dbContext;
 		protected IDBContext masterDbContext;
 		protected int batchSize;
 
 		private InvokeWithRetryService invokeWithRetryService;
 
-		public SqlDao(IHelper helper, int workspaceId, InvokeWithRetrySettings invokeWithRetrySettings = null)
+		private SqlDao(IDBContext workspaceContext, IDBContext masterContext)
 		{
-			this.helper = helper;
-			this.workspaceId = workspaceId;
-			dbContext = helper.GetDBContext(workspaceId);
-			masterDbContext = helper.GetDBContext(-1);
-			batchSize = DefaultBatchSize;
+			dbContext = workspaceContext;
+			masterDbContext = masterContext;
+		}
 
-			if (invokeWithRetrySettings == null)
-			{
-				InvokeWithRetrySettings defaultSettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts, SharedConstants.sleepTimeInMiliseconds);
-				invokeWithRetryService = new InvokeWithRetryService(defaultSettings);
-			}
-			else
-			{
-				invokeWithRetryService = new InvokeWithRetryService(invokeWithRetrySettings);
-			}
+		public SqlDao(IHelper helper, int workspaceId, InvokeWithRetrySettings invokeWithRetrySettings = null)
+			: this(helper.GetDBContext(workspaceId), helper.GetDBContext(-1))
+		{
+			this.workspaceId = workspaceId;
+			batchSize = defaultBatchSize;
+			invokeWithRetryService = InvokeWithRetryService.GetInvokeWithRetryService(invokeWithRetrySettings);
 		}
 
 		#region SQL Dao Not Implemented operations

@@ -160,7 +160,7 @@ namespace Gravity.DAL.RSAPI
 								.ToList();
 							if (fieldValue != null)
 							{ 
-								property.SetValue(dto, MakeGenericList(fieldValue, enumType));
+								property.SetValue(dto, BaseExtensionMethods.MakeGenericList(fieldValue, enumType));
 							}
 						}
 						break;
@@ -219,7 +219,7 @@ namespace Gravity.DAL.RSAPI
 
 					var allObjects = this.InvokeGenericMethod(objectType, nameof(Get), childArtifactIds, depthLevel) as IEnumerable;
 
-					return MakeGenericList(allObjects, objectType);
+					return BaseExtensionMethods.MakeGenericList(allObjects, objectType);
 				}
 
 				//single object
@@ -247,22 +247,11 @@ namespace Gravity.DAL.RSAPI
 
 				var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), baseDto.ArtifactId, depthLevel) as IEnumerable;
 
-				return MakeGenericList(allChildObjects, childType);
+				return BaseExtensionMethods.MakeGenericList(allChildObjects, childType);
 			}
 
 			
 			return null;
-		}
-
-		private static IList MakeGenericList(IEnumerable items, Type type)
-		{
-			var listType = typeof(List<>).MakeGenericType(type);
-			IList returnList = (IList)Activator.CreateInstance(listType);
-			foreach (var item in items)
-			{
-				returnList.Add(item);
-			}
-			return returnList;
 		}
 	}
 }

@@ -267,9 +267,9 @@ namespace Gravity.Test.Integration
 					File.Delete(GetFileField().FilePath);
 					if (replaceExistingObject)
 					{
-						testObject.FileField = new DiskFileDto();
+						testObject.FileField = new DiskFileDto(Path.Combine(Path.GetTempPath(), "TestFile2.txt"));
 					}
-					GetFileField().FilePath = Path.Combine(Path.GetTempPath(), "TestFile2.txt");
+
 					File.WriteAllBytes(GetFileField().FilePath, new[] { (byte)(updateContent ? 66 : 65) });
 
 					var returnFile = UpdateAndReturnFileFromServer(rsapiDao, testObject);

@@ -15,7 +15,7 @@ namespace Gravity.Extensions
 			T returnDto = new T();
 			returnDto.ArtifactId = Convert.ToInt32(objRow["ArtifactID"]);
 			returnDto.GetParentArtifactIdProperty()?.SetValue(returnDto, parentArtifactId);
-			
+
 			string columnName;
 
 			foreach ((PropertyInfo property, RelativityObjectFieldAttribute fieldAttribute)
@@ -23,32 +23,25 @@ namespace Gravity.Extensions
 			{
 				object newValue = null;
 				columnName = fieldsGuidsToColumnNameMappings.FirstOrDefault(x => x.Key == fieldAttribute.FieldGuid).Value;
-				
+
 				switch (fieldAttribute.FieldType)
 				{
 					case RdoFieldType.Currency:
-						if (objRow.IsNull(columnName) == false)
-						{
-							newValue = Convert.ToDecimal(objRow[columnName]);
-						}
+						newValue = objRow.IsNull(columnName) ? (decimal?)null : Convert.ToDecimal(objRow[columnName]);
 						break;
-
 					case RdoFieldType.Decimal:
-						newValue = objRow.IsNull(columnName) ? decimal.Zero : Convert.ToDecimal(objRow[columnName]);
+						newValue = objRow.IsNull(columnName) ? (decimal?)null : Convert.ToDecimal(objRow[columnName]);
 						break;
-
+					case RdoFieldType.Empty:
+						newValue = null;
+						break;
 					case RdoFieldType.Date:
-						newValue = objRow.IsNull(columnName) ? DateTime.MinValue : Convert.ToDateTime(objRow[columnName]);
+						newValue = objRow.IsNull(columnName) ? (DateTime?)null : Convert.ToDateTime(objRow[columnName]);
 						break;
-
 					case RdoFieldType.FixedLengthText:
 					case RdoFieldType.LongText:
-						if (objRow.IsNull(columnName) == false)
-						{
-							newValue = Convert.ToString(objRow[columnName]);
-						}
+						newValue = objRow.IsNull(columnName) ? null : Convert.ToString(objRow[columnName]);
 						break;
-
 					case RdoFieldType.MultipleChoice:
 					case RdoFieldType.MultipleObject:
 					case RdoFieldType.SingleChoice:
@@ -56,16 +49,11 @@ namespace Gravity.Extensions
 					case RdoFieldType.User:
 					case RdoFieldType.File:
 						break;
-
 					case RdoFieldType.WholeNumber:
-						newValue = objRow[columnName] != DBNull.Value ? Convert.ToInt32(objRow[columnName]) : 0;
+						newValue = objRow.IsNull(columnName) ? (int?)null : Convert.ToInt32(objRow[columnName]);
 						break;
-
 					case RdoFieldType.YesNo:
-						if (objRow.IsNull(columnName) == false)
-						{
-							newValue = Convert.ToBoolean(objRow[columnName]);
-						}
+						newValue = objRow.IsNull(columnName) ? (bool?)null : Convert.ToBoolean(objRow[columnName]);
 						break;
 				}
 

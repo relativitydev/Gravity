@@ -133,12 +133,6 @@
   <data name="GetArtifactTypeIdByArtifactGuid" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Files\GetArtifactTypeIdByArtifactGuid.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1251</value>
   </data>
-  <data name="GetChildrenArtifactIDs" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Files\GetChildrenArtifactIDs.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1251</value>
-  </data>
-  <data name="GetChildrenArtifactIDsByParentAndType" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>Files\GetChildrenArtifactIDsByParentAndType.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1251</value>
-  </data>
   <data name="GetChildrenArtifactIDsByParentAndTypeOffset" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Files\GetChildrenArtifactIDsByParentAndTypeOffset.sql;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;windows-1251</value>
   </data>
