@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Gravity.Base;
 using Gravity.Utils;
@@ -8,7 +8,7 @@ namespace Gravity.DAL.SQL
 {
 	public partial class SqlDao : IGravityDao
 	{
-		private const int defaultBatchSize = 1000;
+		private const int _defaultBatchSize = 1000;
 
 		protected int workspaceId;
 		protected IDBContext dbContext;
@@ -28,7 +28,7 @@ namespace Gravity.DAL.SQL
 			: this(helper.GetDBContext(workspaceId), helper.GetDBContext(-1), invokeWithRetrySettings)
 		{
 			this.workspaceId = workspaceId;
-			batchSize = defaultBatchSize;
+			batchSize = _defaultBatchSize;
 		}
 
 		#region SQL Dao Not Implemented operations

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -28,18 +28,18 @@ namespace Gravity.DAL.SQL
 			return artifactIDs.Select(x => Get<T>(x, depthLevel)).ToList();
 		}
 
+
 		private T GetRelativityObjectWithParent<T>(int artifactId, ObjectFieldsDepthLevel depthLevel, int? parentArtifactId)
 			where T : BaseDto, new()
 		{
-			T returnObject = new T();
 			IEnumerable<Guid> propertyGuids = typeof(T).GetPropertyAttributeTuples<RelativityObjectFieldAttribute>().Select(x => x.Item2.FieldGuid);
 			Dictionary<Guid, string> fieldsGuidsToColumnNameMappings = GetArtifactGuidsMappingsToColumnNames(propertyGuids);
 
 			DataTable dtTable = GetDtTable<T>(artifactId);
 			DataRow objRow = dtTable.Rows[0];
 
-			returnObject = objRow.ToHydratedDto<T>(fieldsGuidsToColumnNameMappings, parentArtifactId);
-			PopulateChoices(fieldsGuidsToColumnNameMappings, returnObject);
+			var returnObject = objRow.ToHydratedDto<T>(fieldsGuidsToColumnNameMappings, parentArtifactId);
+			PopulateChoices(returnObject);
 			PopulateFiles(fieldsGuidsToColumnNameMappings, returnObject, objRow);
 
 			switch (depthLevel)
@@ -73,7 +73,7 @@ namespace Gravity.DAL.SQL
 			}
 		}
 
-		private void PopulateChoices<T>(Dictionary<Guid, string> fieldsGuidsToColumnNameMappings, T dto)
+		private void PopulateChoices<T>(T dto)
 			where T : BaseDto, new()
 		{
 			Type objectType;
@@ -207,15 +207,6 @@ namespace Gravity.DAL.SQL
 			return dtTable.AsEnumerable().ToDictionary(row => (Guid)row[0], row => (string)row[1]);
 		}
 
-		private Dictionary<int, Guid> GetArtifactIdGuidMappings(int[] artifactIds)
-		{
-			var sqlString = SQLGetResource.GetArtifactGuidMappings.Replace("%%ArtifactIDs%%", string.Join(",", artifactIds.Select(id => $"'{id}'")));
-
-			DataTable dtTable = dbContext.ExecuteSqlStatementAsDataTable(sqlString);
-
-			return dtTable.AsEnumerable().ToDictionary(row => (int)row[0], row => (Guid)row[1]);
-		}
-
 		private IEnumerable<int> GetMultipleObjectChildrenArtifactIds(int artifactId, Guid multipleObjectFieldArtifactGuid)
 		{
 			List<SqlParameter> sqlParameters = new List<SqlParameter>();
@@ -244,39 +235,6 @@ namespace Gravity.DAL.SQL
 			}
 
 			return returnList;
-		}
-
-		private IEnumerable<IEnumerable<int>> GetChildrenArtifactIds(int parentId, int offset)
-		{
-			int fetchRows = offset,
-				offsetRows = 0,
-				resultCount = offset;
-
-			List<SqlParameter> sqlParameters;
-
-			string sqlString;
-			List<int> returnList;
-
-			while (resultCount >= fetchRows)
-			{
-				returnList = new List<int>();
-				sqlString = SQLGetResource.GetChildrenArtifactIDsOffset.Replace("%%OffsetRows%%", offsetRows.ToString());
-
-				sqlParameters = new List<SqlParameter>()
-				{
-					new SqlParameter("ParentID", parentId),
-					new SqlParameter("FetchRows", fetchRows)
-				};
-
-				using (SqlDataReader reader = dbContext.ExecuteParameterizedSQLStatementAsReader(sqlString, sqlParameters))
-				{
-					returnList = GetListOfIds(reader, 0);
-				}
-
-				offsetRows += offset;
-				resultCount = returnList.Count;
-				yield return returnList;
-			}
 		}
 
 		private IEnumerable<IEnumerable<int>> GetChildrenArtifactIdsByParentAndType(int parentId, int artifactTypeID, int offset)
@@ -429,7 +387,8 @@ namespace Gravity.DAL.SQL
 
 		private T GetChoiceValueByArtifactId<T>(int choiceArtifactId)
 		{
-			return choiceArtifactId > 0 ? ((List<T>)this.InvokeGenericMethod(typeof(T), nameof(GetChoicesValuesByArtifactIds), new List<int>() { choiceArtifactId })).Single()
+			return choiceArtifactId > 0 ? 
+				this.GetChoicesValuesByArtifactIds<T>(new List<int>() { choiceArtifactId }).Single()
 				: default(T);
 		}
 
@@ -439,7 +398,7 @@ namespace Gravity.DAL.SQL
 
 			foreach (int artifactId in multipleObjectsArtifactIds)
 			{
-				multipleObjectsList.Add((T)this.InvokeGenericMethod(typeof(T), nameof(GetSingleChildObjectBasedOnDepthLevelByArtifactId), artifactId, depthLevel));
+				multipleObjectsList.Add(this.GetSingleChildObjectBasedOnDepthLevelByArtifactId<T>(artifactId, depthLevel));
 			}
 
 			return multipleObjectsList;
@@ -448,7 +407,7 @@ namespace Gravity.DAL.SQL
 		private T GetSingleChildObjectBasedOnDepthLevelByArtifactId<T>(int artifactId, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new()
 		{
 			return depthLevel != ObjectFieldsDepthLevel.OnlyParentObject ?
-				(T)this.InvokeGenericMethod(typeof(T), nameof(Get), artifactId, depthLevel)
+				this.Get<T>(artifactId, depthLevel)
 				: new T() { ArtifactId = artifactId };
 		}
 
