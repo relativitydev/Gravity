@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gravity.Base
 {
@@ -27,14 +23,19 @@ namespace Gravity.Base
 
 	public class DiskFileDto : FileDto
 	{
+		public DiskFileDto(string filePath)
+		{
+			FilePath = filePath;
+		}
+
 		public string FilePath { get; set; }
 
 		public ByteArrayFileDto StoreInMemory()
 		{
-			return new ByteArrayFileDto
+			return new ByteArrayFileDto() 
 			{
-				ByteArray = File.ReadAllBytes(this.FilePath),
-				FileName = Path.GetFileName(this.FilePath)
+				ByteArray = File.ReadAllBytes(FilePath),
+				FileName = Path.GetFileName(FilePath)
 			};
 		}
 
@@ -49,11 +50,8 @@ namespace Gravity.Base
 
 		public DiskFileDto WriteToFile(string filePath)
 		{
-			File.WriteAllBytes(filePath, this.ByteArray);
-			return new DiskFileDto
-			{
-				FilePath = filePath
-			};
+			File.WriteAllBytes(filePath, ByteArray);
+			return new DiskFileDto(filePath);
 		}
 
 		protected override Stream GetStream() => new MemoryStream(ByteArray);

@@ -26,7 +26,7 @@ namespace Gravity.DAL.RSAPI
 
 				var associatedType = propertyInfo.PropertyType;
 
-				this.InvokeGenericMethod(associatedType, nameof(InsertOrUpdate), MakeGenericList(associatedObjectsToUpdate, associatedType), recursive);
+				this.InvokeGenericMethod(associatedType, nameof(InsertOrUpdate), BaseExtensionMethods.MakeGenericList(associatedObjectsToUpdate, associatedType), recursive);
 			}
 		}
 
@@ -45,7 +45,7 @@ namespace Gravity.DAL.RSAPI
 
 				var associatedType = propertyInfo.PropertyType.GetEnumerableInnerType();
 
-				this.InvokeGenericMethod(associatedType, nameof(InsertOrUpdate), MakeGenericList(associatedObjectsToUpdate, associatedType), recursive);
+				this.InvokeGenericMethod(associatedType, nameof(InsertOrUpdate), BaseExtensionMethods.MakeGenericList(associatedObjectsToUpdate, associatedType), recursive);
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace Gravity.DAL.RSAPI
 					.SelectMany(x => x)
 					.ToList();
 
-				this.InvokeGenericMethod(childType, nameof(InsertOrUpdate), MakeGenericList(childObjectsToUpdate, childType), recursive);
+				this.InvokeGenericMethod(childType, nameof(InsertOrUpdate), BaseExtensionMethods.MakeGenericList(childObjectsToUpdate, childType), recursive);
 			
 				var existingChildren = (List<int>)this.InvokeGenericMethod(
 					childType, 

@@ -18,7 +18,7 @@ namespace Gravity.DAL.RSAPI
 		public RsapiDao(IServicesMgr servicesManager, int workspaceId, ExecutionIdentity executionIdentity,
 				InvokeWithRetrySettings invokeWithRetrySettings = null,
 				int batchSize = DefaultBatchSize)
-			: this(servicesManager, workspaceId, executionIdentity, GetInvokeWithRetryService(invokeWithRetrySettings), batchSize)
+			: this(servicesManager, workspaceId, executionIdentity, InvokeWithRetryService.GetInvokeWithRetryService(invokeWithRetrySettings), batchSize)
 
 		{
 		}
@@ -38,16 +38,6 @@ namespace Gravity.DAL.RSAPI
 			this.choiceCache = new ChoiceCache(this.rsapiProvider);
 			this.guidCache = new ArtifactGuidCache(this.rsapiProvider);
 			this.fileMd5Cache = new FileMD5Cache(this.rsapiProvider);
-		}
-
-		private static InvokeWithRetryService GetInvokeWithRetryService(InvokeWithRetrySettings invokeWithRetrySettings)
-		{
-			if (invokeWithRetrySettings == null)
-			{
-				invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts, SharedConstants.sleepTimeInMiliseconds);
-			}
-
-			return new InvokeWithRetryService(invokeWithRetrySettings);
 		}
 	}
 }
