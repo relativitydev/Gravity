@@ -23,6 +23,10 @@ using RdoBoolCond = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 using Artifact = kCura.Relativity.Client.DTOs.Artifact;
 
 using static Gravity.Test.Helpers.TestObjectHelper;
+using System.IO;
+using Castle.Components.DictionaryAdapter.Xml;
+using Gravity.Utils;
+using Gravity.Globals;
 
 namespace Gravity.Test.Unit
 {
@@ -155,19 +159,47 @@ namespace Gravity.Test.Unit
 			UpdateObject(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		[Test, Ignore("TODO: Implement")]
+		[Test]
 		public void Update_FileField_Add()
 		{
+			var objectToUpdate = new G1 {
+				ArtifactId = 10,
+				FileField = new ByteArrayFileDto {
+					FileName = "ByteArrayFileDto",
+					ByteArray = new byte[] {65}
+				}
+			};
+
+			RdoBoolCond matchingRdoExpression = rdo => rdo.ArtifactID == 10;
+			UpdateObjectWithFileField(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		[Test, Ignore("TODO: Implement")]
+		[Test]
 		public void Update_FileField_Remove()
 		{
+			var objectToUpdate = new G1 {
+				ArtifactId = 10,
+				FileField = null
+			};
+
+			RdoBoolCond matchingRdoExpression = rdo => rdo.ArtifactID == 10;
+			UpdateObjectWithFileField(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		[Test, Ignore("TODO: Implement")]
+		//[Test, Ignore("TODO: Implement")]
+		[Test]
 		public void Update_FileField_Modify()
 		{
+			var objectToUpdate = new G1 {
+				ArtifactId = 10,
+				FileField = new ByteArrayFileDto {
+					FileName = "NewName",
+					ByteArray = new byte[] { 65 }
+				}
+			};
+
+			RdoBoolCond matchingRdoExpression = rdo => rdo.ArtifactID == 10;
+			UpdateObjectWithFileField(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
 		[Test]
@@ -499,6 +531,26 @@ namespace Gravity.Test.Unit
 			mockProvider.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
 
 			new RsapiDao(mockProvider.Object, null).Update(objectToUpdate, depthLevel);
+		}
+
+		void UpdateObjectWithFileField(G1 objectToUpdate, RdoBoolCond rootExpression, ObjectFieldsDepthLevel depthLevel)
+		{
+			objectToUpdate.ArtifactId = G1ArtifactId;
+			SetupUpdateManyCondition(x => x.Count == 1 && x[0].ArtifactID == G1ArtifactId && rootExpression(x[0]));
+
+			//setup clearing the non-present file
+			mockProvider
+				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
+				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+			mockProvider
+				.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
+			mockProvider
+				.Setup(x => x.UploadFile(FileFieldId, 10, Path.Combine(Path.GetTempPath(), "ByteArrayFileDto")));
+			mockProvider
+				.Setup(x => x.UploadFile(FileFieldId, 10, Path.Combine(Path.GetTempPath(), "NewName")));
+			InvokeWithRetrySettings invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts,
+				SharedConstants.sleepTimeInMiliseconds);
+			new RsapiDao(mockProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings)).Update(objectToUpdate, depthLevel);
 		}
 		
 		private void SetupSingleObjectQuery(params int[] resultArtifactIds)
