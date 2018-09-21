@@ -150,9 +150,10 @@ namespace Gravity.DAL.SQL
 					case RdoFieldType.SingleObject:
 						int singleObjectArtifactId = objRow.IsNull(columnName) ? 0 : Convert.ToInt32(objRow[columnName]);
 
-						returnObj = singleObjectArtifactId == 0
-							? Activator.CreateInstance(objectType)
-							: this.InvokeGenericMethod(objectType, nameof(GetSingleChildObjectBasedOnDepthLevelByArtifactId), singleObjectArtifactId, depthLevel);
+						if (singleObjectArtifactId == 0)
+							return null;
+
+						this.InvokeGenericMethod(objectType, nameof(GetSingleChildObjectBasedOnDepthLevelByArtifactId), singleObjectArtifactId, depthLevel);
 						break;
 
 					case RdoFieldType.User:
@@ -196,9 +197,7 @@ namespace Gravity.DAL.SQL
 
 			DataTable dtTable = dbContext.ExecuteSqlStatementAsDataTable(sqlStringBuilder.ToString());
 
-			return dtTable.Rows.Count > 0 ?
-				dtTable.AsEnumerable().ToDictionary(row => (Guid)row[0], row => (string)row[1])
-				: new Dictionary<Guid, string>();
+			return dtTable.AsEnumerable().ToDictionary(row => (Guid)row[0], row => (string)row[1]);
 		}
 
 		private Dictionary<int, Guid> GetArtifactIdGuidMappings(int[] artifactIds)
@@ -206,10 +205,8 @@ namespace Gravity.DAL.SQL
 			var sqlString = SQLGetResource.GetArtifactGuidMappings.Replace("%%ArtifactIDs%%", string.Join(",", artifactIds.Select(id => $"'{id}'")));
 
 			DataTable dtTable = dbContext.ExecuteSqlStatementAsDataTable(sqlString);
-			
-			return dtTable.Rows.Count > 0 ?
-				dtTable.AsEnumerable().ToDictionary(row => (int)row[0], row => (Guid)row[1])
-				: new Dictionary<int, Guid>();
+
+			return dtTable.AsEnumerable().ToDictionary(row => (int)row[0], row => (Guid)row[1]);
 		}
 
 		private IEnumerable<int> GetMultipleObjectChildrenArtifactIds(int artifactId, Guid multipleObjectFieldArtifactGuid)
@@ -221,7 +218,7 @@ namespace Gravity.DAL.SQL
 			List<int> returnList = new List<int>();
 			using (SqlDataReader reader = dbContext.ExecuteParameterizedSQLStatementAsReader(SQLGetResource.GetMultipleObjectArtifactIDs, sqlParameters))
 			{
-				GetListOfIds(reader, 0, returnList);
+				returnList = GetListOfIds(reader, 0);
 			}
 
 			return returnList;
@@ -236,7 +233,7 @@ namespace Gravity.DAL.SQL
 			IList<int> returnList = new List<int>();
 			using (SqlDataReader reader = dbContext.ExecuteParameterizedSQLStatementAsReader(SQLGetResource.GetChoicesArtifactIDs, sqlParameters))
 			{
-				GetListOfIds(reader, 0, returnList);
+				returnList = GetListOfIds(reader, 0);
 			}
 
 			return returnList;
@@ -266,7 +263,7 @@ namespace Gravity.DAL.SQL
 
 				using (SqlDataReader reader = dbContext.ExecuteParameterizedSQLStatementAsReader(sqlString, sqlParameters))
 				{
-					GetListOfIds(reader, 0, returnList);
+					returnList = GetListOfIds(reader, 0);
 				}
 
 				offsetRows += offset;
@@ -300,7 +297,7 @@ namespace Gravity.DAL.SQL
 
 				using (SqlDataReader reader = dbContext.ExecuteParameterizedSQLStatementAsReader(sql.ToString(), sqlParameters))
 				{
-					GetListOfIds(reader, 0, returnList);
+					returnList = GetListOfIds(reader, 0);
 				}
 
 				offsetRows += offset;
@@ -397,10 +394,10 @@ namespace Gravity.DAL.SQL
 					}
 				}
 
-				return returnList?.Count() < 0 && isNullableType ? null : returnList;
+				return returnList.Count() <= 0 && isNullableType ? null : returnList;
 			}
 
-			return null;
+			return returnList;
 		}
 
 		private User GetUserBasedOnDepthLevelByArtifactId(int artifactId)
@@ -459,12 +456,16 @@ namespace Gravity.DAL.SQL
 			return dbContext.ExecuteSqlStatementAsDataTable(selectSql);
 		}
 
-		private static void GetListOfIds(SqlDataReader reader, int idsPosition, IList<int> idsList)
+		private List<int> GetListOfIds(SqlDataReader reader, int idsPosition)
 		{
+			List<int> returnList = new List<int>();
+
 			while (reader.Read())
 			{
-				idsList.Add(reader.GetInt32(idsPosition));
+				returnList.Add(reader.GetInt32(idsPosition));
 			}
+
+			return returnList;
 		}
 	}
 }

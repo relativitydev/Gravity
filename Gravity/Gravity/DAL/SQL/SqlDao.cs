@@ -17,18 +17,18 @@ namespace Gravity.DAL.SQL
 
 		private InvokeWithRetryService invokeWithRetryService;
 
-		private SqlDao(IDBContext workspaceContext, IDBContext masterContext)
+		private SqlDao(IDBContext workspaceContext, IDBContext masterContext, InvokeWithRetrySettings invokeWithRetrySettings)
 		{
 			dbContext = workspaceContext;
 			masterDbContext = masterContext;
+			invokeWithRetryService = InvokeWithRetryService.GetInvokeWithRetryService(invokeWithRetrySettings);
 		}
 
 		public SqlDao(IHelper helper, int workspaceId, InvokeWithRetrySettings invokeWithRetrySettings = null)
-			: this(helper.GetDBContext(workspaceId), helper.GetDBContext(-1))
+			: this(helper.GetDBContext(workspaceId), helper.GetDBContext(-1), invokeWithRetrySettings)
 		{
 			this.workspaceId = workspaceId;
 			batchSize = defaultBatchSize;
-			invokeWithRetryService = InvokeWithRetryService.GetInvokeWithRetryService(invokeWithRetrySettings);
 		}
 
 		#region SQL Dao Not Implemented operations
