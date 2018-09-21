@@ -226,16 +226,14 @@ namespace Gravity.DAL.RSAPI
 				if (fieldType == RdoFieldType.SingleObject)
 				{
 					var childArtifact = objectRdo[fieldGuid].ValueAsSingleObject;
-					if (childArtifact == null)
+					if (childArtifact == null || childArtifact.ArtifactID == 0)
 					{
 						return null;
 					}
 
 					var objectType = property.PropertyType;
 					var childArtifactId = childArtifact.ArtifactID;
-					return childArtifactId == 0
-						? Activator.CreateInstance(objectType)
-						: this.InvokeGenericMethod(objectType, nameof(Get), childArtifactId, depthLevel);
+					return this.InvokeGenericMethod(objectType, nameof(Get), childArtifactId, depthLevel);
 				}
 
 			}
