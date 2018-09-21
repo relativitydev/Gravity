@@ -63,30 +63,28 @@ namespace Gravity.Test.Unit
 		public void Get_ChildObjectList_FirstLevelOnly()
 		{
 			//test ChildObject fields with varying degrees of recursion
-			int[] multiChildObjectIds = new int[] { 1, 2, 3 };
-			int[] singleObjectLevel3Ids = new int[] { 4 , 5 , 6 };
-			var dao = new RsapiDao(GetChildObjectRsapiProvider(multiChildObjectIds,singleObjectLevel3Ids), null);
+			int level2ChildObjectId = 1;
+			int singleObjectLevel3Id = 2;
+			int level3ChildObjectId = 3;
+			var dao = new RsapiDao(GetChildObjectRsapiProvider(level2ChildObjectId, singleObjectLevel3Id, level3ChildObjectId), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FirstLevelOnly);
-			for (int i = 0; i < multiChildObjectIds.Length; i++)
-			{
-				Assert.AreEqual(multiChildObjectIds[i],dto.GravityLevel2Childs[i].ArtifactId);
-				Assert.IsNull(dto.GravityLevel2Childs[i].GravityLevel3Obj);
-			}
+			Assert.AreEqual(level2ChildObjectId, dto.GravityLevel2Childs[0].ArtifactId);
+			Assert.IsNull(dto.GravityLevel2Childs[0].GravityLevel3Obj);
+			Assert.AreEqual(0,dto.GravityLevel2Childs[0].GravityLevel3Childs.Count);
 		}
 
 		[Test]
 		public void Get_ChildObjectList_Recursive()
 		{
 			//test ChildObject fields with varying degrees of recursion
-			int[] multiChildObjectIds = new int[] { 1, 2, 3 };
-			int[] singleObjectLevel3Ids = new int[] { 4, 5, 6 };
-			var dao = new RsapiDao(GetChildObjectRsapiProvider(multiChildObjectIds,singleObjectLevel3Ids), null);
+			int level2ChildObjectId = 1;
+			int singleObjectLevel3Id = 2;
+			int level3ChildObjectId = 3;
+			var dao = new RsapiDao(GetChildObjectRsapiProvider(level2ChildObjectId, singleObjectLevel3Id, level3ChildObjectId), null);
 			var dto = dao.Get<GravityLevelOne>(RootArtifactID, Base.ObjectFieldsDepthLevel.FullyRecursive);
-			for (int i = 0; i < multiChildObjectIds.Length; i++)
-			{
-				Assert.AreEqual(multiChildObjectIds[i], dto.GravityLevel2Childs[i].ArtifactId);
-				Assert.AreEqual(singleObjectLevel3Ids[i], dto.GravityLevel2Childs[i].GravityLevel3Obj.ArtifactId);
-			}
+			Assert.AreEqual(level2ChildObjectId, dto.GravityLevel2Childs[0].ArtifactId);
+			Assert.AreEqual(singleObjectLevel3Id, dto.GravityLevel2Childs[0].GravityLevel3Obj.ArtifactId);
+			Assert.AreEqual(level3ChildObjectId, dto.GravityLevel2Childs[0].GravityLevel3Childs[0].ArtifactId);
 		}
 
 		[Test]
@@ -313,7 +311,7 @@ namespace Gravity.Test.Unit
 			return providerMock.Object;
 		}
 
-		private IRsapiProvider GetChildObjectRsapiProvider(int[] multipleChildObjectIds, int[] singleObjectLevel3Ids)
+		private IRsapiProvider GetChildObjectRsapiProvider(int level2ChildObjectId, int singleObjectLevel3Id, int level3ChildObjectId)
 		{
 			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
 
@@ -328,19 +326,23 @@ namespace Gravity.Test.Unit
 			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
 
 			List<RDO> iList = new List<RDO>();
-			for (int i = 0; i < multipleChildObjectIds.Length; i++)
-			{
-				var level2Rdo = TestObjectHelper.GetStubRDO<GravityLevel2Child>(multipleChildObjectIds[i]);
-				var level3Rdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleObjectLevel3Ids[i]);
-				level2Rdo.ParentArtifact = new Artifact(RootArtifactID);
-				level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
-				iList.Add(level2Rdo);
-				providerMock.Setup(x => x.ReadSingle(multipleChildObjectIds[i])).Returns(level2Rdo);
-				providerMock.Setup(x => x.ReadSingle(singleObjectLevel3Ids[i])).Returns(level3Rdo);
-			}
+			List<RDO> iList2 = new List<RDO>();
+			var level2Rdo = TestObjectHelper.GetStubRDO<GravityLevel2Child>(level2ChildObjectId);
+			var level3Rdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleObjectLevel3Id);
+			var level3childRdo = TestObjectHelper.GetStubRDO<GravityLevel3Child>(level3ChildObjectId);
+			level2Rdo.ParentArtifact = new Artifact(RootArtifactID);
+			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
+			iList.Add(level2Rdo);
+			iList2.Add(level3childRdo);
+			providerMock.Setup(x => x.ReadSingle(level2ChildObjectId)).Returns(level2Rdo);
+			providerMock.Setup(x => x.ReadSingle(singleObjectLevel3Id)).Returns(level3Rdo);
+			providerMock.Setup(x => x.ReadSingle(level3ChildObjectId)).Returns(level3childRdo);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { iList.ToSuccessResultSet<QueryResultSet<RDO>>() });
+			providerMock.SetupSequence(x => x.Query(It.IsAny<Query<RDO>>()))
+				.Returns(new[] { iList.ToSuccessResultSet<QueryResultSet<RDO>>() })
+				.Returns(new[] { iList2.ToSuccessResultSet<QueryResultSet<RDO>>() });
+
 			return providerMock.Object;
 		}
 	}

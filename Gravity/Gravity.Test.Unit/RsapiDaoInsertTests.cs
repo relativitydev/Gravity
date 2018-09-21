@@ -8,6 +8,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -15,15 +16,19 @@ using System.Threading.Tasks;
 
 using G1 = Gravity.Test.TestClasses.GravityLevelOne;
 using G2 = Gravity.Test.TestClasses.GravityLevel2;
+using G3 = Gravity.Test.TestClasses.GravityLevel3;
 using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
 using RdoCondition = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 
 using static Gravity.Test.Helpers.TestObjectHelper;
+using Gravity.Utils;
+using Gravity.Globals;
 
 namespace Gravity.Test.Unit
 {
 	public class RsapiDaoInsertTests
 	{
+		private const int FileFieldId = 44;
 		Mock<IRsapiProvider> mockProvider;
 
 		[SetUp]
@@ -101,9 +106,21 @@ namespace Gravity.Test.Unit
 			InsertObject(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		[Test, Ignore("TODO: Implement")]
+		[Test]
 		public void Insert_FileField()
 		{
+			var objectToInsert = new G1 
+			{
+				ArtifactId = 10,
+				FileField = new ByteArrayFileDto {
+					FileName = "ByteArrayFileDto",
+					ByteArray = new byte[] { 65 }
+				}
+			};
+
+			//checks that matches inserted object
+			RdoCondition matchingRdoCondition = rdo => rdo.ArtifactID == 10;
+			InsertObjectContainingFileField(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
 
 		[Test]
@@ -164,12 +181,32 @@ namespace Gravity.Test.Unit
 			Assert.AreEqual(g2Id, objectToInsert.GravityLevel2Obj.ArtifactId);
 		}
 
-		[Test, Ignore("No Level-3 object for testing")]
+		[Test]
 		public void Insert_ExistingSingleObject_DontInsertChildren()
 		{
-			var objectToInsert = new G1
+			const int g2Id = 20;
+			const int g3Id = 30;
+
+			var objectToInsert = new G1 
 			{
+				GravityLevel2Obj = new G2 
+				{
+					ArtifactId = g2Id,
+					Name = "G2A",
+					GravityLevel3SingleObj = new G3 
+					{
+						ArtifactId = g3Id,
+						Name = "G3A"
+					}
+				}
 			};
+
+			RdoCondition matchingG1Condition = rdo => rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))].ValueAsSingleObject.ArtifactID == g2Id;
+			RdoCondition rdoCondition = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2Obj))]
+					.ValueAsSingleObject[FieldGuid<G2>(nameof(G2.GravityLevel3SingleObj))].ArtifactID == g3Id;
+			SetupInsertManyCondition(x => x.Count == 1 && rdoCondition(x[0]));
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
 
 		[Test]
@@ -242,12 +279,48 @@ namespace Gravity.Test.Unit
 			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FullyRecursive);
 		}
 
-		[Test, Ignore("No Level-3 object for testing")]
+		[Test]
 		public void Insert_ExistingMultipleObject_DontInsertChildren()
 		{
+			const int g2aId = 20;
+			const int g2bId = 30;
+			const int g3aId = 40;
+			const int g3bId = 50;
 			var objectToInsert = new G1
 			{
+				GravityLevel2MultipleObjs = new[]
+				{
+					new G2 
+					{
+						ArtifactId = g2aId,
+						Name = "G2A",
+						GravityLevel3SingleObj = new G3 
+						{
+							ArtifactId = g3aId,
+							Name = "G3A"
+						}
+					},
+					new G2 {
+						ArtifactId = g2bId,
+						Name = "G2B",
+						GravityLevel3SingleObj = new G3
+						{
+							ArtifactId = g3bId,
+							Name = "G3B"
+						}
+					}
+				}
 			};
+
+			RdoCondition matchingG1Condition = rdo =>
+				rdo.Fields.Any(f => f.Guids.Contains(FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs)))
+				    && f.GetValueAsMultipleObject<Artifact>().Select(x => x.ArtifactID).SequenceEqual(new[] { g2aId, g2bId }));
+			RdoCondition rdoCondition1 = rdo =>
+				rdo[FieldGuid<G1>(nameof(G1.GravityLevel2MultipleObjs))].GetValueAsMultipleObject<Artifact>()
+					.Select(x => x[FieldGuid<G2>(nameof(G2.GravityLevel3SingleObj))].ArtifactID)
+					.SequenceEqual(new[] {g3aId, g3bId});
+			SetupInsertManyCondition(x => x.Count == 1 && rdoCondition1(x[0]));
+			InsertObject(objectToInsert, matchingG1Condition, ObjectFieldsDepthLevel.FullyRecursive);
 		}
 
 		[Test]
@@ -313,6 +386,26 @@ namespace Gravity.Test.Unit
 			mockProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
 				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+		}
+
+		void InsertObjectContainingFileField(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
+		{
+			SetupInsertManyCondition(x => x.Count == 1 && rootCondition(x.Single()), 10);
+
+			mockProvider
+				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
+				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+
+			mockProvider
+				.Setup(x => x.UploadFile(FileFieldId, 10,
+					Path.Combine(Path.GetTempPath(), "ByteArrayFileDto")));
+
+			InvokeWithRetrySettings invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts,
+				SharedConstants.sleepTimeInMiliseconds);
+			var insertedId = new RsapiDao(mockProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings))
+				.Insert(objectToInsert, depthLevel);
+			Assert.AreEqual(10, insertedId);
+			Assert.AreEqual(10, objectToInsert.ArtifactId);
 		}
 	}
 }
