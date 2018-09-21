@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,11 +21,14 @@ using G2c = Gravity.Test.TestClasses.GravityLevel2Child;
 using RdoCondition = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 
 using static Gravity.Test.Helpers.TestObjectHelper;
+using Gravity.Utils;
+using Gravity.Globals;
 
 namespace Gravity.Test.Unit
 {
 	public class RsapiDaoInsertTests
 	{
+		private const int FileFieldId = 44;
 		Mock<IRsapiProvider> mockProvider;
 
 		[SetUp]
@@ -104,10 +106,9 @@ namespace Gravity.Test.Unit
 			InsertObject(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		[Test, Ignore("TODO: Implement")]
+		[Test]
 		public void Insert_FileField()
 		{
-			int fileFieldArtifactId = 1;
 			var objectToInsert = new G1 
 			{
 				ArtifactId = 10,
@@ -118,10 +119,8 @@ namespace Gravity.Test.Unit
 			};
 
 			//checks that matches inserted object
-			//RdoCondition matchingRdoCondition = rdo => rdo[FieldGuid<G1>(nameof(G1.FileField))].Value.Equals((object)objectToInsert.FileField);
 			RdoCondition matchingRdoCondition = rdo => rdo.ArtifactID == 10;
-			SetupFileField(FieldGuid<G1>(nameof(G1.FileField)), fileFieldArtifactId);
-			InsertObject(objectToInsert,matchingRdoCondition,ObjectFieldsDepthLevel.FirstLevelOnly);
+			InsertObjectContainingFileField(objectToInsert, matchingRdoCondition, ObjectFieldsDepthLevel.FirstLevelOnly);
 		}
 
 		[Test]
@@ -192,9 +191,12 @@ namespace Gravity.Test.Unit
 			{
 				GravityLevel2Obj = new G2 
 				{
-					ArtifactId = g2Id, Name = "G2A", GravityLevel3SingleObj = new G3 
+					ArtifactId = g2Id,
+					Name = "G2A",
+					GravityLevel3SingleObj = new G3 
 					{
-						ArtifactId = g3Id, Name = "G3A"
+						ArtifactId = g3Id,
+						Name = "G3A"
 					}
 				}
 			};
@@ -386,22 +388,24 @@ namespace Gravity.Test.Unit
 				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
 		}
 
-		public void SetupFileField(Guid artifactGuid, int artifactId)
+		void InsertObjectContainingFileField(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
 		{
-			RDO rdo = new RDO(artifactGuid, artifactId);
-			Result<RDO> rdoResult = new Result<RDO>();
-			rdoResult.Success = true;
-			rdoResult.Artifact = rdo;
-			ResultSet<RDO> rdoResultSet = new ResultSet<RDO>();
-			rdoResultSet.Success = true;
-			rdoResultSet.Results.Add(rdoResult);
-			mockProvider
-				.Setup(x => x.Read(It.IsAny<RDO>()))
-				.Returns(rdoResultSet);
+			SetupInsertManyCondition(x => x.Count == 1 && rootCondition(x.Single()), 10);
 
 			mockProvider
-				.Setup(x => x.UploadFile(artifactId, 10,
+				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
+				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+
+			mockProvider
+				.Setup(x => x.UploadFile(FileFieldId, 10,
 					Path.Combine(Path.GetTempPath(), "ByteArrayFileDto")));
+
+			InvokeWithRetrySettings invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts,
+				SharedConstants.sleepTimeInMiliseconds);
+			var insertedId = new RsapiDao(mockProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings))
+				.Insert(objectToInsert, depthLevel);
+			Assert.AreEqual(10, insertedId);
+			Assert.AreEqual(10, objectToInsert.ArtifactId);
 		}
 	}
 }
