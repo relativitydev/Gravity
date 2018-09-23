@@ -38,13 +38,6 @@ namespace Gravity.Test.Unit
 			mockProvider = new Mock<IRsapiProvider>(MockBehavior.Strict);
 		}
 
-		[SetUp]
-		public void End()
-		{
-			//ensure any defined methods called
-			mockProvider.VerifyAll();
-		}
-
 		[Test]
 		public void Update_SimpleFields()
 		{
