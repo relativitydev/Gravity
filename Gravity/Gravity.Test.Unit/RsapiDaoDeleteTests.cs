@@ -33,12 +33,6 @@ namespace Gravity.Test.Unit
 			mockProvider = new Mock<IRsapiProvider>(MockBehavior.Strict);
 		}
 
-		[SetUp]
-		public void End()
-		{
-			mockProvider.VerifyAll();
-		}
-
 		[Test]
 		public void Delete_NoRecursion_NoChildObjects()
 		{
