@@ -17,6 +17,7 @@
     <PackageReference Include="Relativity.Api" Version="$(RelativityVersion)" />
     <PackageReference Include="Relativity.Other" Version="9.4.224.2" />
     <PackageReference Include="Relativity.Rsapi" Version="$(RelativityVersion)" />
+    <PackageReference Include="RelativityDev.DbContextHelper" Version="2.0.0.2" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.configuration" />

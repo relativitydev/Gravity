@@ -21,141 +21,107 @@ using Artifact = kCura.Relativity.Client.DTOs.Artifact;
 namespace Gravity.Test.Integration
 {
 	[TestFixture]
-	public partial class RSAPI_IntegrationTest
+	public partial class RSAPI_IntegrationTest : Base
 	{
-		#region Variables
 
-		//this is set to true and should skip the creation of the database, installation of the testing application, and the deletion of the workspace.
-		//must point _workspaceId = valid workspace with application already installed in the Setup
-		private bool _debug = Convert.ToBoolean(ConfigurationManager.AppSettings["Debug"]);
-		private int _debugWorkspaceId = Convert.ToInt32(ConfigurationManager.AppSettings["DebugWorkspaceId"]);
-		public string _applicationFilePath = ConfigurationManager.AppSettings["TestApplicationLocation"];
-		public string _applicationName = ConfigurationManager.AppSettings["TestApplicationName"];
 
-		private IRSAPIClient _client;
-		private readonly string _workspaceName = $"GravityTest_{Guid.NewGuid()}";
-		private int _workspaceId;
-		private IServicesMgr _servicesManager;
-		private IDBContext _eddsDbContext;
-		private IDBContext _dbContext;
-		private TestObjectHelper _testObjectHelper;
-		#endregion
-
-		#region Setup
-		[OneTimeSetUp]
-		public void Execute_TestFixtureSetup()
-		{
-			try
-			{
-				//Start of test and setup
-				Console.WriteLine("Test START.....");
-				Console.WriteLine("Enter Test Fixture Setup.....");
-				var helper = new TestHelper();
-
-				//Setup for testing		
-				Console.WriteLine("Creating Test Helper Services Manager based on App.Config file settings.");
-				_servicesManager = helper.GetServicesManager();
-				Console.WriteLine("Services Manager Created.");
-
-				Console.WriteLine("Creating workspace.....");
-				if (!_debug)
+				#region Setup
+				[OneTimeSetUp]
+				public void Execute_TestFixtureSetup()
 				{
-					_workspaceId =
-							CreateWorkspace.CreateWorkspaceAsync(_workspaceName,
-									ConfigurationHelper.TEST_WORKSPACE_TEMPLATE_NAME, _servicesManager, ConfigurationHelper.ADMIN_USERNAME,
-									ConfigurationHelper.DEFAULT_PASSWORD).Result;
-					Console.WriteLine($"Workspace created [WorkspaceArtifactId= {_workspaceId}].....");
-				}
-				else
-				{
-					//must point _workspaceId = valid workspace with application already installed
-					_workspaceId = _debugWorkspaceId;
-					Console.WriteLine($"Using existing workspace [WorkspaceArtifactId= {_workspaceId}].....");
+						//Start of test and setup
+						Console.WriteLine("RSAPI Integration Test START.....");
 				}
 
+				//public void Execute_TestFixtureSetup()
+				//{
+				//	try
+				//	{
+				//		//Start of test and setup
+				//		Console.WriteLine("Test START.....");
+				//		Console.WriteLine("Enter Test Fixture Setup.....");
+				//		var helper = new TestHelper();
 
-				Console.WriteLine("Creating RSAPI and Service Factory.....");
-				try
-				{
+				//		//Setup for testing		
+				//		Console.WriteLine("Creating Test Helper Services Manager based on App.Config file settings.");
+				//		_servicesManager = helper.GetServicesManager();
+				//		Console.WriteLine("Services Manager Created.");
 
-					_eddsDbContext = helper.GetDBContext(-1);
-					_dbContext = helper.GetDBContext(_workspaceId);
-
-					//create client
-					_client = _servicesManager.GetProxy<IRSAPIClient>(ConfigurationHelper.ADMIN_USERNAME, ConfigurationHelper.DEFAULT_PASSWORD);
-
-					LogStart("Application Import");
-					if (!_debug)
-					{
-						//Import Application
-						Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicationFilePath, _applicationName);
-						LogEnd("Application Import");
-					}
-					else
-					{
-						Console.WriteLine($"Using existing application");
-					}
-
+				//		Console.WriteLine("Creating workspace.....");
+				//		if (!_debug)
+				//		{
+				//			_workspaceId =
+				//					CreateWorkspace.CreateWorkspaceAsync(_workspaceName,
+				//							ConfigurationHelper.TEST_WORKSPACE_TEMPLATE_NAME, _servicesManager, ConfigurationHelper.ADMIN_USERNAME,
+				//							ConfigurationHelper.DEFAULT_PASSWORD).Result;
+				//			Console.WriteLine($"Workspace created [WorkspaceArtifactId= {_workspaceId}].....");
+				//		}
+				//		else
+				//		{
+				//			//must point _workspaceId = valid workspace with application already installed
+				//			_workspaceId = _debugWorkspaceId;
+				//			Console.WriteLine($"Using existing workspace [WorkspaceArtifactId= {_workspaceId}].....");
+				//		}
 
 
-					_client.APIOptions.WorkspaceID = _workspaceId;
+				//		Console.WriteLine("Creating RSAPI and Service Factory.....");
+				//		try
+				//		{
 
-				}
-				catch (Exception ex)
-				{
-					throw new Exception("Error encountered while creating new RSAPI Client and/or Service Proxy.", ex);
-				}
-				finally
-				{
-					Console.WriteLine("Created RSAPI and Service Factory.....");
-				}
+				//			_eddsDbContext = helper.GetDBContext(-1);
+				//			_dbContext = helper.GetDBContext(_workspaceId);
 
-				Console.WriteLine("Creating TestObject Helper.");
-				//1 retry setting because I want to know if it fails quickly while debugging, may bump up for production
-				_testObjectHelper = new TestObjectHelper(_servicesManager, _workspaceId, 1);
-				Console.WriteLine("TestObject Helper Created.");
+				//			//create client
+				//			_client = _servicesManager.GetProxy<IRSAPIClient>(ConfigurationHelper.ADMIN_USERNAME, ConfigurationHelper.DEFAULT_PASSWORD);
 
-			}
-			catch (Exception ex)
-			{
-				throw new Exception("Error encountered in Test Setup.", ex);
-			}
-			finally
-			{
-				Console.WriteLine("Exit Test Fixture Setup.....");
-			}
-		}
-		#endregion
+				//			LogStart("Application Import");
+				//			if (!_debug)
+				//			{
+				//				//Import Application
+				//				Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicationFilePath, _applicationName);
+				//				LogEnd("Application Import");
+				//			}
+				//			else
+				//			{
+				//				Console.WriteLine($"Using existing application");
+				//			}
 
-		#region "Teardown"
-		[OneTimeTearDown]
+
+
+				//			_client.APIOptions.WorkspaceID = _workspaceId;
+
+				//		}
+				//		catch (Exception ex)
+				//		{
+				//			throw new Exception("Error encountered while creating new RSAPI Client and/or Service Proxy.", ex);
+				//		}
+				//		finally
+				//		{
+				//			Console.WriteLine("Created RSAPI and Service Factory.....");
+				//		}
+
+				//		Console.WriteLine("Creating TestObject Helper.");
+				//		//1 retry setting because I want to know if it fails quickly while debugging, may bump up for production
+				//		_testObjectHelper = new TestObjectHelper(_servicesManager, _workspaceId, 1);
+				//		Console.WriteLine("TestObject Helper Created.");
+
+				//	}
+				//	catch (Exception ex)
+				//	{
+				//		throw new Exception("Error encountered in Test Setup.", ex);
+				//	}
+				//	finally
+				//	{
+				//		Console.WriteLine("Exit Test Fixture Setup.....");
+				//	}
+				//}
+				#endregion
+
+				#region "Teardown"
+				[OneTimeTearDown]
 		public void Execute_TestFixtureTeardown()
 		{
-			try
-			{
-				Console.WriteLine("Test Teardown START.....");
-
-				//Delete workspace
-				Console.WriteLine("Deleting workspace.....");
-				if (!_debug)
-				{
-					DeleteWorkspace.DeleteTestWorkspace(_workspaceId, _servicesManager, ConfigurationHelper.ADMIN_USERNAME, ConfigurationHelper.DEFAULT_PASSWORD);
-					Console.WriteLine("Workspace deleted.....");
-				}
-				else
-				{
-					Console.WriteLine("Not deleting workspace because tests are using existing");
-				}
-			}
-			catch (Exception ex)
-			{
-				throw new Exception("Error encountered in Test Teardown.", ex);
-			}
-			finally
-			{
-				Console.WriteLine("Test Teardown END.....");
-				Console.WriteLine("Test END.....");
-			}
+				Console.WriteLine("RSAPI Integration Test Teardown START.....");
 		}
 		#endregion
 
@@ -197,7 +163,7 @@ namespace Gravity.Test.Integration
 		}
 
 
-		[Test, Description("Verify RelativityObject field created correctly using Gravity"),
+		[Test, Description("RSAPIDao: Verify RelativityObject field created correctly using Gravity"),
 		 TestCaseSource(typeof(TestCaseDefinition), nameof(TestCaseDefinition.SimpleFieldReadWriteTestCases))]
 		//need object fields, could get a little more difficult
 		public void Valid_Gravity_RelativityObject_Create_Field_Type<T>(string objectPropertyName, T sampleData)
@@ -206,27 +172,29 @@ namespace Gravity.Test.Integration
 			{
 				//Arrange
 				LogStart($"for property{objectPropertyName}");
-
+				
 				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectCreate_{objectPropertyName}{Guid.NewGuid()}" };
 
 				var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
 				Guid testFieldGuid = testFieldAttribute.FieldGuid;
 				RdoFieldType fieldType = testFieldAttribute.FieldType;
 
-				
-				//need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
-				switch (fieldType)
-				{
-					case RdoFieldType.Currency:
-					case RdoFieldType.Decimal:
-						testObject.SetValueByPropertyName(objectPropertyName, Convert.ToDecimal(sampleData));
-						break;
-					default:
-						testObject.SetValueByPropertyName(objectPropertyName, sampleData);
-						break;
-				}
-
 				_client.APIOptions.WorkspaceID = _workspaceId;
+				RSAPI_IntegrationTestHelper.CreateRDOFromGravityOneObject(testObject, _client, _testObjectHelper,objectPropertyName,sampleData,fieldType);
+
+				////need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
+				//				switch (fieldType)
+				//{
+				//	case RdoFieldType.Currency:
+				//	case RdoFieldType.Decimal:
+				//		testObject.SetValueByPropertyName(objectPropertyName, Convert.ToDecimal(sampleData));
+				//		break;
+				//	default:
+				//		testObject.SetValueByPropertyName(objectPropertyName, sampleData);
+				//		break;
+				//}
+
+				//_client.APIOptions.WorkspaceID = _workspaceId;
 
 				LogEnd("Arrangement");
 
@@ -316,7 +284,7 @@ namespace Gravity.Test.Integration
 			TestWrapper(Inner);
 		}
 
-		[Test, Description("Verify RelativityObject field read correctly using Gravity"),
+		[Test, Description("RSAPIDao: Verify RelativityObject field read correctly using Gravity"),
 		 TestCaseSource(typeof(TestCaseDefinition), nameof(TestCaseDefinition.SimpleFieldReadWriteTestCases))]
 		public void Valid_Gravity_RelativityObject_Read_Field_Type<T>(string objectPropertyName, T sampleData)
 		{
@@ -325,77 +293,91 @@ namespace Gravity.Test.Integration
 				//Arrange
 				LogStart($"Arrangement for property {objectPropertyName}");
 
-				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
+								//GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
 
-				Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
-				Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
-				var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
-				Guid testFieldGuid = testFieldAttribute.FieldGuid;
-				RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+								//Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
+								//Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+								//var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
+								//Guid testFieldGuid = testFieldAttribute.FieldGuid;
+								//RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
 
-				_client.APIOptions.WorkspaceID = _workspaceId;
+								//_client.APIOptions.WorkspaceID = _workspaceId;
 
-				object expectedData = sampleData;
+								//object expectedData = sampleData;
 
-				var dto = new RDO() { ArtifactTypeGuids = new List<Guid> { testObjectTypeGuid } };
-				int newArtifactId = -1;
-				dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
+								//var dto = new RDO() { ArtifactTypeGuids = new List<Guid> { testObjectTypeGuid } };
+								//int newArtifactId = -1;
+								//dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
 
-				int objectToAttachID;
+								//int objectToAttachID;
 
-				//need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
-				switch (fieldType)
-				{
-					case RdoFieldType.SingleChoice:
-						Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
-						Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
-						Choice singleChoiceToAdd = new Choice(singleChoiceGuid);
-						dto.Fields.Add(new FieldValue(testFieldGuid, singleChoiceToAdd));
-						break;
-					case RdoFieldType.SingleObject:
-						int objectToAttach =
-								_testObjectHelper.GetDao().Insert(sampleData as GravityLevel2, ObjectFieldsDepthLevel.FirstLevelOnly);
-						dto.Fields.Add(new FieldValue(testFieldGuid, objectToAttach));
-						expectedData = (sampleData as GravityLevel2).Name;
-						break;
-					case RdoFieldType.MultipleObject:
-						IList<GravityLevel2> gravityLevel2s = (IList<GravityLevel2>)sampleData;
-						FieldValueList<Artifact> objects = new FieldValueList<Artifact>();
-						expectedData = new Dictionary<int, string>();
-						foreach (GravityLevel2 child in gravityLevel2s)
-						{
-							objectToAttachID =
-								_testObjectHelper.GetDao().Insert(child, ObjectFieldsDepthLevel.FirstLevelOnly);
-							objects.Add(new Artifact(objectToAttachID));
-							(expectedData as Dictionary<int, string>).Add(objectToAttachID, child.Name);
-						}
-						dto.Fields.Add(new FieldValue(testFieldGuid, objects));
-						break;
-					default:
-						dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
-						break;
-				}
+								////need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
+								//switch (fieldType)
+								//{
+								//	case RdoFieldType.SingleChoice:
+								//		Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
+								//		Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
+								//		Choice singleChoiceToAdd = new Choice(singleChoiceGuid);
+								//		dto.Fields.Add(new FieldValue(testFieldGuid, singleChoiceToAdd));
+								//		break;
+								//	case RdoFieldType.SingleObject:
+								//		int objectToAttach =
+								//				_testObjectHelper.GetDao().Insert(sampleData as GravityLevel2, ObjectFieldsDepthLevel.FirstLevelOnly);
+								//		dto.Fields.Add(new FieldValue(testFieldGuid, objectToAttach));
+								//		expectedData = (sampleData as GravityLevel2).Name;
+								//		break;
+								//	case RdoFieldType.MultipleObject:
+								//		IList<GravityLevel2> gravityLevel2s = (IList<GravityLevel2>)sampleData;
+								//		FieldValueList<Artifact> objects = new FieldValueList<Artifact>();
+								//		expectedData = new Dictionary<int, string>();
+								//		foreach (GravityLevel2 child in gravityLevel2s)
+								//		{
+								//			objectToAttachID =
+								//				_testObjectHelper.GetDao().Insert(child, ObjectFieldsDepthLevel.FirstLevelOnly);
+								//			objects.Add(new Artifact(objectToAttachID));
+								//			(expectedData as Dictionary<int, string>).Add(objectToAttachID, child.Name);
+								//		}
+								//		dto.Fields.Add(new FieldValue(testFieldGuid, objects));
+								//		break;
+								//	default:
+								//		dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
+								//		break;
+								//}
 
-				WriteResultSet<RDO> writeResults = _client.Repositories.RDO.Create(dto);
+								//WriteResultSet<RDO> writeResults = _client.Repositories.RDO.Create(dto);
 
-				if (writeResults.Success)
-				{
-					newArtifactId = writeResults.Results[0].Artifact.ArtifactID;
-					Console.WriteLine($"Object was created with Artifact ID {newArtifactId}.");
-				}
-				else
-				{
-					Console.WriteLine($"An error occurred creating object: {writeResults.Message}");
-					foreach (var result in 
-						writeResults.Results
-							.Select((item, index) => new { rdoResult = item, itemNumber = index })
-							.Where(x => x.rdoResult.Success == false))
-					{
-						Console.WriteLine($"An error occurred in create request {result.itemNumber}: {result.rdoResult.Message}");
-					}
-				}
+								//if (writeResults.Success)
+								//{
+								//	newArtifactId = writeResults.Results[0].Artifact.ArtifactID;
+								//	Console.WriteLine($"Object was created with Artifact ID {newArtifactId}.");
+								//}
+								//else
+								//{
+								//	Console.WriteLine($"An error occurred creating object: {writeResults.Message}");
+								//	foreach (var result in 
+								//		writeResults.Results
+								//			.Select((item, index) => new { rdoResult = item, itemNumber = index })
+								//			.Where(x => x.rdoResult.Success == false))
+								//	{
+								//		Console.WriteLine($"An error occurred in create request {result.itemNumber}: {result.rdoResult.Message}");
+								//	}
+								//}
 
-				LogEnd("Arrangement");
+								GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
+
+								var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
+								Guid testFieldGuid = testFieldAttribute.FieldGuid;
+								RdoFieldType fieldType = testFieldAttribute.FieldType;
+								Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+								Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
+
+								_client.APIOptions.WorkspaceID = _workspaceId;
+								object expectedData = sampleData;
+								int newArtifactId = RSAPI_IntegrationTestHelper.CreateRDOFromValue(testObject, _client, _testObjectHelper,
+										testObjectTypeGuid, nameFieldGuid, testFieldGuid, sampleData, fieldType, ref expectedData);
+
+
+								LogEnd("Arrangement");
 
 				//Act
 				LogStart("Act");
@@ -440,28 +422,5 @@ namespace Gravity.Test.Integration
 		}
 		#endregion
 
-		#region Test Helpers
-		private static void TestWrapper(Action action)
-		{
-			string testName = TestContext.CurrentContext.Test.Name;
-			Console.WriteLine($"{testName} Created");
-			try
-			{
-				action();
-			}
-			catch (Exception ex)
-			{
-				Console.WriteLine($"Error encountered in {testName}:\r\n{ex}");
-				throw;
-			}
-			finally
-			{
-				Console.WriteLine($"Ending Test case {testName}");
-			}
 		}
-
-		private static void LogStart(string message) => Console.WriteLine($"Starting {message}....");
-		private static void LogEnd(string message) => Console.WriteLine($"{message} Complete....");
-		#endregion
-	}
 }
