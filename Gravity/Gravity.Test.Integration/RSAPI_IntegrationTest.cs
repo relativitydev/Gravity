@@ -25,107 +25,24 @@ namespace Gravity.Test.Integration
 	{
 
 
-				#region Setup
-				[OneTimeSetUp]
-				public void Execute_TestFixtureSetup()
-				{
-						//Start of test and setup
-						Console.WriteLine("RSAPI Integration Test START.....");
-				}
-
-				//public void Execute_TestFixtureSetup()
-				//{
-				//	try
-				//	{
-				//		//Start of test and setup
-				//		Console.WriteLine("Test START.....");
-				//		Console.WriteLine("Enter Test Fixture Setup.....");
-				//		var helper = new TestHelper();
-
-				//		//Setup for testing		
-				//		Console.WriteLine("Creating Test Helper Services Manager based on App.Config file settings.");
-				//		_servicesManager = helper.GetServicesManager();
-				//		Console.WriteLine("Services Manager Created.");
-
-				//		Console.WriteLine("Creating workspace.....");
-				//		if (!_debug)
-				//		{
-				//			_workspaceId =
-				//					CreateWorkspace.CreateWorkspaceAsync(_workspaceName,
-				//							ConfigurationHelper.TEST_WORKSPACE_TEMPLATE_NAME, _servicesManager, ConfigurationHelper.ADMIN_USERNAME,
-				//							ConfigurationHelper.DEFAULT_PASSWORD).Result;
-				//			Console.WriteLine($"Workspace created [WorkspaceArtifactId= {_workspaceId}].....");
-				//		}
-				//		else
-				//		{
-				//			//must point _workspaceId = valid workspace with application already installed
-				//			_workspaceId = _debugWorkspaceId;
-				//			Console.WriteLine($"Using existing workspace [WorkspaceArtifactId= {_workspaceId}].....");
-				//		}
-
-
-				//		Console.WriteLine("Creating RSAPI and Service Factory.....");
-				//		try
-				//		{
-
-				//			_eddsDbContext = helper.GetDBContext(-1);
-				//			_dbContext = helper.GetDBContext(_workspaceId);
-
-				//			//create client
-				//			_client = _servicesManager.GetProxy<IRSAPIClient>(ConfigurationHelper.ADMIN_USERNAME, ConfigurationHelper.DEFAULT_PASSWORD);
-
-				//			LogStart("Application Import");
-				//			if (!_debug)
-				//			{
-				//				//Import Application
-				//				Relativity.Test.Helpers.Application.ApplicationHelpers.ImportApplication(_client, _workspaceId, true, _applicationFilePath, _applicationName);
-				//				LogEnd("Application Import");
-				//			}
-				//			else
-				//			{
-				//				Console.WriteLine($"Using existing application");
-				//			}
-
-
-
-				//			_client.APIOptions.WorkspaceID = _workspaceId;
-
-				//		}
-				//		catch (Exception ex)
-				//		{
-				//			throw new Exception("Error encountered while creating new RSAPI Client and/or Service Proxy.", ex);
-				//		}
-				//		finally
-				//		{
-				//			Console.WriteLine("Created RSAPI and Service Factory.....");
-				//		}
-
-				//		Console.WriteLine("Creating TestObject Helper.");
-				//		//1 retry setting because I want to know if it fails quickly while debugging, may bump up for production
-				//		_testObjectHelper = new TestObjectHelper(_servicesManager, _workspaceId, 1);
-				//		Console.WriteLine("TestObject Helper Created.");
-
-				//	}
-				//	catch (Exception ex)
-				//	{
-				//		throw new Exception("Error encountered in Test Setup.", ex);
-				//	}
-				//	finally
-				//	{
-				//		Console.WriteLine("Exit Test Fixture Setup.....");
-				//	}
-				//}
-				#endregion
-
-				#region "Teardown"
-				[OneTimeTearDown]
-		public void Execute_TestFixtureTeardown()
+		#region Setup
+		[OneTimeSetUp]
+		public void Execute_TestFixtureSetup()
 		{
-				Console.WriteLine("RSAPI Integration Test Teardown START.....");
+			//Start of test and setup
+			Console.WriteLine("RSAPI Integration Test START.....");
 		}
 		#endregion
 
-	
+		#region "Teardown"
+		[OneTimeTearDown]
+		public void Execute_TestFixtureTeardown()
+		{
+			Console.WriteLine("RSAPI Integration Test Teardown START.....");
+		}
+		#endregion
+
+
 
 		#region "Tests"
 
@@ -172,7 +89,7 @@ namespace Gravity.Test.Integration
 			{
 				//Arrange
 				LogStart($"for property{objectPropertyName}");
-				
+
 				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectCreate_{objectPropertyName}{Guid.NewGuid()}" };
 
 				var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
@@ -180,21 +97,7 @@ namespace Gravity.Test.Integration
 				RdoFieldType fieldType = testFieldAttribute.FieldType;
 
 				_client.APIOptions.WorkspaceID = _workspaceId;
-				RSAPI_IntegrationTestHelper.CreateRDOFromGravityOneObject(testObject, _client, _testObjectHelper,objectPropertyName,sampleData,fieldType);
-
-				////need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
-				//				switch (fieldType)
-				//{
-				//	case RdoFieldType.Currency:
-				//	case RdoFieldType.Decimal:
-				//		testObject.SetValueByPropertyName(objectPropertyName, Convert.ToDecimal(sampleData));
-				//		break;
-				//	default:
-				//		testObject.SetValueByPropertyName(objectPropertyName, sampleData);
-				//		break;
-				//}
-
-				//_client.APIOptions.WorkspaceID = _workspaceId;
+				RSAPI_IntegrationTestHelper.CreateRDOFromGravityOneObject(testObject, _client, _testObjectHelper, objectPropertyName, sampleData, fieldType);
 
 				LogEnd("Arrangement");
 
@@ -244,8 +147,8 @@ namespace Gravity.Test.Integration
 						break;
 					case RdoFieldType.SingleObject:
 						newObjectValue = field.ValueAsSingleObject.ArtifactID;
-						expectedData = testObject.GravityLevel2Obj.ArtifactId > 0 
-							? (object)testObject.GravityLevel2Obj.ArtifactId 
+						expectedData = testObject.GravityLevel2Obj.ArtifactId > 0
+							? (object)testObject.GravityLevel2Obj.ArtifactId
 							: null;
 						break;
 					case RdoFieldType.MultipleObject:
@@ -256,14 +159,13 @@ namespace Gravity.Test.Integration
 						foreach (Artifact child in rawNewObjectValue)
 						{
 							//'Read' - need to get name.
-							RDO childRdo = new RDO()
-							{
+							RDO childRdo = new RDO() {
 								Fields = new List<FieldValue>() { new FieldValue(childFieldNameGuid) }
 							};
 							childRdo = _client.Repositories.RDO.ReadSingle(child.ArtifactID);
 							string childNameValue = childRdo.Fields.Where(x => x.Guids.Contains(childFieldNameGuid)).FirstOrDefault().ToString();
 
-							resultData.Add(new GravityLevel2() { ArtifactId = child.ArtifactID, Name = childNameValue});
+							resultData.Add(new GravityLevel2() { ArtifactId = child.ArtifactID, Name = childNameValue });
 						}
 						newObjectValue = resultData.ToDictionary(x => x.ArtifactId, x => x.Name);
 						expectedData = ((IEnumerable<GravityLevel2>)expectedData).ToDictionary(x => x.ArtifactId, x => x.Name);
@@ -293,91 +195,22 @@ namespace Gravity.Test.Integration
 				//Arrange
 				LogStart($"Arrangement for property {objectPropertyName}");
 
-								//GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
 
-								//Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
-								//Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
-								//var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
-								//Guid testFieldGuid = testFieldAttribute.FieldGuid;
-								//RdoFieldType fieldType = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName).FieldType;
+				GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
 
-								//_client.APIOptions.WorkspaceID = _workspaceId;
+				var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
+				Guid testFieldGuid = testFieldAttribute.FieldGuid;
+				RdoFieldType fieldType = testFieldAttribute.FieldType;
+				Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
+				Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
 
-								//object expectedData = sampleData;
-
-								//var dto = new RDO() { ArtifactTypeGuids = new List<Guid> { testObjectTypeGuid } };
-								//int newArtifactId = -1;
-								//dto.Fields.Add(new FieldValue(nameFieldGuid, testObject.Name));
-
-								//int objectToAttachID;
-
-								////need this mess because when passing in tests for decimal and currency System wants to use double and causes problems
-								//switch (fieldType)
-								//{
-								//	case RdoFieldType.SingleChoice:
-								//		Enum singleChoice = (Enum)Enum.ToObject(sampleData.GetType(), sampleData);
-								//		Guid singleChoiceGuid = singleChoice.GetRelativityObjectAttributeGuidValue();
-								//		Choice singleChoiceToAdd = new Choice(singleChoiceGuid);
-								//		dto.Fields.Add(new FieldValue(testFieldGuid, singleChoiceToAdd));
-								//		break;
-								//	case RdoFieldType.SingleObject:
-								//		int objectToAttach =
-								//				_testObjectHelper.GetDao().Insert(sampleData as GravityLevel2, ObjectFieldsDepthLevel.FirstLevelOnly);
-								//		dto.Fields.Add(new FieldValue(testFieldGuid, objectToAttach));
-								//		expectedData = (sampleData as GravityLevel2).Name;
-								//		break;
-								//	case RdoFieldType.MultipleObject:
-								//		IList<GravityLevel2> gravityLevel2s = (IList<GravityLevel2>)sampleData;
-								//		FieldValueList<Artifact> objects = new FieldValueList<Artifact>();
-								//		expectedData = new Dictionary<int, string>();
-								//		foreach (GravityLevel2 child in gravityLevel2s)
-								//		{
-								//			objectToAttachID =
-								//				_testObjectHelper.GetDao().Insert(child, ObjectFieldsDepthLevel.FirstLevelOnly);
-								//			objects.Add(new Artifact(objectToAttachID));
-								//			(expectedData as Dictionary<int, string>).Add(objectToAttachID, child.Name);
-								//		}
-								//		dto.Fields.Add(new FieldValue(testFieldGuid, objects));
-								//		break;
-								//	default:
-								//		dto.Fields.Add(new FieldValue(testFieldGuid, sampleData));
-								//		break;
-								//}
-
-								//WriteResultSet<RDO> writeResults = _client.Repositories.RDO.Create(dto);
-
-								//if (writeResults.Success)
-								//{
-								//	newArtifactId = writeResults.Results[0].Artifact.ArtifactID;
-								//	Console.WriteLine($"Object was created with Artifact ID {newArtifactId}.");
-								//}
-								//else
-								//{
-								//	Console.WriteLine($"An error occurred creating object: {writeResults.Message}");
-								//	foreach (var result in 
-								//		writeResults.Results
-								//			.Select((item, index) => new { rdoResult = item, itemNumber = index })
-								//			.Where(x => x.rdoResult.Success == false))
-								//	{
-								//		Console.WriteLine($"An error occurred in create request {result.itemNumber}: {result.rdoResult.Message}");
-								//	}
-								//}
-
-								GravityLevelOne testObject = new GravityLevelOne() { Name = $"TestObjectRead_{objectPropertyName}{Guid.NewGuid()}" };
-
-								var testFieldAttribute = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>(objectPropertyName);
-								Guid testFieldGuid = testFieldAttribute.FieldGuid;
-								RdoFieldType fieldType = testFieldAttribute.FieldType;
-								Guid nameFieldGuid = testObject.GetCustomAttribute<RelativityObjectFieldAttribute>("Name").FieldGuid;
-								Guid testObjectTypeGuid = testObject.GetObjectLevelCustomAttribute<RelativityObjectAttribute>().ObjectTypeGuid;
-
-								_client.APIOptions.WorkspaceID = _workspaceId;
-								object expectedData = sampleData;
-								int newArtifactId = RSAPI_IntegrationTestHelper.CreateRDOFromValue(testObject, _client, _testObjectHelper,
-										testObjectTypeGuid, nameFieldGuid, testFieldGuid, sampleData, fieldType, ref expectedData);
+				_client.APIOptions.WorkspaceID = _workspaceId;
+				object expectedData = sampleData;
+				int newArtifactId = RSAPI_IntegrationTestHelper.CreateRDOFromValue(testObject, _client, _testObjectHelper,
+						testObjectTypeGuid, nameFieldGuid, testFieldGuid, sampleData, fieldType, ref expectedData);
 
 
-								LogEnd("Arrangement");
+				LogEnd("Arrangement");
 
 				//Act
 				LogStart("Act");
@@ -422,5 +255,5 @@ namespace Gravity.Test.Integration
 		}
 		#endregion
 
-		}
+	}
 }

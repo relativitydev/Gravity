@@ -62,11 +62,8 @@ namespace Gravity.DAL.SQL
 		private void PopulateChildrenRecursively<T>(Dictionary<Guid, string> fieldsGuidsToColumnNameMappings, BaseDto baseDto, DataRow objRow, ObjectFieldsDepthLevel depthLevel)
 		where T : BaseDto
 		{
-						int counter = 0;
 			foreach (var objectPropertyInfo in baseDto.GetType().GetPublicProperties())
 			{
-								counter++;
-								Console.WriteLine("PopulateChildrenRecursively(" + objectPropertyInfo.Name + "): " + counter.ToString());
 				var childValue = GetChildObjectRecursively(fieldsGuidsToColumnNameMappings, baseDto, objRow, depthLevel, objectPropertyInfo);
 
 				if (childValue != null)

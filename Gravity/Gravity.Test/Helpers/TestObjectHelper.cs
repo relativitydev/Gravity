@@ -14,22 +14,22 @@ using Gravity.DAL.SQL;
 
 namespace Gravity.Test.Helpers
 {
-    public class TestObjectHelper
-    {
-        IServicesMgr _servicesManager;
-        int _workspaceId;
-        private InvokeWithRetrySettings _retrySettings;
-				IDBContext _workspaceDBContext;
-				IDBContext _eddsDBContext;
+	public class TestObjectHelper
+	{
+		IServicesMgr _servicesManager;
+		int _workspaceId;
+		private InvokeWithRetrySettings _retrySettings;
+		IDBContext _workspaceDBContext;
+		IDBContext _eddsDBContext;
 
-				public TestObjectHelper(IServicesMgr servicesManager, int workspaceId, IDBContext workspaceDBContext, IDBContext eddsDBContext, int numberOfRetrySettings)
-        {
-            _servicesManager = servicesManager;
-            _workspaceId = workspaceId;
-            _retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
-						_workspaceDBContext = workspaceDBContext;
-						_eddsDBContext = eddsDBContext;
-				}
+		public TestObjectHelper(IServicesMgr servicesManager, int workspaceId, IDBContext workspaceDBContext, IDBContext eddsDBContext, int numberOfRetrySettings)
+		{
+			_servicesManager = servicesManager;
+			_workspaceId = workspaceId;
+			_retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
+			_workspaceDBContext = workspaceDBContext;
+			_eddsDBContext = eddsDBContext;
+		}
 
 		public RsapiDao GetDao()
 		{
@@ -38,10 +38,10 @@ namespace Gravity.Test.Helpers
 
 		public SqlDao GetSqlDao()
 		{
-				return new SqlDao(_workspaceDBContext, _eddsDBContext, _retrySettings);
+			return new SqlDao(_workspaceDBContext, _eddsDBContext, _retrySettings);
 		}
 
-				public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto
+		public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto
 		{
 			RelativityObjectAttribute objectTypeAttribute = typeof(T).GetCustomAttribute<RelativityObjectAttribute>(false);
 			RDO stubRdo = new RDO(objectTypeAttribute.ObjectTypeGuid, artifactId);
