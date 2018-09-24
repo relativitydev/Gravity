@@ -247,7 +247,7 @@ namespace Gravity.DAL.SQL
 			List<int> returnList;
 			List<SqlParameter> sqlParameters;
 
-			while (resultCount >= fetchRows)
+			while (resultCount >= fetchRows && fetchRows > 0)
 			{
 				returnList = new List<int>();
 				sql = new StringBuilder(SQLGetResource.GetChildrenArtifactIDsByParentAndTypeOffset);

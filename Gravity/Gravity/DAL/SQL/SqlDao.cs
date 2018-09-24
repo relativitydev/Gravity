@@ -17,7 +17,7 @@ namespace Gravity.DAL.SQL
 
 		private InvokeWithRetryService invokeWithRetryService;
 
-		private SqlDao(IDBContext workspaceContext, IDBContext masterContext, InvokeWithRetrySettings invokeWithRetrySettings)
+		public SqlDao(IDBContext workspaceContext, IDBContext masterContext, InvokeWithRetrySettings invokeWithRetrySettings)
 		{
 			dbContext = workspaceContext;
 			masterDbContext = masterContext;
