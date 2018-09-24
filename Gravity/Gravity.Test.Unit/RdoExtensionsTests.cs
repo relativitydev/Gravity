@@ -43,26 +43,6 @@ namespace Gravity.Test.Unit
 			}.Select(x => new TestCaseData(x.Item1, x.Item2).SetName("{m}(" + x.Item1 + ")"));
 		}
 
-		[TestCase("File.doc")]
-		[TestCase(null, TestName = "{m}_NoFile")]
-		public void ToHydratedDto_File(string fileName)
-		{
-			//generates file
-			var propertyGuid = typeof(GravityLevelOne)
-				.GetProperty(nameof(GravityLevelOne.FileField))
-				.GetCustomAttribute<RelativityObjectFieldAttribute>()
-				.FieldGuid;
-
-			var fieldId = 2;
-
-			var fieldValue = new FieldValue(propertyGuid, fileName) { ArtifactID = fieldId };
-
-			var dto = GetRdoWithField(propertyGuid, fieldValue);
-
-			var expectedValue = fileName == null ? (int?)null : fieldId;
-			Assert.AreEqual(expectedValue, dto.FileField?.ArtifactTypeId);
-		}
-
 		public static GravityLevelOne GetRdoWithField(Guid propertyGuid, FieldValue fieldValue)
 		{
 			fieldValue.Guids = new List<Guid> { propertyGuid };

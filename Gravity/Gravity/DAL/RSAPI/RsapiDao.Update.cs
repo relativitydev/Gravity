@@ -12,211 +12,151 @@ namespace Gravity.DAL.RSAPI
 {
 	public partial class RsapiDao
 	{
-		#region UPDATE Protected Stuff
-		protected void UpdateRdos(params RDO[] rdos)
+		private void UpdateSingleObjectFields<T>(IList<T> objectsToUpdate, bool recursive) where T : BaseDto
 		{
-			rsapiProvider.Update(rdos).GetResultData();
-		}
+			var singleObjectProperties =
+				typeof(T).GetProperties()
+				.Where(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.SingleObject);
 
-		protected void UpdateRdo(RDO theRdo)
-		{
-			rsapiProvider.UpdateSingle(theRdo);
-		}
-
-		//inserts *child* lists of a parent artifact ID (not associated artifacts)
-		protected void UpdateChildListObjects<T>(IList<T> objectsToUpdate, int parentArtifactId)
-			where T : BaseDto
-		{
-			var objectsToBeInsertedLookup = objectsToUpdate.ToLookup(x => x.ArtifactId == 0);
-			var objectsToBeInserted = objectsToBeInsertedLookup[true];
-			var objectsToBeUpdated = objectsToBeInsertedLookup[false];
-
-			//insert ones that do not exist
-			if (objectsToBeInserted.Any())
+			foreach (var propertyInfo in singleObjectProperties)
 			{
-				this.InvokeGenericMethod(typeof(T), nameof(InsertChildListObjects), objectsToBeInserted, parentArtifactId);
-			}
+				var associatedObjectsToUpdate = objectsToUpdate
+					.Select(objectToUpdate => (BaseDto)objectToUpdate.GetPropertyValue(propertyInfo.Name))
+					.Where(x => x != null);
 
-			if (!objectsToBeUpdated.Any())
+				var associatedType = propertyInfo.PropertyType;
+
+				this.InvokeGenericMethod(associatedType, nameof(InsertOrUpdate), BaseExtensionMethods.MakeGenericList(associatedObjectsToUpdate, associatedType), recursive);
+			}
+		}
+
+		private void UpdateMultipleObjectFields<T>(IList<T> objectsToUpdate, bool recursive) where T : BaseDto
+		{
+			var multipleObjectProperties =
+				typeof(T).GetProperties()
+				.Where(x => x.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldType == RdoFieldType.MultipleObject);
+
+			foreach (var propertyInfo in multipleObjectProperties)
+			{
+				var associatedObjectsToUpdate = objectsToUpdate
+					.Select(objectToUpdate => (IEnumerable)objectToUpdate.GetPropertyValue(propertyInfo.Name))
+					.Where(x => x != null)
+					.SelectMany(x => x.Cast<BaseDto>());
+
+				var associatedType = propertyInfo.PropertyType.GetEnumerableInnerType();
+
+				this.InvokeGenericMethod(associatedType, nameof(InsertOrUpdate), BaseExtensionMethods.MakeGenericList(associatedObjectsToUpdate, associatedType), recursive);
+			}
+		}
+
+		private void UpdateChildListObjects<T>(IList<T> objectsToUpdate, bool recursive) where T : BaseDto
+		{
+			var childProperties = typeof(T)
+				.GetPropertyAttributeTuples<RelativityObjectChildrenListAttribute>()
+				.Select(x => x.Item1);
+
+			foreach (var childPropertyInfo in childProperties)
+			{
+				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
+				var parentArtifactIdProperty = childType.GetPropertyAttributeTuples<RelativityObjectFieldParentArtifactIdAttribute>()
+								.FirstOrDefault()?
+								.Item1;
+
+				IEnumerable<BaseDto> GetObjectsToUpdate(T theObjectToUpdate)
+				{
+					return ((IEnumerable)childPropertyInfo.GetValue(theObjectToUpdate))?
+						.Cast<BaseDto>()
+						.Select(childObject =>
+						{
+							var currentParentArtifactId = (int)parentArtifactIdProperty.GetValue(childObject);
+							if (currentParentArtifactId == 0)
+							{
+								parentArtifactIdProperty.SetValue(childObject, theObjectToUpdate.ArtifactId);
+							}
+							else if (currentParentArtifactId != theObjectToUpdate.ArtifactId)
+							{
+								throw new InvalidOperationException("Cannot reassign the parent artifact ID of a child object");
+							}
+							return childObject;
+						});
+				}
+
+				var childObjectsToUpdate = objectsToUpdate
+					.Select(GetObjectsToUpdate)
+					.Where(x => x != null)
+					.SelectMany(x => x)
+					.ToList();
+
+				this.InvokeGenericMethod(childType, nameof(InsertOrUpdate), BaseExtensionMethods.MakeGenericList(childObjectsToUpdate, childType), recursive);
+			
+				var existingChildren = (List<int>)this.InvokeGenericMethod(
+					childType, 
+					nameof(GetAllChildIds), 
+					objectsToUpdate.Select(x => x.ArtifactId).ToArray());
+
+				//TODO: replace with bulk delete call
+				foreach (var artifactId in existingChildren.Except(childObjectsToUpdate.Select(x => x.ArtifactId)))
+				{
+					this.InvokeGenericMethod(childType, nameof(Delete), new object[] {
+						artifactId,
+						recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject });
+				}
+			}
+		}
+
+		public void Update<T>(T theObjectToUpdate, ObjectFieldsDepthLevel depthLevel) where T : BaseDto
+		{
+			if (theObjectToUpdate.ArtifactId == 0)
+				throw new ArgumentException("Artifact must have an ArtifactId.", nameof(theObjectToUpdate));
+
+			Update<T>(new[] { theObjectToUpdate }, depthLevel);
+		}
+
+		public void Update<T>(IList<T> theObjectsToUpdate, ObjectFieldsDepthLevel depthLevel) where T : BaseDto
+		{
+			if (theObjectsToUpdate.Any(x => x.ArtifactId == 0))
+				throw new ArgumentException("Artifacts must have an ArtifactId.", nameof(theObjectsToUpdate));
+
+			var parentOnly = depthLevel == ObjectFieldsDepthLevel.OnlyParentObject;
+			var recursive = depthLevel == ObjectFieldsDepthLevel.FullyRecursive;
+			InsertOrUpdate(theObjectsToUpdate, parentOnly, recursive);
+		}
+
+		private void InsertOrUpdate<T>(IList<T> theObjectsToUpdate, bool recursive) where T : BaseDto
+			=> InsertOrUpdate(theObjectsToUpdate, recursive, recursive);
+
+		private void InsertOrUpdate<T>(IList<T> theObjectsToUpdate, bool parentOnly, bool recursive) where T : BaseDto
+		{
+			if (theObjectsToUpdate.Count == 0)
+			{
 				return;
-
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-
-			//if do not have child objects in turn, we can take a shortcut
-			//and batch update all the items at once
-			if (childObjectsInfo.Count == 0)
-			{
-				//update RDOs in bulk
-				UpdateRdos(objectsToBeUpdated.Select(x => x.ToRdo()).ToArray());
-
-				//Cannot update files in bulk; do here
-				if (typeof(T).GetProperties().ToList()
-					.Any(c => c.DeclaringType.IsAssignableFrom(typeof(RelativityFile))))
-				{
-					foreach (var objectToBeUpdated in objectsToBeUpdated)
-					{
-						InsertUpdateFileFields(objectToBeUpdated, objectToBeUpdated.ArtifactId);
-					}
-				}
-
-				return;
 			}
 
-			//if have child lists, recurse (UpdateRelativityObject and UpdateChildListObjects form a recursion)
-			foreach (var objectToUpdate in objectsToBeUpdated)
+			if (!parentOnly)
 			{
-				UpdateRelativityObject(objectToUpdate, childObjectsInfo);
+				UpdateSingleObjectFields(theObjectsToUpdate, recursive);
+				UpdateMultipleObjectFields(theObjectsToUpdate, recursive);
 			}
-		}
 
-		#endregion
+			var objectsToUpdateLookup = theObjectsToUpdate.ToLookup(x => x.ArtifactId != 0);
+			var existingObjectsToUpdate = objectsToUpdateLookup[true].ToList();
+			var newObjectsToUpdate = objectsToUpdateLookup[false].ToList();
 
-		public void Update<T>(T theObjectToUpdate)
-			where T : BaseDto
-		{
-			var childObjectsInfo = BaseDto.GetRelativityObjectChildrenListProperties<T>();
-			UpdateRelativityObject(theObjectToUpdate, childObjectsInfo);
-		}
-
-		private void UpdateRelativityObject(BaseDto theObjectToUpdate, IEnumerable<PropertyInfo> childObjectsInfo)
-		{
-			//update root object
-			UpdateRdo(theObjectToUpdate.ToRdo());
-
-			//update files on object
-			InsertUpdateFileFields(theObjectToUpdate, theObjectToUpdate.ArtifactId);
-
-			//loop through each child object property
-			foreach (var childPropertyInfo in childObjectsInfo)
+			if (existingObjectsToUpdate.Any())
+			{ 
+				rsapiProvider.Update(existingObjectsToUpdate.Select(x => x.ToRdo(true)).ToList());
+				InsertUpdateFileFields(existingObjectsToUpdate, false);
+			}
+			if (newObjectsToUpdate.Any())
 			{
-				var childObjectsList = childPropertyInfo.GetValue(theObjectToUpdate, null) as IList;
+				ExecuteObjectInsert(newObjectsToUpdate);
+				InsertUpdateFileFields(newObjectsToUpdate, true);
+			}
 
-				if (childObjectsList != null && childObjectsList.Count > 0)
-				{
-					Type childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
-					this.InvokeGenericMethod(childType, nameof(UpdateChildListObjects), childObjectsList, theObjectToUpdate.ArtifactId);
-				}
+			if (!parentOnly)
+			{
+				UpdateChildListObjects(theObjectsToUpdate, recursive);
 			}
 		}
-
-		[Obsolete("This class will be replaced by a version that gets the field via lambda")]
-		public void UpdateField<T>(int rdoID, Guid fieldGuid, object value)
-			where T : BaseDto
-		{
-			PropertyInfo fieldProperty = typeof(T).GetProperties()
-				.SingleOrDefault(p => p.GetCustomAttribute<RelativityObjectFieldAttribute>()?.FieldGuid == fieldGuid);
-			if (fieldProperty == null)
-				throw new InvalidOperationException($"Field not on type {typeof(T)}");
-
-
-			object rdoValue;
-			if (!TryGetRelativityFieldValue<T>(fieldProperty, value, out rdoValue))
-				return;
-
-			if (rdoValue is RelativityFile rdoValueFile)
-			{
-				InsertUpdateFileField(rdoValueFile, rdoID);
-				return;
-			}
-
-			RDO theRdo = new RDO(rdoID);
-			theRdo.ArtifactTypeGuids.Add(BaseDto.GetObjectTypeGuid<T>());
-			theRdo.Fields.Add(new FieldValue(fieldGuid, rdoValue));
-			UpdateRdo(theRdo);
-		}
-
-		private static bool TryGetRelativityFieldValue<T>(PropertyInfo fieldProperty, object value, out object rdoValue)
-			where T : BaseDto
-		{
-			rdoValue = null;	
-
-			Type fieldType = fieldProperty.PropertyType;
-
-			if (fieldType.IsGenericType)
-			{
-				if (fieldType.GetGenericTypeDefinition() == typeof(IList<>))
-				{
-					var valueList = value as IList;
-					if (valueList.HeuristicallyDetermineType().IsEnum)
-					{
-						var choices = valueList.Cast<Enum>()
-							.Select(x => new Choice(x.GetRelativityObjectAttributeGuidValue()))
-							.ToList();
-
-						rdoValue = choices; return true;
-					}
-
-					var genericArg = value.GetType().GetGenericArguments().FirstOrDefault();
-
-					if (genericArg?.IsSubclassOf(typeof(BaseDto)) == true)
-					{
-						rdoValue =
-							valueList.Cast<object>()
-							.Select(x => new Artifact((int)x.GetType().GetProperty(nameof(BaseDto.ArtifactId)).GetValue(x, null)))
-							.ToList();
-
-						return true;
-					}
-
-					if (genericArg?.IsEquivalentTo(typeof(int)) == true)
-					{
-						rdoValue = valueList.Cast<int>().Select(x => new Artifact(x)).ToList();
-						return true;
-					}
-				}
-				if (value == null)
-				{
-					return true;
-				}
-				if (value.GetType() == typeof(string) ||
-					value.GetType() == typeof(int) ||
-					value.GetType() == typeof(bool) ||
-					value.GetType() == typeof(decimal) ||
-					value.GetType() == typeof(DateTime))
-				{
-					rdoValue = value; return true;
-				}
-
-				return false;
-
-			}
-
-			RelativityObjectFieldAttribute fieldAttributeValue = fieldProperty.GetCustomAttribute<RelativityObjectFieldAttribute>();
-
-			if (fieldAttributeValue == null)
-			{
-				return false;
-			}
-
-			if ((fieldAttributeValue.FieldType == RdoFieldType.File)
-				&& value.GetType().BaseType?.IsAssignableFrom(typeof(RelativityFile)) == true)
-			{
-				rdoValue = value; return true;
-			}
-
-			if ((fieldAttributeValue.FieldType == RdoFieldType.User)
-				&& (value.GetType() == typeof(User)))
-			{
-				rdoValue = value; return true;
-			}
-
-			if (value.GetType().IsEnum)
-			{
-				rdoValue = new Choice(((Enum)value).GetRelativityObjectAttributeGuidValue());
-				return true;
-			}
-
-			if (value.GetType() == typeof(string) ||
-				value.GetType() == typeof(int) ||
-				value.GetType() == typeof(bool) ||
-				value.GetType() == typeof(decimal) ||
-				value.GetType() == typeof(DateTime))
-			{
-				rdoValue = value; return true;
-			}
-
-			return false;
-		}
-
 	}
 }

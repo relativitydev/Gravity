@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Gravity.Base;
 using Gravity.Test.Helpers;
 using Gravity.Test.TestClasses;
 using NUnit.Framework;
@@ -25,6 +27,5 @@ namespace Gravity.Test.Integration
 					.Select(_ => new GravityLevel2 {Name = "Test_" + Guid.NewGuid()}).ToList());
 			}
 		}
-
 	}
 }

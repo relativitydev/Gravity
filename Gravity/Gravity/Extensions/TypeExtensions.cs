@@ -44,9 +44,9 @@ namespace Gravity.Extensions
 		// performance boost option: cache results of these
 		public static Type GetEnumerableInnerType(this Type type)
 		{
-			return 
+			return
 				type.GetInterfaces()
-				.First(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+				.First(t => t.IsGenericType && (t.GetGenericTypeDefinition() == typeof(IEnumerable<>)))
 				.GetGenericArguments()[0];
 		}
 

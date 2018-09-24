@@ -15,12 +15,25 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Relativity.Api" Version="$(RelativityVersion)" />
+    <PackageReference Include="Relativity.Other" Version="9.4.224.2" />
     <PackageReference Include="Relativity.Rsapi" Version="$(RelativityVersion)" />
-    <PackageReference Include="Relativity.RowDataGateway" Version="$(RelativityVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System.configuration" />
     <Reference Include="System.Runtime.Caching" />
     <Reference Include="System.Data.DataSetExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resources\SQL\Get\SQLGetResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>SQLGetResource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\SQL\Get\SQLGetResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>SQLGetResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

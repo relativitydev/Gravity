@@ -1,0 +1,164 @@
+# Rules in this file were initially inferred by Visual Studio IntelliCode from the C:\_SOURCECODE\Gravity_Upstream\Gravity codebase based on best match to current usage at 7/31/2018
+# You can modify the rules from these initially generated values to suit your own policies
+# You can learn more about editorconfig here: https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-code-style-settings-reference
+[*.cs]
+
+#Core editorconfig formatting - indentation
+
+#use hard tabs for indentation
+indent_style = tab
+
+#Formatting - new line options
+
+#require braces to be on a new line for control_blocks, types, methods, and object_collection (also known as "Allman" style)
+csharp_new_line_before_open_brace = control_blocks, types, methods, object_collection
+
+#Formatting - organize using options
+
+#Place System.* using directives before other using directives
+dotnet_sort_system_directives_first = true
+
+#Formatting - spacing options
+
+#require NO space between a cast and the value
+csharp_space_after_cast = false
+#require a space before the colon for bases or interfaces in a type declaration
+csharp_space_after_colon_in_inheritance_clause = true
+#require a space after a keyword in a control flow statement such as a for loop
+csharp_space_after_keywords_in_control_flow_statements = true
+#require a space before the colon for bases or interfaces in a type declaration
+csharp_space_before_colon_in_inheritance_clause = true
+#remove space within empty argument list parentheses
+csharp_space_between_method_call_empty_parameter_list_parentheses = false
+#remove space between method call name and opening parenthesis
+csharp_space_between_method_call_name_and_opening_parenthesis = false
+#do not place space characters after the opening parenthesis and before the closing parenthesis of a method call
+csharp_space_between_method_call_parameter_list_parentheses = false
+#remove space within empty parameter list parentheses for a method declaration
+csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
+#place a space character after the opening parenthesis and before the closing parenthesis of a method declaration parameter list.
+csharp_space_between_method_declaration_parameter_list_parentheses = false
+
+#Formatting - wrapping options
+
+#leave code block on single line
+csharp_preserve_single_line_blocks = true
+#leave statements and member declarations on the same line
+csharp_preserve_single_line_statements = true
+
+#Style - expression bodied member options
+
+#prefer block bodies for constructors
+csharp_style_expression_bodied_constructors = false:suggestion
+#prefer block bodies for methods
+csharp_style_expression_bodied_methods = when_on_single_line:suggestion
+
+#Style - expression level options
+
+#prefer out variables to be declared inline in the argument list of a method call when possible
+csharp_style_inlined_variable_declaration = true:suggestion
+#prefer the language keyword for member access expressions, instead of the type name, for types that have a keyword to represent them
+dotnet_style_predefined_type_for_member_access = true:warning
+
+#Style - implicit and explicit types
+
+#prefer var is used to declare variables with built-in system types such as int
+csharp_style_var_for_built_in_types = true:suggestion
+#prefer var when the type is already mentioned on the right-hand side of a declaration expression
+csharp_style_var_when_type_is_apparent = true:suggestion
+
+#Style - language keyword and framework type options
+
+#prefer the language keyword for local variables, method parameters, and class members, instead of the type name, for types that have a keyword to represent them
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+
+#Style - qualification options
+
+#prefer fields not to be prefaced with this. or Me. in Visual Basic
+dotnet_style_qualification_for_field = false:suggestion
+#prefer methods not to be prefaced with this. or Me. in Visual Basic
+dotnet_style_qualification_for_method = false:suggestion
+#prefer properties not to be prefaced with this. or Me. in Visual Basic
+dotnet_style_qualification_for_property = false:suggestion
+dotnet_style_qualification_for_event = false:suggestion
+
+
+# NAMING CONVENTIONS
+
+#Classes, Interfaces: Pascal
+dotnet_naming_rule.types.severity = warning
+dotnet_naming_rule.types.symbols = types_def
+dotnet_naming_rule.types.style = types_style
+
+dotnet_naming_symbols.types_def.applicable_kinds = class, struct, interface, enum
+dotnet_naming_symbols.types_def.applicable_accessibilities = *
+
+dotnet_naming_style.types_style.capitalization = pascal_case
+
+#Methods: Pascal
+dotnet_naming_rule.methods.severity = warning
+dotnet_naming_rule.methods.symbols = methods_def
+dotnet_naming_rule.methods.style = methods_style
+
+dotnet_naming_symbols.methods_def.applicable_kinds = method
+dotnet_naming_symbols.methods_def.applicable_accessibilities = *
+
+dotnet_naming_style.methods_style.capitalization = pascal_case
+
+#Local variables: Camel
+dotnet_naming_rule.locals.severity = warning
+dotnet_naming_rule.locals.symbols = locals_def
+dotnet_naming_rule.locals.style = locals_style
+
+dotnet_naming_symbols.locals_def.applicable_kinds = local, local_function
+
+dotnet_naming_style.locals_style.capitalization = camel_case
+
+#Method argumens: Camel
+dotnet_naming_rule.method_arguments.severity = warning
+dotnet_naming_rule.method_arguments.symbols = method_arguments_def
+dotnet_naming_rule.method_arguments.style = method_arguments_style
+
+dotnet_naming_symbols.method_arguments_def.applicable_kinds = parameter
+
+dotnet_naming_style.method_arguments_style.capitalization = camel_case
+
+#private member variables: camel, underscore prefix
+
+dotnet_naming_rule.private_member_variables.severity = warning
+dotnet_naming_rule.private_member_variables.symbols = private_member_variables_def
+dotnet_naming_rule.private_member_variables.style = private_member_variables_style
+
+dotnet_naming_symbols.private_member_variables_def.applicable_kinds = field, delegate, event
+dotnet_naming_symbols.private_member_variables_def.applicable_accessibilities = private
+
+dotnet_naming_style.private_member_variables_style.capitalization = camel_case
+dotnet_naming_style.private_member_variables_style.required_prefix = _
+
+#private constants: All caps, underscore-seperated, underscore-prefix
+
+dotnet_naming_rule.private_constants.severity = warning
+dotnet_naming_rule.private_constants.symbols = private_constants_def
+dotnet_naming_rule.private_constants.style = private_constants_style
+
+dotnet_naming_symbols.private_constants_def.applicable_kinds = field
+dotnet_naming_symbols.private_constants_def.applicable_accessibilities = private
+dotnet_naming_symbols.private_constants_def.required_modifiers = const
+
+dotnet_naming_style.private_constants_style.capitalization = all_upper
+dotnet_naming_style.private_constants_style.word_separator = _
+dotnet_naming_style.private_constants_style.required_prefix = _
+
+
+#Non-private Constants: All caps, underscore-seperated, no prefix
+
+dotnet_naming_rule.non_private_constants.severity = warning
+dotnet_naming_rule.non_private_constants.symbols = non_private_constants_def
+dotnet_naming_rule.non_private_constants.style = non_private_constants_style
+
+dotnet_naming_symbols.non_private_constants_def.applicable_kinds = field
+dotnet_naming_symbols.non_private_constants_def.applicable_accessibilities = public, protected, internal
+dotnet_naming_symbols.non_private_constants_def.required_modifiers = const
+
+dotnet_naming_style.non_private_constants_style.capitalization = all_upper
+dotnet_naming_style.non_private_constants_style.word_separator = _

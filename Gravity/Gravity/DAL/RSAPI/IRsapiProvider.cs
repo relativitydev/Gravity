@@ -11,6 +11,7 @@ namespace Gravity.DAL.RSAPI
 {
 	public interface IRsapiProvider
 	{
+		void ClearFile(int fieldId, int objectArtifactId);
 		WriteResultSet<RDO> Create(params RDO[] artifacts);
 		WriteResultSet<RDO> Create(List<RDO> artifacts);
 		int CreateSingle(RDO artifact);
@@ -20,7 +21,7 @@ namespace Gravity.DAL.RSAPI
 		WriteResultSet<RDO> Delete(List<int> artifactIDs);
 		void DeleteSingle(Guid artifactGuid);
 		void DeleteSingle(int artifactID);
-		KeyValuePair<DownloadResponse, Stream> DownloadFile(int fieldId, int objectArtifactId);
+		Tuple<FileMetadata, MemoryStream> DownloadFile(int fieldId, int objectArtifactId);
 		WriteResultSet<RDO> MassCreate(RDO templateArtifact, List<RDO> artifacts);
 		WriteResultSet<RDO> MassEdit(RDO templateArtifact, List<int> artifactIDs);
 
@@ -39,6 +40,6 @@ namespace Gravity.DAL.RSAPI
 		WriteResultSet<RDO> Update(params RDO[] artifacts);
 		WriteResultSet<RDO> Update(List<RDO> artifacts);
 		void UpdateSingle(RDO artifact);
-		void UploadFile(RelativityFile relativityFile, int parentId, string fileName);
+		void UploadFile(int fieldId, int parentId, string fileName);
 	}
 }

@@ -1,4 +1,4 @@
-﻿using Gravity.DAL.RSAPI;
+using Gravity.DAL.RSAPI;
 using Relativity.API;
 using System;
 using System.Collections.Generic;
@@ -10,36 +10,36 @@ using Gravity.Base;
 using kCura.Relativity.Client.DTOs;
 using System.Reflection;
 using Gravity.Extensions;
+using Gravity.DAL.SQL;
 
 namespace Gravity.Test.Helpers
 {
-    public class TestObjectHelper
-    {
-        IServicesMgr _servicesManager;
-        int _workspaceId;
-        private InvokeWithRetrySettings _retrySettings;
+	public class TestObjectHelper
+	{
+		IServicesMgr _servicesManager;
+		int _workspaceId;
+		private InvokeWithRetrySettings _retrySettings;
+		IDBContext _workspaceDBContext;
+		IDBContext _eddsDBContext;
 
-        public TestObjectHelper(IServicesMgr servicesManager, int workspaceId, int numberOfRetrySettings)
-        {
-            _servicesManager = servicesManager;
-            _workspaceId = workspaceId;
-            _retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
-        }
+		public TestObjectHelper(IServicesMgr servicesManager, int workspaceId, IDBContext workspaceDBContext, IDBContext eddsDBContext, int numberOfRetrySettings)
+		{
+			_servicesManager = servicesManager;
+			_workspaceId = workspaceId;
+			_retrySettings = new InvokeWithRetrySettings(numberOfRetrySettings, 1000);
+			_workspaceDBContext = workspaceDBContext;
+			_eddsDBContext = eddsDBContext;
+		}
 
-        public int CreateTestObjectWithGravity<T>(T testObject) where T : BaseDto
-        {
-            RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
+		public RsapiDao GetDao()
+		{
+			return new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
+		}
 
-            int testDtoId = gravityRsapiDao.Insert(testObject);
-
-            return testDtoId;
-        }
-
-        public T ReturnTestObjectWithGravity<T>(int artifactId) where T : BaseDto, new()
-        {
-            RsapiDao gravityRsapiDao = new RsapiDao(_servicesManager, _workspaceId, ExecutionIdentity.System, _retrySettings);
-            return gravityRsapiDao.Get<T>(artifactId,ObjectFieldsDepthLevel.FirstLevelOnly);
-        }
+		public SqlDao GetSqlDao()
+		{
+			return new SqlDao(_workspaceDBContext, _eddsDBContext, _retrySettings);
+		}
 
 		public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto
 		{
@@ -51,5 +51,8 @@ namespace Gravity.Test.Helpers
 
 			return stubRdo;
 		}
+
+		public static Guid FieldGuid<T>(string fieldName)
+			=> typeof(T).GetProperty(fieldName).GetCustomAttribute<RelativityObjectFieldAttribute>().FieldGuid;
 	}
 }

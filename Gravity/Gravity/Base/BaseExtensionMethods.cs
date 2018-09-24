@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -39,9 +40,9 @@ namespace Gravity.Base
 			return expression(attribute);
 		}
 
-		public static String GetEnumDescriptionAttributeValue(this Enum enumeration) 
-		{ 
-			return enumeration.GetAttributeValue<DescriptionAttribute, String>(x => x.Description); 
+		public static string GetEnumDescriptionAttributeValue(this Enum enumeration)
+		{
+			return enumeration.GetAttributeValue<DescriptionAttribute, String>(x => x.Description);
 		}
 
 		public static string GetPropertyName<T>(Expression<Func<T, object>> expression)
@@ -54,21 +55,32 @@ namespace Gravity.Base
 		public static TAttribute GetCustomAttribute<TAttribute>(this BaseDto obj, string propertyName) where TAttribute : Attribute
 		{
 			TAttribute fieldAttribute = obj.GetType().GetPublicProperties()
-	            .SingleOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
-	            .GetCustomAttribute<TAttribute>();
-	        return fieldAttribute;
-	    }
+				.SingleOrDefault(property => property.Name.Equals(propertyName, StringComparison.OrdinalIgnoreCase))?
+				.GetCustomAttribute<TAttribute>();
+			return fieldAttribute;
+		}
 
 		public static TAttribute GetObjectLevelCustomAttribute<TAttribute>(this BaseDto obj) where TAttribute : Attribute
 		{
 			TAttribute fieldAttribute = obj.GetType().GetCustomAttribute<TAttribute>();
-	        return fieldAttribute;
-	    }
-       
-        public static void SetValueByPropertyName(this object input, string propertyName, object value)
+			return fieldAttribute;
+		}
+
+		public static void SetValueByPropertyName(this object input, string propertyName, object value)
 		{
 			PropertyInfo prop = input.GetType().GetProperty(propertyName, BindingFlags.Instance | BindingFlags.Public);
 			prop.SetValue(input, value);
+		}
+
+		public static IList MakeGenericList(IEnumerable items, Type type)
+		{
+			var listType = typeof(List<>).MakeGenericType(type);
+			IList returnList = (IList)Activator.CreateInstance(listType);
+			foreach (var item in items)
+			{
+				returnList.Add(item);
+			}
+			return returnList;
 		}
 	}
 }
