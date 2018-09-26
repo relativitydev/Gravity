@@ -38,7 +38,7 @@ namespace Gravity.Test.Helpers
 
 		public SqlDao GetSqlDao()
 		{
-			return new SqlDao(_workspaceDBContext, _eddsDBContext, _retrySettings);
+			return new SqlDao(_workspaceDBContext, _eddsDBContext, _workspaceId, _retrySettings);
 		}
 
 		public static RDO GetStubRDO<T>(int artifactId) where T : BaseDto
