@@ -278,7 +278,7 @@ namespace Gravity.Test.Integration
 
 					LogStart("Asserting");
 
-					Assert.AreEqual(updateContent ? "TestFile2.txt" : "TestFile.txt", returnFile.FileName); //name update ignore if bytes not updated
+					Assert.AreEqual(replaceExistingObject ? "TestFile2.txt" : "TestFile.txt", returnFile.FileName); //name update ignore if bytes not updated
 					Assert.AreEqual(updateContent ? 66 : 65, returnFile.ByteArray.Single());
 
 					LogEnd("Asserting");
