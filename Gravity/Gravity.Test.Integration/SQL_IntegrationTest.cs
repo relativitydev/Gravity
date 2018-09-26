@@ -22,7 +22,7 @@ namespace Gravity.Test.Integration
 		[SetUp]
 		public void SqlDaoSetup()
 		{
-			sqlDao = new SqlDao(_dbContext, _eddsDbContext, null);
+			sqlDao = new SqlDao(_dbContext, _eddsDbContext, _workspaceId);
 		}
 
 		[Test, Description("SqlDao: Verify RelativityObject field read correctly using Gravity"),

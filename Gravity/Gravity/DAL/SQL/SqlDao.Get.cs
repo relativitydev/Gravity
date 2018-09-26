@@ -160,7 +160,7 @@ namespace Gravity.DAL.SQL
 						if (singleObjectArtifactId == 0)
 							return null;
 
-						this.InvokeGenericMethod(objectType, nameof(GetSingleChildObjectBasedOnDepthLevelByArtifactId), singleObjectArtifactId, depthLevel);
+						returnObj = this.InvokeGenericMethod(objectType, nameof(Get), singleObjectArtifactId, depthLevel);
 						break;
 
 					case RdoFieldType.User:
@@ -388,7 +388,7 @@ namespace Gravity.DAL.SQL
 		private T GetChoiceValueByArtifactId<T>(int choiceArtifactId)
 		{
 			return choiceArtifactId > 0 ? 
-				this.GetChoicesValuesByArtifactIds<T>(new List<int>() { choiceArtifactId }).Single()
+				GetChoicesValuesByArtifactIds<T>(new List<int>() { choiceArtifactId }).Single()
 				: default(T);
 		}
 
@@ -398,17 +398,10 @@ namespace Gravity.DAL.SQL
 
 			foreach (int artifactId in multipleObjectsArtifactIds)
 			{
-				multipleObjectsList.Add(this.GetSingleChildObjectBasedOnDepthLevelByArtifactId<T>(artifactId, depthLevel));
+				multipleObjectsList.Add(Get<T>(artifactId, depthLevel));
 			}
 
 			return multipleObjectsList;
-		}
-
-		private T GetSingleChildObjectBasedOnDepthLevelByArtifactId<T>(int artifactId, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new()
-		{
-			return depthLevel != ObjectFieldsDepthLevel.OnlyParentObject ?
-				this.Get<T>(artifactId, depthLevel)
-				: new T() { ArtifactId = artifactId };
 		}
 
 		private DataTable GetDtTable<T>(int artifactId) where T : BaseDto
