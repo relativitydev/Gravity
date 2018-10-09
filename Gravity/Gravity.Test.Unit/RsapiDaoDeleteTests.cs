@@ -1,5 +1,6 @@
 ﻿using Gravity.Base;
 using Gravity.DAL.RSAPI;
+using Gravity.DAL.RSAPI.Tests;
 using Gravity.Test.Helpers;
 using Gravity.Test.TestClasses;
 using kCura.Relativity.Client;
@@ -15,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Gravity.Test.Unit
 {
-	public class RsapiDaoDeleteTests
+	public class RsapiDaoDeleteTests : MockedRsapiProviderTestBase
 	{
 		//NUT: not unit testable
 
@@ -24,14 +25,6 @@ namespace Gravity.Test.Unit
 		const int level2Id_2 = 20;
 		const int level3Id_1 = 30;
 		const int level3Id_2 = 40;
-
-		Mock<IRsapiProvider> mockProvider;
-
-		[SetUp]
-		public void Init()
-		{
-			mockProvider = new Mock<IRsapiProvider>(MockBehavior.Strict);
-		}
 
 		[Test]
 		public void Delete_NoRecursion_NoChildObjects()
@@ -68,6 +61,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Delete_LevelOneRecursion_LevelTwoObjects()
 		{
 			//fails if has nested child objects
@@ -95,14 +89,14 @@ namespace Gravity.Test.Unit
 
 		private void SetupDelete(int[] artifactIds)
 		{
-			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(
+			rsapiProvider.Setup(x => x.Delete(It.Is<List<int>>(
 				y => new HashSet<int>(y).SetEquals(artifactIds))))
 			.Returns(new WriteResultSet<RDO> { Success = true });
 		}
 
 		private void SetupQuery<T>(int parentArtifactId, int[] resultArtifactIds) where T: BaseDto
 		{
-			mockProvider.Setup(x =>
+			rsapiProvider.Setup(x =>
 				x.Query(It.Is<Query<RDO>>(
 					y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<T>()
 						&& ((WholeNumberCondition)y.Condition).Value.Single() == parentArtifactId)))
@@ -110,6 +104,6 @@ namespace Gravity.Test.Unit
 		}
 
 		private void ExecuteDelete(ObjectFieldsDepthLevel depthLevel)
-			=> new RsapiDao(mockProvider.Object, null).Delete<GravityLevelOne>(rootId, depthLevel);
+			=> new RsapiDao(rsapiProvider.Object, null).Delete<GravityLevelOne>(rootId, depthLevel);
 	}
 }

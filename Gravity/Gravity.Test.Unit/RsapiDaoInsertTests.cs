@@ -23,20 +23,13 @@ using RdoCondition = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 using static Gravity.Test.Helpers.TestObjectHelper;
 using Gravity.Utils;
 using Gravity.Globals;
+using Gravity.DAL.RSAPI.Tests;
 
 namespace Gravity.Test.Unit
 {
-	public class RsapiDaoInsertTests
+	public class RsapiDaoInsertTests : MockedRsapiProviderTestBase
 	{
 		private const int FileFieldId = 44;
-		Mock<IRsapiProvider> mockProvider;
-
-		[SetUp]
-		public void Init()
-		{
-			//ensure fail if method not defined
-			mockProvider = new Mock<IRsapiProvider>(MockBehavior.Strict);
-		}
 
 		[Test]
 		public void Insert_SimpleFields()
@@ -175,6 +168,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Insert_ExistingSingleObject_DontInsertChildren()
 		{
 			const int g2Id = 20;
@@ -273,6 +267,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Insert_ExistingMultipleObject_DontInsertChildren()
 		{
 			const int g2aId = 20;
@@ -369,14 +364,14 @@ namespace Gravity.Test.Unit
 		void InsertObject(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
 		{
 			SetupInsertManyCondition(x => x.Count == 1 && rootCondition(x.Single()), 10);
-			var insertedId = new RsapiDao(mockProvider.Object, null).Insert(objectToInsert, depthLevel);
+			var insertedId = new RsapiDao(rsapiProvider.Object, null).Insert(objectToInsert, depthLevel);
 			Assert.AreEqual(10, insertedId);
 			Assert.AreEqual(10, objectToInsert.ArtifactId);
 		}
 
 		public void SetupInsertManyCondition(Func<List<RDO>, bool> condition, params int[] resultIds)
 		{
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
 				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
 		}
@@ -385,17 +380,17 @@ namespace Gravity.Test.Unit
 		{
 			SetupInsertManyCondition(x => x.Count == 1 && rootCondition(x.Single()), 10);
 
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
 				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
 
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.UploadFile(FileFieldId, 10,
 					Path.Combine(Path.GetTempPath(), "ByteArrayFileDto")));
 
 			InvokeWithRetrySettings invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts,
 				SharedConstants.sleepTimeInMiliseconds);
-			var insertedId = new RsapiDao(mockProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings))
+			var insertedId = new RsapiDao(rsapiProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings))
 				.Insert(objectToInsert, depthLevel);
 			Assert.AreEqual(10, insertedId);
 			Assert.AreEqual(10, objectToInsert.ArtifactId);
