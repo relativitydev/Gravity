@@ -37,6 +37,15 @@ namespace Gravity.DAL.RSAPI
 
 		}
 
+		public void Delete<T>(IList<int> artifactIds, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new()
+		{
+			foreach (var artifactId in artifactIds)
+			{
+				Delete<T>(artifactId, depthLevel);
+			}
+		}
+
 		internal void PopulateArtifactsToDeleteList<T>(
 			List<Tuple<int, int>> artifactsToDeleteList,
 			int maxRecursionLevel,
