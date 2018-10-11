@@ -94,13 +94,13 @@ namespace Gravity.DAL.RSAPI
 					nameof(GetAllChildIds), 
 					objectsToUpdate.Select(x => x.ArtifactId).ToArray());
 
-				//TODO: replace with bulk delete call
-				foreach (var artifactId in existingChildren.Except(childObjectsToUpdate.Select(x => x.ArtifactId)))
-				{
-					this.InvokeGenericMethod(childType, nameof(Delete), new object[] {
-						artifactId,
-						recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject });
-				}
+				var deletableChildren = existingChildren
+					.Except(childObjectsToUpdate.Select(x => x.ArtifactId))
+					.ToList();
+
+				this.InvokeGenericMethod(childType, nameof(Delete), new object[] {
+					deletableChildren,
+					recursive ? ObjectFieldsDepthLevel.FullyRecursive : ObjectFieldsDepthLevel.OnlyParentObject });
 			}
 		}
 

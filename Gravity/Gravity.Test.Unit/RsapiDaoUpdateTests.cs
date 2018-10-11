@@ -499,7 +499,7 @@ namespace Gravity.Test.Unit
 
 			SetupChildQuery(g2caId, g2cbId);
 			SetupDeleteChild();
-			SetupMultipleLevelChildQuery(g2caId,g2cbId);
+			SetupMultipleLevelChildQuery();
 			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2caExpression(x[0]));
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
 			mockProvider.Setup(x => x.ReadSingle(g2ccId)).Returns(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
