@@ -1,4 +1,4 @@
-﻿using kCura.Relativity.Client;
+using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -122,10 +122,10 @@ namespace Gravity.DAL.RSAPI
 				case ObjectFieldsDepthLevel.OnlyParentObject:
 					break;
 				case ObjectFieldsDepthLevel.FirstLevelOnly:
-					PopulateChildrenRecursively<T>(dto, objectRdo, ObjectFieldsDepthLevel.OnlyParentObject);
+					PopulateChildrenRecursively(dto, objectRdo, ObjectFieldsDepthLevel.OnlyParentObject);
 					break;
 				case ObjectFieldsDepthLevel.FullyRecursive:
-					PopulateChildrenRecursively<T>(dto, objectRdo, ObjectFieldsDepthLevel.FullyRecursive);
+					PopulateChildrenRecursively(dto, objectRdo, ObjectFieldsDepthLevel.FullyRecursive);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(depthLevel));
@@ -186,21 +186,21 @@ namespace Gravity.DAL.RSAPI
 		}
 
 
-		internal void PopulateChildrenRecursively<T>(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
+		internal void PopulateChildrenRecursively<T>(T baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto
 		{
-			foreach (var objectPropertyInfo in baseDto.GetType().GetPublicProperties())
+			foreach (var objectPropertyInfo in typeof(T).GetPublicProperties())
 			{
-				var childValue = GetChildObjectRecursively(baseDto, objectRdo, depthLevel, objectPropertyInfo);
+				var childValue = getChildObjectRecursively(objectPropertyInfo);
 				if (childValue != null)
 				{
 					objectPropertyInfo.SetValue(baseDto, childValue);
 				}
 			}
-		}
 
-		private object GetChildObjectRecursively(BaseDto baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel, PropertyInfo property)
-		{
-			var relativityObjectFieldAttibute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
+			object getChildObjectRecursively(PropertyInfo property)
+			{
+				var relativityObjectFieldAttibute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
 
 			if (relativityObjectFieldAttibute != null)
 			{
@@ -249,7 +249,10 @@ namespace Gravity.DAL.RSAPI
 			}
 
 			
-			return null;
+				return null;
+			}
 		}
+
+		
 	}
 }
