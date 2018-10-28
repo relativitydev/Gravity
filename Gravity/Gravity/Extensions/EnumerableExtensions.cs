@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Gravity.Extensions
 {
-	public static class CollectionsExtensions
+	public static class EnumerableExtensions
 	{
 		public static Type HeuristicallyDetermineType(this IList myList)
 		{
@@ -22,6 +22,11 @@ namespace Gravity.Extensions
 				return null;
 
 			return myList[0].GetType();
+		}
+
+		public static IEnumerable<T> ExceptSingle<T>(this IEnumerable<T> enumerable, T item)
+		{
+			return Enumerable.Except(enumerable, new[] { item });
 		}
 	}
 }
