@@ -1,4 +1,4 @@
-using kCura.Relativity.Client;
+﻿using kCura.Relativity.Client;
 using kCura.Relativity.Client.DTOs;
 using System;
 using System.Collections;
@@ -11,6 +11,7 @@ using System.Runtime.CompilerServices;
 using Gravity.Base;
 using Gravity.Exceptions;
 using Gravity.Extensions;
+using Artifact = kCura.Relativity.Client.DTOs.Artifact;
 
 namespace Gravity.DAL.RSAPI
 {
@@ -67,7 +68,7 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			IEnumerable<RDO> objectsRdos = GetRdos<T>(queryCondition);
-			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel));
+			return GetHydratedDTOs<T>(objectsRdos.ToList(), depthLevel);
 		}
 
 		private List<int> GetAllChildIds<T>(params int[] parentArtifactIDs) where T : BaseDto
@@ -100,38 +101,41 @@ namespace Gravity.DAL.RSAPI
 			where T : BaseDto, new()
 		{
 			List<RDO> objectsRdos = GetRdos(artifactIDs.ToArray());
-			return objectsRdos.Select(rdo => GetHydratedDTO<T>(rdo, depthLevel)).ToList();
+			return GetHydratedDTOs<T>(objectsRdos.ToList(), depthLevel);
 		}
 
 		public T Get<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			RDO objectRdo = GetRdo(artifactID);
-
-			return GetHydratedDTO<T>(objectRdo, depthLevel);
+			return Get<T>(new[] { artifactID }, depthLevel).Single();
 		}
 
-		private T GetHydratedDTO<T>(RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
+		private List<T> GetHydratedDTOs<T>(List<RDO> objectRdos, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
-			T dto = objectRdo.ToHydratedDto<T>();
-			PopulateChoices(dto, objectRdo);
-			PopulateFiles(dto, objectRdo);
+
+			var pairings = objectRdos.Select(objectRdo => {
+				var dto = objectRdo.ToHydratedDto<T>();
+				PopulateChoices(dto, objectRdo);
+				PopulateFiles(dto, objectRdo);
+				return Tuple.Create(dto, objectRdo);
+			}).ToList();
+
 			switch (depthLevel)
 			{
 				case ObjectFieldsDepthLevel.OnlyParentObject:
 					break;
 				case ObjectFieldsDepthLevel.FirstLevelOnly:
-					PopulateChildrenRecursively(dto, objectRdo, ObjectFieldsDepthLevel.OnlyParentObject);
+					PopulateChildrenRecursively(pairings, ObjectFieldsDepthLevel.OnlyParentObject);
 					break;
 				case ObjectFieldsDepthLevel.FullyRecursive:
-					PopulateChildrenRecursively(dto, objectRdo, ObjectFieldsDepthLevel.FullyRecursive);
+					PopulateChildrenRecursively(pairings, ObjectFieldsDepthLevel.FullyRecursive);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(depthLevel));
 			}
 
-			return dto;
+			return pairings.Select(x => x.Item1).ToList();
 		}
 
 		private void PopulateChoices(BaseDto dto, RDO objectRdo)
@@ -185,78 +189,134 @@ namespace Gravity.DAL.RSAPI
 			}
 		}
 
-
-		internal void PopulateChildrenRecursively<T>(T baseDto, RDO objectRdo, ObjectFieldsDepthLevel depthLevel)
+		internal void PopulateChildrenRecursively<T>(
+				List<Tuple<T,RDO>> pairings, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto
 		{
+			var baseArtifactIds = pairings.Select(x => x.Item1.ArtifactId).ToList();
+			var objectRdos = pairings.Select(x => x.Item2).ToList();
+			
 			foreach (var objectPropertyInfo in typeof(T).GetPublicProperties())
 			{
-				var childValue = getChildObjectRecursively(objectPropertyInfo);
-				if (childValue != null)
+				var childValues = GetAssociatedObjects(objectRdos, objectPropertyInfo, depthLevel) 
+					?? GetChildObjects(baseArtifactIds, objectPropertyInfo, depthLevel);
+
+				if (childValues == null)
 				{
-					objectPropertyInfo.SetValue(baseDto, childValue);
+					continue;
 				}
+				
+				foreach (var (baseDto, _) in pairings)
+				{
+					if (childValues.TryGetValue(baseDto.ArtifactId, out var val) && val != null)
+					{
+						objectPropertyInfo.SetValue(baseDto, val);
+					}
+				}
+			}			
+		}
+
+		IDictionary<int, object> GetAssociatedObjects(List<RDO> objectRdos, PropertyInfo property, ObjectFieldsDepthLevel depthLevel)
+		{
+			var relativityObjectFieldAttibute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
+
+			if (relativityObjectFieldAttibute?.FieldType == RdoFieldType.MultipleObject)
+			{
+				return GetMultipleObjects();
 			}
 
-			object getChildObjectRecursively(PropertyInfo property)
+			if (relativityObjectFieldAttibute?.FieldType == RdoFieldType.SingleObject)
 			{
-				var relativityObjectFieldAttibute = property.GetCustomAttribute<RelativityObjectFieldAttribute>();
-				
-				if (relativityObjectFieldAttibute?.FieldType == RdoFieldType.MultipleObject)
-				{
-					return GetMultipleObjects();
-				}
+				return GetSingleObject();
+			}
 
-				if (relativityObjectFieldAttibute?.FieldType == RdoFieldType.SingleObject)
-				{
-					return GetSingleObject();
-				}
+			return null;
 
-				if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() != null)
-				{
-					return GetChildObjects();
-				}
+			IDictionary<int, object> GetMultipleObjects()
+			{
+				Type objectType = property.PropertyType.GetEnumerableInnerType();
 
-				return null;
-
-				object GetMultipleObjects()
-				{
-					Type objectType = property.PropertyType.GetEnumerableInnerType();
-
-					int[] childArtifactIds = objectRdo[relativityObjectFieldAttibute.FieldGuid]
-						.GetValueAsMultipleObject<kCura.Relativity.Client.DTOs.Artifact>()
+				var rootObjectsDict = objectRdos.ToDictionary(
+					objectRdo => objectRdo.ArtifactID,
+					objectRdo => objectRdo[relativityObjectFieldAttibute.FieldGuid]
+						.GetValueAsMultipleObject<Artifact>()
 						.Select(artifact => artifact.ArtifactID)
-						.ToArray();
+						.ToArray()
+					);
 
-					var allObjects = this.InvokeGenericMethod(objectType, nameof(Get), childArtifactIds, depthLevel) as IEnumerable;
+				var distinctMultiObjIds = rootObjectsDict
+					.SelectMany(x => x.Value)
+					.ExceptSingle(0)
+					.Distinct()
+					.ToList();
 
-					return BaseExtensionMethods.MakeGenericList(allObjects, objectType);
-				}
+				var multiObjDict = this.InvokeGenericMethod<IEnumerable>(
+						objectType,
+						nameof(Get),
+						distinctMultiObjIds,
+						depthLevel)
+					.Cast<BaseDto>()
+					.ToDictionary(x => x.ArtifactId);
 
-				object GetSingleObject()
-				{
-					var childArtifact = objectRdo[relativityObjectFieldAttibute.FieldGuid].ValueAsSingleObject;
-					if (childArtifact == null || childArtifact.ArtifactID == 0)
-					{
-						return null;
+				return rootObjectsDict.ToDictionary(
+					x => x.Key,
+					x => {
+						var childObjects = x.Value.Select(y => multiObjDict[y]);
+						return (object)BaseExtensionMethods.MakeGenericList(childObjects, objectType);
 					}
+				);
+			}
 
-					var objectType = property.PropertyType;
-					var childArtifactId = childArtifact.ArtifactID;
-					return this.InvokeGenericMethod(objectType, nameof(Get), childArtifactId, depthLevel);
-				}
+			IDictionary<int, object> GetSingleObject()
+			{
+				var objectType = property.PropertyType;
 
-				object GetChildObjects()
-				{
-					var childType = property.PropertyType.GetEnumerableInnerType();
+				var rootObjectsDict = objectRdos.ToDictionary(
+					objectRdo => objectRdo.ArtifactID,
+					objectRdo =>
+						objectRdo[relativityObjectFieldAttibute.FieldGuid].ValueAsSingleObject?.ArtifactID ?? 0);
 
-					var allChildObjects = this.InvokeGenericMethod(childType, nameof(GetAllChildDTOs), baseDto.ArtifactId, depthLevel) as IEnumerable;
+				var distinctSingleObjs = rootObjectsDict.Select(x => x.Value).ExceptSingle(0).Distinct().ToList();
 
-					return BaseExtensionMethods.MakeGenericList(allChildObjects, childType);
-				}
+				var singleObjDict = this.InvokeGenericMethod<IEnumerable>(
+						objectType,
+						nameof(Get),
+						distinctSingleObjs,
+						depthLevel)
+					.Cast<BaseDto>()
+					.ToDictionary(x => x.ArtifactId);
+				singleObjDict.Add(0, null);
+
+				return rootObjectsDict.ToDictionary(
+						x => x.Key,
+						x => (object)singleObjDict[x.Value]);
 			}
 		}
 
 
+		IDictionary<int, object> GetChildObjects(List<int> baseArtifactIds, PropertyInfo property, ObjectFieldsDepthLevel depthLevel)
+		{
+			if (property.GetCustomAttribute<RelativityObjectChildrenListAttribute>() == null)
+			{
+				return null;
+			}
+
+			var childType = property.PropertyType.GetEnumerableInnerType();
+
+			var (parentProp, parentAttribute) = childType
+				.GetPropertyAttributeTuples<RelativityObjectFieldParentArtifactIdAttribute>()
+				.First();
+
+			var parentCondition = new WholeNumberCondition(parentAttribute.FieldGuid, NumericConditionEnum.In, baseArtifactIds);
+
+			return this.InvokeGenericMethod<IEnumerable>(
+				childType, nameof(Query), parentCondition, depthLevel)
+			.Cast<BaseDto>()
+			.ToLookup(x => (int)parentProp.GetValue(x))
+			.ToDictionary(
+				x => x.Key,
+				x => (object)BaseExtensionMethods.MakeGenericList(x, childType)
+			);
+		}
 	}
 }
