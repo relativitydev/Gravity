@@ -100,7 +100,7 @@ dotnet_naming_rule.methods.severity = warning
 dotnet_naming_rule.methods.symbols = methods_def
 dotnet_naming_rule.methods.style = methods_style
 
-dotnet_naming_symbols.methods_def.applicable_kinds = method
+dotnet_naming_symbols.methods_def.applicable_kinds = method, local_function
 dotnet_naming_symbols.methods_def.applicable_accessibilities = *
 
 dotnet_naming_style.methods_style.capitalization = pascal_case
@@ -110,7 +110,7 @@ dotnet_naming_rule.locals.severity = warning
 dotnet_naming_rule.locals.symbols = locals_def
 dotnet_naming_rule.locals.style = locals_style
 
-dotnet_naming_symbols.locals_def.applicable_kinds = local, local_function
+dotnet_naming_symbols.locals_def.applicable_kinds = local
 
 dotnet_naming_style.locals_style.capitalization = camel_case
 
