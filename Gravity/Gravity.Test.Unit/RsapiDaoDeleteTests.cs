@@ -93,9 +93,9 @@ namespace Gravity.Test.Unit
 
 		private void SetupDelete(int[] artifactIds)
 		{
-			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(
-				y => new HashSet<int>(y).SetEquals(artifactIds))))
-			.Returns(new WriteResultSet<RDO> { Success = true });
+			mockProvider
+				.Setup(x => x.Delete(It.Is<List<int>>(y => y.IsEquivalent(artifactIds))))
+				.ReturnsResultSet();
 		}
 
 		private void SetupQuery<T>(int parentArtifactId, int[] resultArtifactIds) where T : BaseDto
@@ -103,11 +103,10 @@ namespace Gravity.Test.Unit
 
 		private void SetupQuery<T>(int[] parentArtifactIds, int[] resultArtifactIds) where T : BaseDto
 		{
-			mockProvider.Setup(x =>
-				x.Query(It.Is<Query<RDO>>(
-					y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<T>()
-						&& new HashSet<int>(parentArtifactIds).SetEquals(((WholeNumberCondition)y.Condition).Value))))
-				.ReturnsResultSet(resultArtifactIds.Select(y => new RDO(y)));
+			mockProvider.Setup(x =>	x.Query(It.Is<Query<RDO>>(
+				y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<T>()
+					&& ((WholeNumberCondition)y.Condition).Value.IsEquivalent(parentArtifactIds)
+				))).ReturnsResultSet(resultArtifactIds.Select(y => new RDO(y)));
 		}
 
 		private void ExecuteDelete(ObjectFieldsDepthLevel depthLevel)

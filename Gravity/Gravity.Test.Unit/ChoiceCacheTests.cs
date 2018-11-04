@@ -108,7 +108,7 @@ namespace Gravity.DAL.RSAPI.Tests
 
 		internal static Expression<Func<IRsapiProvider, ResultSet<RDO>>> SetupExpr(IEnumerable<Guid> guids)
 		{
-			return z => z.Read(It.Is<List<RDO>>(x => new HashSet<Guid>(guids).SetEquals(x.Select(y => y.Guids.Single()))));
+			return z => z.Read(It.Is<List<RDO>>(x => x.Select(y => y.Guids.Single()).IsEquivalent(guids)));
 		}
 
 		internal static IEnumerable<RDO> GetResults(List<Guid> choiceGuids, int offset)

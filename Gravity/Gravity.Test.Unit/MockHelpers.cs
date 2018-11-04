@@ -13,6 +13,8 @@ namespace Gravity.DAL.RSAPI.Tests
 {
 	public static class MockHelpers
 	{
+		#region ResultSet stuff
+
 		private static T ToSuccessResultSet<T>(this IEnumerable<RDO> rdos) where T : ResultSet<RDO>, new()
 		{
 			return new T {
@@ -58,6 +60,13 @@ namespace Gravity.DAL.RSAPI.Tests
 			(this ISetupSequentialResult<IEnumerable<QueryResultSet<RDO>>> setup, IEnumerable<RDO> rdos)
 		{
 			return setup.Returns(new[] { rdos.ToSuccessResultSet<QueryResultSet<RDO>>() });
+		}
+
+		#endregion
+
+		public static bool IsEquivalent<T>(this IEnumerable<T> source, IEnumerable<T> other)
+		{
+			return new HashSet<T>(source).SetEquals(other);
 		}
 	}
 }
