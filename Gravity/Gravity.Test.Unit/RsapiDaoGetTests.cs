@@ -183,7 +183,7 @@ namespace Gravity.Test.Unit
 			if (fileName != null)
 			{ 
 				providerMock.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Contains(fileGuid))))
-					.Returns(new[] { new RDO(fileFieldId) }.ToSuccessResultSet());
+					.ReturnsResultSet(new RDO(fileFieldId));
 				providerMock.Setup(x => x.DownloadFile(fileFieldId, RootArtifactID))
 					.Returns(Tuple.Create(
 						new FileMetadata { FileName = fileName },
@@ -215,16 +215,16 @@ namespace Gravity.Test.Unit
 			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(rdo);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 
 			// setup the choice query
 
 			// results in ArtifactIDs 1, 2, 3
 			var singleChoiceGuids = ChoiceCacheTests.GetOrderedGuids<SingleChoiceFieldChoices>();
-			providerMock.Setup(ChoiceCacheTests.SetupExpr(singleChoiceGuids)).Returns(ChoiceCacheTests.GetResults(singleChoiceGuids, 1));
+			providerMock.Setup(ChoiceCacheTests.SetupExpr(singleChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(singleChoiceGuids, 1));
 			// results in ArtifactIDs 11, 12, 13
 			var multiChoiceGuids = ChoiceCacheTests.GetOrderedGuids<MultipleChoiceFieldChoices>();
-			providerMock.Setup(ChoiceCacheTests.SetupExpr(multiChoiceGuids)).Returns(ChoiceCacheTests.GetResults(multiChoiceGuids, 11));
+			providerMock.Setup(ChoiceCacheTests.SetupExpr(multiChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(multiChoiceGuids, 11));
 
 			return providerMock.Object;
 		}
@@ -255,7 +255,7 @@ namespace Gravity.Test.Unit
 			providerMock.Setup(x => x.ReadSingle(singleLevel3ArtifactId)).Returns(level3Rdo);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 		
 			return providerMock.Object;
 		}
@@ -306,7 +306,7 @@ namespace Gravity.Test.Unit
 			providerMock.Setup(x => x.Read(multipleObjectIds)).Returns(resultSet);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 
 			return providerMock.Object;
 		}
@@ -340,8 +340,8 @@ namespace Gravity.Test.Unit
 
 			// setup the child object query
 			providerMock.SetupSequence(x => x.Query(It.IsAny<Query<RDO>>()))
-				.Returns(new[] { iList.ToSuccessResultSet<QueryResultSet<RDO>>() })
-				.Returns(new[] { iList2.ToSuccessResultSet<QueryResultSet<RDO>>() });
+				.ReturnsResultSet(iList)
+				.ReturnsResultSet(iList2);
 
 			return providerMock.Object;
 		}

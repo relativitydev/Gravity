@@ -1,5 +1,6 @@
 ﻿using Gravity.Base;
 using Gravity.DAL.RSAPI;
+using Gravity.DAL.RSAPI.Tests;
 using Gravity.Test.Helpers;
 using Gravity.Test.TestClasses;
 using kCura.Relativity.Client;
@@ -106,7 +107,7 @@ namespace Gravity.Test.Unit
 				x.Query(It.Is<Query<RDO>>(
 					y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<T>()
 						&& new HashSet<int>(parentArtifactIds).SetEquals(((WholeNumberCondition)y.Condition).Value))))
-				.Returns(new[] { resultArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
+				.ReturnsResultSet(resultArtifactIds.Select(y => new RDO(y)));
 		}
 
 		private void ExecuteDelete(ObjectFieldsDepthLevel depthLevel)

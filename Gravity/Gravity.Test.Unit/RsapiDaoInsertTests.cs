@@ -1,4 +1,4 @@
-﻿using Gravity.Base;
+using Gravity.Base;
 using Gravity.DAL.RSAPI;
 using Gravity.Extensions;
 using Gravity.Test.Helpers;
@@ -23,6 +23,7 @@ using RdoCondition = System.Func<kCura.Relativity.Client.DTOs.RDO, bool>;
 using static Gravity.Test.Helpers.TestObjectHelper;
 using Gravity.Utils;
 using Gravity.Globals;
+using Gravity.DAL.RSAPI.Tests;
 
 namespace Gravity.Test.Unit
 {
@@ -378,7 +379,7 @@ namespace Gravity.Test.Unit
 		{
 			mockProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
-				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(resultIds.Select(x => new RDO(x)));
 		}
 
 		void InsertObjectContainingFileField(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
@@ -387,7 +388,7 @@ namespace Gravity.Test.Unit
 
 			mockProvider
 				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
-				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(new RDO(FileFieldId));
 
 			mockProvider
 				.Setup(x => x.UploadFile(FileFieldId, 10,

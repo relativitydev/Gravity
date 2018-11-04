@@ -1,4 +1,4 @@
-﻿using Gravity.DAL.RSAPI;
+using Gravity.DAL.RSAPI;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -27,6 +27,7 @@ using System.IO;
 using Castle.Components.DictionaryAdapter.Xml;
 using Gravity.Utils;
 using Gravity.Globals;
+using Gravity.DAL.RSAPI.Tests;
 
 namespace Gravity.Test.Unit
 {
@@ -504,7 +505,7 @@ namespace Gravity.Test.Unit
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
 			mockProvider.Setup(x => x.ReadSingle(g2ccId)).Returns(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
 			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(y => y.Single() == g2ccId)))
-				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet();
 
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
 			CollectionAssert.AreEqual(
@@ -520,7 +521,7 @@ namespace Gravity.Test.Unit
 
 			//setup clearing the non-present file
 			mockProvider.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
-				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(new RDO(FileFieldId));
 			mockProvider.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
 
 			new RsapiDao(mockProvider.Object, null).Update(objectToUpdate, depthLevel);
@@ -534,7 +535,7 @@ namespace Gravity.Test.Unit
 			//setup clearing the non-present file
 			mockProvider
 				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
-				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(new RDO(FileFieldId));
 			mockProvider
 				.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
 			mockProvider
@@ -552,7 +553,7 @@ namespace Gravity.Test.Unit
 					x.Query(It.Is<Query<RDO>>(
 						y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<GravityLevel3Child>()
 						     && ((WholeNumberCondition)y.Condition).Value.Single() == G1ArtifactId)))
-				.Returns(new[] { resultArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
+				.ReturnsResultSet(resultArtifactIds.Select(y => new RDO(y)));
 		}
 		
 		//this is needed whenever recursion is turned on
@@ -562,7 +563,7 @@ namespace Gravity.Test.Unit
 					x.Query(It.Is<Query<RDO>>(
 						y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<G2c>()
 						     && ((WholeNumberCondition)y.Condition).Value.Single() == G1ArtifactId)))
-				.Returns(new[] {resultArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>()});
+				.ReturnsResultSet(resultArtifactIds.Select(y => new RDO(y)));
 		}
 
 		private void SetupMultipleLevelChildQuery(params int[] level3ArtifactIds)
@@ -570,27 +571,27 @@ namespace Gravity.Test.Unit
 			mockProvider.Setup(x =>
 					x.Query(It.Is<Query<RDO>>(
 						y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<GravityLevel3Child>())))
-				.Returns(new[] { level3ArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
+				.ReturnsResultSet(level3ArtifactIds.Select(y => new RDO(y)));
 		}
 
 		private void SetupDeleteChild()
 		{
 			mockProvider.Setup(x => x.Delete(It.IsAny<List<int>>()))
-				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet();
 		}
 		
 		public void SetupInsertManyCondition(Func<List<RDO>, bool> condition, params int[] resultIds)
 		{
 			mockProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
-				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(resultIds.Select(x => new RDO(x)));
 		}
 		
 		public void SetupUpdateManyCondition(Func<List<RDO>, bool> condition)
 		{
 			mockProvider
 				.Setup(x => x.Update(It.Is<List<RDO>>(y => condition(y))))
-				.Returns(new RDO[0].ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet();
 		}
 	}
 }
