@@ -10,6 +10,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NUnit" Version="3.10.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.11.0" />
     <!--Relativity dependencies for integration tests need higher version so don't run into kCura.Config vs kCura issues-->
     <PackageReference Include="Relativity.Other" Version="9.5.162.111" />
     <PackageReference Include="Relativity.ObjectManager" Version="9.5.162.111" />
