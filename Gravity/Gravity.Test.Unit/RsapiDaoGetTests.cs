@@ -178,7 +178,7 @@ namespace Gravity.Test.Unit
 			var rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
 			rdo[fileGuid].Value = fileName;
 
-			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(rdo);
+			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
 
 			if (fileName != null)
 			{ 
@@ -212,7 +212,7 @@ namespace Gravity.Test.Unit
 			rdo[singleGuid].ValueAsSingleChoice = singleChoiceId == null ? null : new Choice(singleChoiceId.Value);
 			rdo[multipleGuid].ValueAsMultipleChoice = multipleChoiceIds?.Select(x => new Choice(x)).ToList() ?? new List<Choice>();
 
-			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(rdo);
+			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
 
 			// setup the child object query
 			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
@@ -250,9 +250,9 @@ namespace Gravity.Test.Unit
 
 			level1Rdo[singleLevel1Guid].ValueAsSingleObject = level2Rdo;
 			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
-			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
-			providerMock.Setup(x => x.ReadSingle(singleLevel2ArtifactId)).Returns(level2Rdo);
-			providerMock.Setup(x => x.ReadSingle(singleLevel3ArtifactId)).Returns(level3Rdo);
+			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
+			providerMock.Setup(x => x.Read(singleLevel2ArtifactId)).ReturnsResultSet(level2Rdo);
+			providerMock.Setup(x => x.Read(singleLevel3ArtifactId)).ReturnsResultSet(level3Rdo);
 
 			// setup the child object query
 			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
@@ -276,34 +276,27 @@ namespace Gravity.Test.Unit
 				.FieldGuid;
 
 			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
-			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
+			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
 
-			ResultSet<RDO> resultSet = new ResultSet<RDO>();
+			var results = new List<RDO>();
+			var level3StubRdos = singleLevel3ArtifactIds.Select(TestObjectHelper.GetStubRDO<GravityLevel3>).ToList();
+
 			FieldValueList<Artifact> fieldValueList = new FieldValueList<Artifact>();
 			for (int i = 0; i < multipleObjectIds.Length; i++)
 			{
 				var level2MultipleObjectRdo = TestObjectHelper.GetStubRDO<GravityLevel2>(multipleObjectIds[i]);
 				fieldValueList.Add(level2MultipleObjectRdo);
-				Result<RDO> result = new Result<RDO>();
-				result.Artifact = level2MultipleObjectRdo;
-				result.Success = true;
-				resultSet.Results.Add(result);
+				results.Add(level2MultipleObjectRdo);
 
-				var level3SingleRdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleLevel3ArtifactIds[i]);
+				var level3SingleRdo = level3StubRdos[i];
 				level2MultipleObjectRdo[singleLevel2Guid].ValueAsSingleObject = level3SingleRdo;
-				providerMock.Setup(x => x.ReadSingle(singleLevel3ArtifactIds[i])).Returns(level3SingleRdo);
+				providerMock.Setup(x => x.Read(singleLevel3ArtifactIds[i])).ReturnsResultSet(level3SingleRdo);
 			}
-			resultSet.Success = true;
 
 			level1Rdo[multipleLevel1Guid].SetValueAsMultipleObject<Artifact>(fieldValueList);
-			int count = 0;
-			foreach (int objectId in multipleObjectIds)
-			{
-				providerMock.Setup(x => x.ReadSingle(objectId)).Returns((RDO)fieldValueList[count]);
-				count++;
-			}
 
-			providerMock.Setup(x => x.Read(multipleObjectIds)).Returns(resultSet);
+			providerMock.Setup(x => x.Read(singleLevel3ArtifactIds)).ReturnsResultSet(level3StubRdos);
+			providerMock.Setup(x => x.Read(multipleObjectIds)).ReturnsResultSet(results);
 
 			// setup the child object query
 			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
@@ -323,20 +316,19 @@ namespace Gravity.Test.Unit
 
 			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
 			
-			providerMock.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
-
-			List<RDO> iList = new List<RDO>();
-			List<RDO> iList2 = new List<RDO>();
+			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
 			var level2Rdo = TestObjectHelper.GetStubRDO<GravityLevel2Child>(level2ChildObjectId);
 			var level3Rdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleObjectLevel3Id);
 			var level3childRdo = TestObjectHelper.GetStubRDO<GravityLevel3Child>(level3ChildObjectId);
 			level2Rdo.ParentArtifact = new Artifact(RootArtifactID);
 			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
-			iList.Add(level2Rdo);
-			iList2.Add(level3childRdo);
-			providerMock.Setup(x => x.ReadSingle(level2ChildObjectId)).Returns(level2Rdo);
-			providerMock.Setup(x => x.ReadSingle(singleObjectLevel3Id)).Returns(level3Rdo);
-			providerMock.Setup(x => x.ReadSingle(level3ChildObjectId)).Returns(level3childRdo);
+			level3childRdo.ParentArtifact = new Artifact(level2ChildObjectId);
+
+			var iList = new List<RDO> {	level2Rdo };
+			var iList2 = new List<RDO> { level3childRdo	};
+			providerMock.Setup(x => x.Read(level2ChildObjectId)).ReturnsResultSet(level2Rdo);
+			providerMock.Setup(x => x.Read(singleObjectLevel3Id)).ReturnsResultSet(level3Rdo);
+			providerMock.Setup(x => x.Read(level3ChildObjectId)).ReturnsResultSet(level3childRdo);
 
 			// setup the child object query
 			providerMock.SetupSequence(x => x.Query(It.IsAny<Query<RDO>>()))

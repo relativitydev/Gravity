@@ -18,10 +18,6 @@ namespace Gravity.DAL.RSAPI
 	public partial class RsapiDao
 	{
 		#region RDO GET Protected stuff		
-		protected RDO GetRdo(int artifactId)
-		{
-			return rsapiProvider.ReadSingle(artifactId);
-		}
 
 		protected List<RDO> GetRdos(int[] artifactIds)
 		{
