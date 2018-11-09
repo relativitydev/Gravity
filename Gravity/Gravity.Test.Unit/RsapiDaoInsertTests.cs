@@ -1,4 +1,4 @@
-﻿using Gravity.Base;
+using Gravity.Base;
 using Gravity.DAL.RSAPI;
 using Gravity.Extensions;
 using Gravity.Test.Helpers;
@@ -373,7 +373,7 @@ namespace Gravity.Test.Unit
 		{
 			rsapiProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
-				.Returns(resultIds.Select(x => new RDO(x)).ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(resultIds.Select(x => new RDO(x)));
 		}
 
 		void InsertObjectContainingFileField(G1 objectToInsert, RdoCondition rootCondition, ObjectFieldsDepthLevel depthLevel)
@@ -382,7 +382,7 @@ namespace Gravity.Test.Unit
 
 			rsapiProvider
 				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
-				.Returns(new[] { new RDO(FileFieldId) }.ToSuccessResultSet<WriteResultSet<RDO>>());
+				.ReturnsResultSet(new RDO(FileFieldId));
 
 			rsapiProvider
 				.Setup(x => x.UploadFile(FileFieldId, 10,

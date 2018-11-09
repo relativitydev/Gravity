@@ -187,12 +187,12 @@ namespace Gravity.Test.Unit
 			var rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
 			rdo[fileGuid].Value = fileName;
 
-			rsapiProvider.Setup(x => x.ReadSingle(RootArtifactID)).Returns(rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
 
 			if (fileName != null)
 			{ 
 				rsapiProvider.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Contains(fileGuid))))
-					.Returns(new[] { new RDO(fileFieldId) }.ToSuccessResultSet());
+					.ReturnsResultSet(new RDO(fileFieldId));
 				rsapiProvider.Setup(x => x.DownloadFile(fileFieldId, RootArtifactID))
 					.Returns(Tuple.Create(
 						new FileMetadata { FileName = fileName },
@@ -218,19 +218,19 @@ namespace Gravity.Test.Unit
 			rdo[singleGuid].ValueAsSingleChoice = singleChoiceId == null ? null : new Choice(singleChoiceId.Value);
 			rdo[multipleGuid].ValueAsMultipleChoice = multipleChoiceIds?.Select(x => new Choice(x)).ToList() ?? new List<Choice>();
 
-			rsapiProvider.Setup(x => x.ReadSingle(RootArtifactID)).Returns(rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
 
 			// setup the child object query
-			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 
 			// setup the choice query
 
 			// results in ArtifactIDs 1, 2, 3
 			var singleChoiceGuids = ChoiceCacheTests.GetOrderedGuids<SingleChoiceFieldChoices>();
-			rsapiProvider.Setup(ChoiceCacheTests.SetupExpr(singleChoiceGuids)).Returns(ChoiceCacheTests.GetResults(singleChoiceGuids, 1));
+			rsapiProvider.Setup(ChoiceCacheTests.SetupExpr(singleChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(singleChoiceGuids, 1));
 			// results in ArtifactIDs 11, 12, 13
 			var multiChoiceGuids = ChoiceCacheTests.GetOrderedGuids<MultipleChoiceFieldChoices>();
-			rsapiProvider.Setup(ChoiceCacheTests.SetupExpr(multiChoiceGuids)).Returns(ChoiceCacheTests.GetResults(multiChoiceGuids, 11));
+			rsapiProvider.Setup(ChoiceCacheTests.SetupExpr(multiChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(multiChoiceGuids, 11));
 
 			return rsapiProvider.Object;
 		}
@@ -254,12 +254,12 @@ namespace Gravity.Test.Unit
 
 			level1Rdo[singleLevel1Guid].ValueAsSingleObject = level2Rdo;
 			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
-			rsapiProvider.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
-			rsapiProvider.Setup(x => x.ReadSingle(singleLevel2ArtifactId)).Returns(level2Rdo);
-			rsapiProvider.Setup(x => x.ReadSingle(singleLevel3ArtifactId)).Returns(level3Rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
+			rsapiProvider.Setup(x => x.Read(singleLevel2ArtifactId)).ReturnsResultSet(level2Rdo);
+			rsapiProvider.Setup(x => x.Read(singleLevel3ArtifactId)).ReturnsResultSet(level3Rdo);
 
 			// setup the child object query
-			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 		
 			return rsapiProvider.Object;
 		}
@@ -278,37 +278,30 @@ namespace Gravity.Test.Unit
 				.FieldGuid;
 
 			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
-			rsapiProvider.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
 
-			ResultSet<RDO> resultSet = new ResultSet<RDO>();
+			var results = new List<RDO>();
+			var level3StubRdos = singleLevel3ArtifactIds.Select(TestObjectHelper.GetStubRDO<GravityLevel3>).ToList();
+
 			FieldValueList<Artifact> fieldValueList = new FieldValueList<Artifact>();
 			for (int i = 0; i < multipleObjectIds.Length; i++)
 			{
 				var level2MultipleObjectRdo = TestObjectHelper.GetStubRDO<GravityLevel2>(multipleObjectIds[i]);
 				fieldValueList.Add(level2MultipleObjectRdo);
-				Result<RDO> result = new Result<RDO>();
-				result.Artifact = level2MultipleObjectRdo;
-				result.Success = true;
-				resultSet.Results.Add(result);
+				results.Add(level2MultipleObjectRdo);
 
-				var level3SingleRdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleLevel3ArtifactIds[i]);
+				var level3SingleRdo = level3StubRdos[i];
 				level2MultipleObjectRdo[singleLevel2Guid].ValueAsSingleObject = level3SingleRdo;
-				rsapiProvider.Setup(x => x.ReadSingle(singleLevel3ArtifactIds[i])).Returns(level3SingleRdo);
+				rsapiProvider.Setup(x => x.Read(singleLevel3ArtifactIds[i])).ReturnsResultSet(level3SingleRdo);
 			}
-			resultSet.Success = true;
 
 			level1Rdo[multipleLevel1Guid].SetValueAsMultipleObject<Artifact>(fieldValueList);
-			int count = 0;
-			foreach (int objectId in multipleObjectIds)
-			{
-				rsapiProvider.Setup(x => x.ReadSingle(objectId)).Returns((RDO)fieldValueList[count]);
-				count++;
-			}
 
-			rsapiProvider.Setup(x => x.Read(multipleObjectIds)).Returns(resultSet);
+			rsapiProvider.Setup(x => x.Read(singleLevel3ArtifactIds)).ReturnsResultSet(level3StubRdos);
+			rsapiProvider.Setup(x => x.Read(multipleObjectIds)).ReturnsResultSet(results);
 
 			// setup the child object query
-			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).Returns(new[] { new RDO[0].ToSuccessResultSet<QueryResultSet<RDO>>() });
+			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 
 			return rsapiProvider.Object;
 		}
@@ -323,25 +316,24 @@ namespace Gravity.Test.Unit
 
 			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
 			
-			rsapiProvider.Setup(x => x.ReadSingle(RootArtifactID)).Returns(level1Rdo);
-
-			List<RDO> iList = new List<RDO>();
-			List<RDO> iList2 = new List<RDO>();
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
 			var level2Rdo = TestObjectHelper.GetStubRDO<GravityLevel2Child>(level2ChildObjectId);
 			var level3Rdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleObjectLevel3Id);
 			var level3childRdo = TestObjectHelper.GetStubRDO<GravityLevel3Child>(level3ChildObjectId);
 			level2Rdo.ParentArtifact = new Artifact(RootArtifactID);
 			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
-			iList.Add(level2Rdo);
-			iList2.Add(level3childRdo);
-			rsapiProvider.Setup(x => x.ReadSingle(level2ChildObjectId)).Returns(level2Rdo);
-			rsapiProvider.Setup(x => x.ReadSingle(singleObjectLevel3Id)).Returns(level3Rdo);
-			rsapiProvider.Setup(x => x.ReadSingle(level3ChildObjectId)).Returns(level3childRdo);
+			level3childRdo.ParentArtifact = new Artifact(level2ChildObjectId);
+
+			var iList = new List<RDO> {	level2Rdo };
+			var iList2 = new List<RDO> { level3childRdo	};
+			rsapiProvider.Setup(x => x.Read(level2ChildObjectId)).ReturnsResultSet(level2Rdo);
+			rsapiProvider.Setup(x => x.Read(singleObjectLevel3Id)).ReturnsResultSet(level3Rdo);
+			rsapiProvider.Setup(x => x.Read(level3ChildObjectId)).ReturnsResultSet(level3childRdo);
 
 			// setup the child object query
 			rsapiProvider.SetupSequence(x => x.Query(It.IsAny<Query<RDO>>()))
-				.Returns(new[] { iList.ToSuccessResultSet<QueryResultSet<RDO>>() })
-				.Returns(new[] { iList2.ToSuccessResultSet<QueryResultSet<RDO>>() });
+				.ReturnsResultSet(iList)
+				.ReturnsResultSet(iList2);
 
 			return rsapiProvider.Object;
 		}

@@ -56,6 +56,10 @@ namespace Gravity.DAL.SQL
 		public void Delete<T>(int artifactID, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new() => throw new NotImplementedException();
 
+		[Obsolete("SQL Dao Bulk Delete is not implemented yet.", true)]
+		public void Delete<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new() => throw new NotImplementedException();
+
 		#endregion
 	}
 }

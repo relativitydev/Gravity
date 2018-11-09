@@ -51,8 +51,7 @@ namespace Gravity.Test.Unit
 		public void Delete_LevelOneRecursion_ChildObjects()
 		{
 			SetupQuery<GravityLevel2Child>(rootId, new[] { level2Id_1, level2Id_2 });
-			SetupQuery<GravityLevel3Child>(level2Id_1, new int[0]);
-			SetupQuery<GravityLevel3Child>(level2Id_2, new int[0]);
+			SetupQuery<GravityLevel3Child>(new[] { level2Id_1, level2Id_2 }, new int[0]);
 			//delete will occur on both levels
 			SetupDelete(new[] { level2Id_1, level2Id_2 });
 			SetupDelete(new[] { rootId });
@@ -67,8 +66,7 @@ namespace Gravity.Test.Unit
 			//fails if has nested child objects
 			//in such case does not delete other child objects either
 			SetupQuery<GravityLevel2Child>(rootId, new[] { level2Id_1, level2Id_2});
-			SetupQuery<GravityLevel3Child>(level2Id_1, new[] { level3Id_1 });
-			SetupQuery<GravityLevel3Child>(level2Id_2, new[] { level3Id_2 });
+			SetupQuery<GravityLevel3Child>(new[] { level2Id_1, level2Id_2 }, new[] { level3Id_1, level3Id_2 });
 			SetupDelete(new[] { level2Id_1, level2Id_2 });
 			SetupDelete(new[] { rootId });
 			Assert.Throws<ArgumentOutOfRangeException>(() => ExecuteDelete(ObjectFieldsDepthLevel.FirstLevelOnly));
@@ -79,8 +77,7 @@ namespace Gravity.Test.Unit
 		{
 			//deletes deeply nested child objects
 			SetupQuery<GravityLevel2Child>(rootId, new[] { level2Id_1, level2Id_2 });
-			SetupQuery<GravityLevel3Child>(level2Id_1, new[] { level3Id_1 });
-			SetupQuery<GravityLevel3Child>(level2Id_2, new[] { level3Id_2 });
+			SetupQuery<GravityLevel3Child>(new[] { level2Id_1, level2Id_2 }, new[] { level3Id_1, level3Id_2 });
 			SetupDelete(new[] { level3Id_1, level3Id_2 });
 			SetupDelete(new[] { level2Id_1, level2Id_2 });
 			SetupDelete(new[] { rootId });
@@ -89,18 +86,20 @@ namespace Gravity.Test.Unit
 
 		private void SetupDelete(int[] artifactIds)
 		{
-			rsapiProvider.Setup(x => x.Delete(It.Is<List<int>>(
-				y => new HashSet<int>(y).SetEquals(artifactIds))))
-			.Returns(new WriteResultSet<RDO> { Success = true });
+			rsapiProvider
+				.Setup(x => x.Delete(It.Is<List<int>>(y => y.IsEquivalent(artifactIds))))
+				.ReturnsResultSet();
 		}
 
-		private void SetupQuery<T>(int parentArtifactId, int[] resultArtifactIds) where T: BaseDto
+		private void SetupQuery<T>(int parentArtifactId, int[] resultArtifactIds) where T : BaseDto
+			=> SetupQuery<T>(new[] { parentArtifactId }, resultArtifactIds);
+
+		private void SetupQuery<T>(int[] parentArtifactIds, int[] resultArtifactIds) where T : BaseDto
 		{
-			rsapiProvider.Setup(x =>
-				x.Query(It.Is<Query<RDO>>(
-					y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<T>()
-						&& ((WholeNumberCondition)y.Condition).Value.Single() == parentArtifactId)))
-				.Returns(new[] { resultArtifactIds.Select(y => new RDO(y)).ToSuccessResultSet<QueryResultSet<RDO>>() });
+			rsapiProvider.Setup(x =>	x.Query(It.Is<Query<RDO>>(
+				y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<T>()
+					&& ((WholeNumberCondition)y.Condition).Value.IsEquivalent(parentArtifactIds)
+				))).ReturnsResultSet(resultArtifactIds.Select(y => new RDO(y)));
 		}
 
 		private void ExecuteDelete(ObjectFieldsDepthLevel depthLevel)

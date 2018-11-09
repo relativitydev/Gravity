@@ -13,6 +13,13 @@ namespace Gravity.DAL.RSAPI
 		public void Delete<T>(int objectToDeleteId, ObjectFieldsDepthLevel depthLevel)
 			where T : BaseDto, new()
 		{
+
+			Delete<T>(new[] { objectToDeleteId }, depthLevel);
+		}
+
+		public void Delete<T>(IList<int> artifactIds, ObjectFieldsDepthLevel depthLevel)
+			where T : BaseDto, new()
+		{
 			var maxRecursionLevel =
 				depthLevel == ObjectFieldsDepthLevel.OnlyParentObject ? 0
 				: depthLevel == ObjectFieldsDepthLevel.FirstLevelOnly ? 1
@@ -22,7 +29,7 @@ namespace Gravity.DAL.RSAPI
 			var artifactsToDeleteList = new List<Tuple<int, int>>();
 
 			//populate artifacts to delete
-			PopulateArtifactsToDeleteList<T>(artifactsToDeleteList, maxRecursionLevel, new[] { objectToDeleteId }, 0);
+			PopulateArtifactsToDeleteList<T>(artifactsToDeleteList, maxRecursionLevel, artifactIds, 0);
 
 			//order by items to delete by how deep in hierarchy they are
 			//so don't run into "can't delete" issues
@@ -34,7 +41,6 @@ namespace Gravity.DAL.RSAPI
 			{
 				rsapiProvider.Delete(deleteSet.ToList()).GetResultData();
 			}
-
 		}
 
 		internal void PopulateArtifactsToDeleteList<T>(
@@ -56,17 +62,13 @@ namespace Gravity.DAL.RSAPI
 			foreach (var propertyInfo in childProperties)
 			{
 				var childType = propertyInfo.PropertyType.GetEnumerableInnerType();
-				foreach (var artifactId in artifactIds)
-				{
-					//TODO: amend so can pass in all artifact IDs instead of looping over artifacts
-					var thisChildTypeIds = (List<int>)this.InvokeGenericMethod(childType, nameof(GetAllChildIds), new[] { artifactId });
+				
+				var thisChildTypeIds = (List<int>)this.InvokeGenericMethod(childType, nameof(GetAllChildIds), artifactIds.ToArray() );
 
-					//recurse with child objects and next recursion level
-					this.InvokeGenericMethod(childType, nameof(PopulateArtifactsToDeleteList),
-						artifactsToDeleteList, maxRecursionLevel, thisChildTypeIds, currentRecursionLevel + 1);
-				}
+				//recurse with child objects and next recursion level
+				this.InvokeGenericMethod(childType, nameof(PopulateArtifactsToDeleteList),
+					artifactsToDeleteList, maxRecursionLevel, thisChildTypeIds, currentRecursionLevel + 1);
 			}
-
 		}
 	}
 }

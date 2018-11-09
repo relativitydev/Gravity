@@ -11,6 +11,7 @@ using Gravity.Extensions;
 using kCura.Relativity.Client.DTOs;
 using System.Linq.Expressions;
 using Gravity.Test.Helpers;
+using Gravity.Test.Unit;
 
 namespace Gravity.DAL.RSAPI.Tests
 {
@@ -29,7 +30,7 @@ namespace Gravity.DAL.RSAPI.Tests
 		public void GetEnum_NoValueFound()
 		{
 			var choiceGuids = GetOrderedGuids<SingleChoiceFieldChoices>();
-			rsapiProvider.Setup(SetupExpr(choiceGuids)).Returns(GetResults(choiceGuids, 1));
+			rsapiProvider.Setup(SetupExpr(choiceGuids)).ReturnsResultSet(GetResults(choiceGuids, 1));
 
 			var choiceCache = new ChoiceCache(rsapiProvider.Object);
 			Assert.Throws<InvalidOperationException>(() => choiceCache.GetEnum<SingleChoiceFieldChoices>(1000));
@@ -41,7 +42,7 @@ namespace Gravity.DAL.RSAPI.Tests
 			var choiceGuids = GetOrderedGuids<SingleChoiceFieldChoices>();
 			var setupExpr = SetupExpr(choiceGuids);
 
-			rsapiProvider.SetupSequence(setupExpr).Returns(GetResults(choiceGuids, 1));
+			rsapiProvider.SetupSequence(setupExpr).ReturnsResultSet(GetResults(choiceGuids, 1));
 
 			var choiceCache = new ChoiceCache(rsapiProvider.Object);
 
@@ -59,8 +60,8 @@ namespace Gravity.DAL.RSAPI.Tests
 
 			rsapiProvider
 				.SetupSequence(setupExpr)
-				.Returns(GetResults(choiceGuids, 1))
-				.Returns(GetResults(choiceGuids, 11));
+				.ReturnsResultSet(GetResults(choiceGuids, 1))
+				.ReturnsResultSet(GetResults(choiceGuids, 11));
 			var choiceCache1 = new ChoiceCache(rsapiProvider.Object);
 			var choiceCache2 = new ChoiceCache(rsapiProvider.Object);
 
@@ -78,8 +79,8 @@ namespace Gravity.DAL.RSAPI.Tests
 			var singleSetupExpr = SetupExpr(singleChoiceGuids);
 			var multiSetupExpr = SetupExpr(multiChoiceGuids);
 
-			rsapiProvider.SetupSequence(singleSetupExpr).Returns(GetResults(singleChoiceGuids, 1));
-			rsapiProvider.SetupSequence(multiSetupExpr).Returns(GetResults(multiChoiceGuids, 11));
+			rsapiProvider.SetupSequence(singleSetupExpr).ReturnsResultSet(GetResults(singleChoiceGuids, 1));
+			rsapiProvider.SetupSequence(multiSetupExpr).ReturnsResultSet(GetResults(multiChoiceGuids, 11));
 
 			var choiceCache = new ChoiceCache(rsapiProvider.Object);
 
@@ -100,12 +101,12 @@ namespace Gravity.DAL.RSAPI.Tests
 
 		internal static Expression<Func<IRsapiProvider, ResultSet<RDO>>> SetupExpr(IEnumerable<Guid> guids)
 		{
-			return z => z.Read(It.Is<List<RDO>>(x => new HashSet<Guid>(guids).SetEquals(x.Select(y => y.Guids.Single()))));
+			return z => z.Read(It.Is<List<RDO>>(x => x.Select(y => y.Guids.Single()).IsEquivalent(guids)));
 		}
 
-		internal static ResultSet<RDO> GetResults(List<Guid> choiceGuids, int offset)
+		internal static IEnumerable<RDO> GetResults(List<Guid> choiceGuids, int offset)
 		{
-			return choiceGuids.Select((x, i) => new RDO(i + offset) { Guids = new List<Guid> { x } }).ToSuccessResultSet();
+			return choiceGuids.Select((x, i) => new RDO(i + offset) { Guids = new List<Guid> { x } });
 		}
 
 

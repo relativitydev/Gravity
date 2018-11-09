@@ -7,6 +7,7 @@ namespace Gravity.DAL
 	public interface IGravityDao
 	{
 		void Delete<T>(int artifactID, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new();
+		void Delete<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new();
 		T Get<T>(int artifactID, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new();
 		List<T> Get<T>(IList<int> artifactIDs, ObjectFieldsDepthLevel depthLevel) where T : BaseDto, new();
 		int Insert<T>(T obj, ObjectFieldsDepthLevel depthLevel) where T : BaseDto;
