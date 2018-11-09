@@ -17,11 +17,12 @@ using Choice = kCura.Relativity.Client.DTOs.Choice;
 
 namespace Gravity.Test.Unit
 {
-	public class RsapiDaoGetTests
+	public class RsapiDaoGetTests : MockedRsapiProviderTestBase
 	{
 		private const int RootArtifactID = 1111111;
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_BlankRDO()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(null, null), null);
@@ -30,6 +31,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_MultiObject_FirstLevelOnly()
 		{
 			//test MultiObject fields with one level of recursion
@@ -45,6 +47,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_MultiObject_Recursive()
 		{
 			//test MultiObject fields with varying degrees of recursion
@@ -60,6 +63,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_ChildObjectList_FirstLevelOnly()
 		{
 			//test ChildObject fields with varying degrees of recursion
@@ -74,6 +78,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_ChildObjectList_Recursive()
 		{
 			//test ChildObject fields with varying degrees of recursion
@@ -88,6 +93,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_SingleObject_FirstLevelOnly()
 		{
 			//test single object fields with one level of recursion
@@ -131,6 +137,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_SingleChoice_InEnum()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(2, null), null);
@@ -139,6 +146,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_SingleChoice_NotInEnum()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(5, null), null);
@@ -146,6 +154,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_MultipleChoice_AllInEnum()
 		{
 			var dao = new RsapiDao(GetChoiceRsapiProvider(null, new[] { 11, 13 }), null);
@@ -157,6 +166,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Get_MultipleChoice_NotAllInEnum()
 		{
 			//first item is in an enum, but not in our enum
@@ -169,7 +179,6 @@ namespace Gravity.Test.Unit
 		{
 			const int fileFieldId = 20;
 
-			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
 			var fileGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.FileField))
 				.GetCustomAttribute<RelativityObjectFieldAttribute>()
@@ -178,26 +187,23 @@ namespace Gravity.Test.Unit
 			var rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
 			rdo[fileGuid].Value = fileName;
 
-			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
 
 			if (fileName != null)
 			{ 
-				providerMock.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Contains(fileGuid))))
+				rsapiProvider.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Contains(fileGuid))))
 					.ReturnsResultSet(new RDO(fileFieldId));
-				providerMock.Setup(x => x.DownloadFile(fileFieldId, RootArtifactID))
+				rsapiProvider.Setup(x => x.DownloadFile(fileFieldId, RootArtifactID))
 					.Returns(Tuple.Create(
 						new FileMetadata { FileName = fileName },
 						new MemoryStream(result)));
 			}
-			return providerMock.Object;
+			return rsapiProvider.Object;
 		}
 
 		private IRsapiProvider GetChoiceRsapiProvider(int? singleChoiceId, int[] multipleChoiceIds)
 		{
-			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
-
 			// setup the RDO Read
-
 			var multipleGuid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.MultipleChoiceFieldChoices))
 				.GetCustomAttribute<RelativityObjectFieldAttribute>()
@@ -212,27 +218,25 @@ namespace Gravity.Test.Unit
 			rdo[singleGuid].ValueAsSingleChoice = singleChoiceId == null ? null : new Choice(singleChoiceId.Value);
 			rdo[multipleGuid].ValueAsMultipleChoice = multipleChoiceIds?.Select(x => new Choice(x)).ToList() ?? new List<Choice>();
 
-			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(rdo);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
+			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 
 			// setup the choice query
 
 			// results in ArtifactIDs 1, 2, 3
 			var singleChoiceGuids = ChoiceCacheTests.GetOrderedGuids<SingleChoiceFieldChoices>();
-			providerMock.Setup(ChoiceCacheTests.SetupExpr(singleChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(singleChoiceGuids, 1));
+			rsapiProvider.Setup(ChoiceCacheTests.SetupExpr(singleChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(singleChoiceGuids, 1));
 			// results in ArtifactIDs 11, 12, 13
 			var multiChoiceGuids = ChoiceCacheTests.GetOrderedGuids<MultipleChoiceFieldChoices>();
-			providerMock.Setup(ChoiceCacheTests.SetupExpr(multiChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(multiChoiceGuids, 11));
+			rsapiProvider.Setup(ChoiceCacheTests.SetupExpr(multiChoiceGuids)).ReturnsResultSet(ChoiceCacheTests.GetResults(multiChoiceGuids, 11));
 
-			return providerMock.Object;
+			return rsapiProvider.Object;
 		}
 
 		private IRsapiProvider GetObjectRsapiProvider(int singleLevel2ArtifactId, int singleLevel3ArtifactId)
 		{
-			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
-
 			// setup the RDO Read
 			var singleLevel1Guid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.GravityLevel2Obj))
@@ -250,20 +254,18 @@ namespace Gravity.Test.Unit
 
 			level1Rdo[singleLevel1Guid].ValueAsSingleObject = level2Rdo;
 			level2Rdo[singleLevel2Guid].ValueAsSingleObject = level3Rdo;
-			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
-			providerMock.Setup(x => x.Read(singleLevel2ArtifactId)).ReturnsResultSet(level2Rdo);
-			providerMock.Setup(x => x.Read(singleLevel3ArtifactId)).ReturnsResultSet(level3Rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
+			rsapiProvider.Setup(x => x.Read(singleLevel2ArtifactId)).ReturnsResultSet(level2Rdo);
+			rsapiProvider.Setup(x => x.Read(singleLevel3ArtifactId)).ReturnsResultSet(level3Rdo);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
+			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 		
-			return providerMock.Object;
+			return rsapiProvider.Object;
 		}
 
 		private IRsapiProvider GetMultipleObjectRsapiProvider(int[] multipleObjectIds, int[] singleLevel3ArtifactIds)
 		{
-			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
-
 			// setup the RDO Read
 			var multipleLevel1Guid = typeof(GravityLevelOne)
 				.GetProperty(nameof(GravityLevelOne.GravityLevel2MultipleObjs))
@@ -276,7 +278,7 @@ namespace Gravity.Test.Unit
 				.FieldGuid;
 
 			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
-			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
 
 			var results = new List<RDO>();
 			var level3StubRdos = singleLevel3ArtifactIds.Select(TestObjectHelper.GetStubRDO<GravityLevel3>).ToList();
@@ -290,24 +292,22 @@ namespace Gravity.Test.Unit
 
 				var level3SingleRdo = level3StubRdos[i];
 				level2MultipleObjectRdo[singleLevel2Guid].ValueAsSingleObject = level3SingleRdo;
-				providerMock.Setup(x => x.Read(singleLevel3ArtifactIds[i])).ReturnsResultSet(level3SingleRdo);
+				rsapiProvider.Setup(x => x.Read(singleLevel3ArtifactIds[i])).ReturnsResultSet(level3SingleRdo);
 			}
 
 			level1Rdo[multipleLevel1Guid].SetValueAsMultipleObject<Artifact>(fieldValueList);
 
-			providerMock.Setup(x => x.Read(singleLevel3ArtifactIds)).ReturnsResultSet(level3StubRdos);
-			providerMock.Setup(x => x.Read(multipleObjectIds)).ReturnsResultSet(results);
+			rsapiProvider.Setup(x => x.Read(singleLevel3ArtifactIds)).ReturnsResultSet(level3StubRdos);
+			rsapiProvider.Setup(x => x.Read(multipleObjectIds)).ReturnsResultSet(results);
 
 			// setup the child object query
-			providerMock.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
+			rsapiProvider.Setup(x => x.Query(It.IsAny<Query<RDO>>())).ReturnsResultSet();
 
-			return providerMock.Object;
+			return rsapiProvider.Object;
 		}
 
 		private IRsapiProvider GetChildObjectRsapiProvider(int level2ChildObjectId, int singleObjectLevel3Id, int level3ChildObjectId)
 		{
-			var providerMock = new Mock<IRsapiProvider>(MockBehavior.Strict);
-
 			// setup the RDO Read
 			var singleLevel2Guid = typeof(GravityLevel2Child)
 				.GetProperty(nameof(GravityLevel2Child.GravityLevel3Obj))
@@ -316,7 +316,7 @@ namespace Gravity.Test.Unit
 
 			var level1Rdo = TestObjectHelper.GetStubRDO<GravityLevelOne>(RootArtifactID);
 			
-			providerMock.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
+			rsapiProvider.Setup(x => x.Read(RootArtifactID)).ReturnsResultSet(level1Rdo);
 			var level2Rdo = TestObjectHelper.GetStubRDO<GravityLevel2Child>(level2ChildObjectId);
 			var level3Rdo = TestObjectHelper.GetStubRDO<GravityLevel3>(singleObjectLevel3Id);
 			var level3childRdo = TestObjectHelper.GetStubRDO<GravityLevel3Child>(level3ChildObjectId);
@@ -326,16 +326,16 @@ namespace Gravity.Test.Unit
 
 			var iList = new List<RDO> {	level2Rdo };
 			var iList2 = new List<RDO> { level3childRdo	};
-			providerMock.Setup(x => x.Read(level2ChildObjectId)).ReturnsResultSet(level2Rdo);
-			providerMock.Setup(x => x.Read(singleObjectLevel3Id)).ReturnsResultSet(level3Rdo);
-			providerMock.Setup(x => x.Read(level3ChildObjectId)).ReturnsResultSet(level3childRdo);
+			rsapiProvider.Setup(x => x.Read(level2ChildObjectId)).ReturnsResultSet(level2Rdo);
+			rsapiProvider.Setup(x => x.Read(singleObjectLevel3Id)).ReturnsResultSet(level3Rdo);
+			rsapiProvider.Setup(x => x.Read(level3ChildObjectId)).ReturnsResultSet(level3childRdo);
 
 			// setup the child object query
-			providerMock.SetupSequence(x => x.Query(It.IsAny<Query<RDO>>()))
+			rsapiProvider.SetupSequence(x => x.Query(It.IsAny<Query<RDO>>()))
 				.ReturnsResultSet(iList)
 				.ReturnsResultSet(iList2);
 
-			return providerMock.Object;
+			return rsapiProvider.Object;
 		}
 	}
 }

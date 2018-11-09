@@ -31,18 +31,10 @@ using Gravity.DAL.RSAPI.Tests;
 
 namespace Gravity.Test.Unit
 {
-	public class RsapiDaoUpdateTests
+	public class RsapiDaoUpdateTests : MockedRsapiProviderTestBase
 	{
 		private const int G1ArtifactId = 10;
 		private const int FileFieldId = 44;
-		Mock<IRsapiProvider> mockProvider;
-
-		[SetUp]
-		public void Init()
-		{
-			//ensure fail if method not defined
-			mockProvider = new Mock<IRsapiProvider>(MockBehavior.Strict);
-		}
 
 		[Test]
 		public void Update_SimpleFields()
@@ -154,6 +146,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Update_FileField_Add()
 		{
 			var objectToUpdate = new G1 {
@@ -169,6 +162,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Update_FileField_Remove()
 		{
 			var objectToUpdate = new G1 {
@@ -180,8 +174,8 @@ namespace Gravity.Test.Unit
 			UpdateObjectWithFileField(objectToUpdate, matchingRdoExpression, ObjectFieldsDepthLevel.OnlyParentObject);
 		}
 
-		//[Test, Ignore("TODO: Implement")]
 		[Test]
+		[SkipVerifyAll]
 		public void Update_FileField_Modify()
 		{
 			var objectToUpdate = new G1 {
@@ -289,6 +283,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Update_SingleObject_InsertNewWithUpdatePropertyRecursion()
 		{
 			const int g2id = 20;
@@ -332,6 +327,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Update_MultipleObject_InsertNewAndUpdateInsertExisting()
 		{
 			const int g2aId = 20;
@@ -391,6 +387,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Update_MultipleObject_InsertNewWithUpdatePropertyRecursion()
 		{
 			const int g2aId = 20;
@@ -474,6 +471,7 @@ namespace Gravity.Test.Unit
 		}
 
 		[Test]
+		[SkipVerifyAll]
 		public void Update_ChildObject_UpdateInsertNewRemove_WithRecursion()
 		{
 			const int g2caId = 20;
@@ -503,8 +501,8 @@ namespace Gravity.Test.Unit
 			SetupMultipleLevelChildQuery();
 			SetupUpdateManyCondition(x => x.Count == 1 && matchingG2caExpression(x[0]));
 			SetupInsertManyCondition(x => x.Count == 1 && matchingG2cbExpression(x[0]), g2cbId);
-			mockProvider.Setup(x => x.Read(g2ccId)).ReturnsResultSet(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
-			mockProvider.Setup(x => x.Delete(It.Is<List<int>>(y => y.Single() == g2ccId)))
+			rsapiProvider.Setup(x => x.Read(g2ccId)).ReturnsResultSet(GetStubRDO<G2c>(40)); //object is read to check for any children to delete
+			rsapiProvider.Setup(x => x.Delete(It.Is<List<int>>(y => y.Single() == g2ccId)))
 				.ReturnsResultSet();
 
 			UpdateObject(objectToUpdate, rdo => true, ObjectFieldsDepthLevel.FirstLevelOnly);
@@ -520,11 +518,11 @@ namespace Gravity.Test.Unit
 			SetupUpdateManyCondition(x => x.Count == 1 && x[0].ArtifactID == G1ArtifactId && rootExpression(x[0]));
 
 			//setup clearing the non-present file
-			mockProvider.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
+			rsapiProvider.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
 				.ReturnsResultSet(new RDO(FileFieldId));
-			mockProvider.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
+			rsapiProvider.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
 
-			new RsapiDao(mockProvider.Object, null).Update(objectToUpdate, depthLevel);
+			new RsapiDao(rsapiProvider.Object, null).Update(objectToUpdate, depthLevel);
 		}
 
 		void UpdateObjectWithFileField(G1 objectToUpdate, RdoBoolCond rootExpression, ObjectFieldsDepthLevel depthLevel)
@@ -533,23 +531,23 @@ namespace Gravity.Test.Unit
 			SetupUpdateManyCondition(x => x.Count == 1 && x[0].ArtifactID == G1ArtifactId && rootExpression(x[0]));
 
 			//setup clearing the non-present file
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.Read(It.Is<RDO[]>(y => y.Single().Guids.Single() == FieldGuid<G1>(nameof(G1.FileField)))))
 				.ReturnsResultSet(new RDO(FileFieldId));
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.ClearFile(FileFieldId, G1ArtifactId));
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.UploadFile(FileFieldId, 10, Path.Combine(Path.GetTempPath(), "ByteArrayFileDto")));
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.UploadFile(FileFieldId, 10, Path.Combine(Path.GetTempPath(), "NewName")));
 			InvokeWithRetrySettings invokeWithRetrySettings = new InvokeWithRetrySettings(SharedConstants.retryAttempts,
 				SharedConstants.sleepTimeInMiliseconds);
-			new RsapiDao(mockProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings)).Update(objectToUpdate, depthLevel);
+			new RsapiDao(rsapiProvider.Object, new InvokeWithRetryService(invokeWithRetrySettings)).Update(objectToUpdate, depthLevel);
 		}
 		
 		private void SetupSingleObjectQuery(params int[] resultArtifactIds)
 		{
-			mockProvider.Setup(x =>
+			rsapiProvider.Setup(x =>
 					x.Query(It.Is<Query<RDO>>(
 						y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<GravityLevel3Child>()
 						     && ((WholeNumberCondition)y.Condition).Value.Single() == G1ArtifactId)))
@@ -559,7 +557,7 @@ namespace Gravity.Test.Unit
 		//this is needed whenever recursion is turned on
 		private void SetupChildQuery(params int[] resultArtifactIds)
 		{
-			mockProvider.Setup(x =>
+			rsapiProvider.Setup(x =>
 					x.Query(It.Is<Query<RDO>>(
 						y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<G2c>()
 						     && ((WholeNumberCondition)y.Condition).Value.Single() == G1ArtifactId)))
@@ -568,7 +566,7 @@ namespace Gravity.Test.Unit
 
 		private void SetupMultipleLevelChildQuery(params int[] level3ArtifactIds)
 		{
-			mockProvider.Setup(x =>
+			rsapiProvider.Setup(x =>
 					x.Query(It.Is<Query<RDO>>(
 						y => y.ArtifactTypeGuid == BaseDto.GetObjectTypeGuid<GravityLevel3Child>())))
 				.ReturnsResultSet(level3ArtifactIds.Select(y => new RDO(y)));
@@ -576,20 +574,20 @@ namespace Gravity.Test.Unit
 
 		private void SetupDeleteChild()
 		{
-			mockProvider.Setup(x => x.Delete(It.IsAny<List<int>>()))
+			rsapiProvider.Setup(x => x.Delete(It.IsAny<List<int>>()))
 				.ReturnsResultSet();
 		}
 		
 		public void SetupInsertManyCondition(Func<List<RDO>, bool> condition, params int[] resultIds)
 		{
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.Create(It.Is<List<RDO>>(y => condition(y))))
 				.ReturnsResultSet(resultIds.Select(x => new RDO(x)));
 		}
 		
 		public void SetupUpdateManyCondition(Func<List<RDO>, bool> condition)
 		{
-			mockProvider
+			rsapiProvider
 				.Setup(x => x.Update(It.Is<List<RDO>>(y => condition(y))))
 				.ReturnsResultSet();
 		}

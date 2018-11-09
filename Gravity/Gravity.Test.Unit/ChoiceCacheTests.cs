@@ -16,15 +16,8 @@ using Gravity.Test.Unit;
 namespace Gravity.DAL.RSAPI.Tests
 {
 	[TestFixture]
-	public class ChoiceCacheTests
+	public class ChoiceCacheTests : MockedRsapiProviderTestBase
 	{
-		Mock<IRsapiProvider> rsapiProvider;
-
-		[SetUp]
-		public void Init()
-		{
-			rsapiProvider = new Mock<IRsapiProvider>(MockBehavior.Strict);
-		}
 
 		[Test]
 		public void GetEnum_TypeIsNotEnum()
