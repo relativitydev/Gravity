@@ -41,6 +41,11 @@ namespace Gravity.Extensions
 			}
 		}
 
+		public static T InvokeGenericMethod<T>(this object obj, Type typeArgument, string methodName, params object[] args)
+		{
+			return (T)InvokeGenericMethod(obj, typeArgument, methodName, args);
+		}
+
 		// performance boost option: cache results of these
 		public static Type GetEnumerableInnerType(this Type type)
 		{

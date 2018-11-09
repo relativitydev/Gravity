@@ -22,7 +22,7 @@ namespace Gravity.DAL.RSAPI
 			{
 				var associatedObjectsToUpdate = objectsToUpdate
 					.Select(objectToUpdate => (BaseDto)objectToUpdate.GetPropertyValue(propertyInfo.Name))
-					.Where(x => x != null);
+					.ExceptSingle(null);
 
 				var associatedType = propertyInfo.PropertyType;
 
@@ -40,7 +40,7 @@ namespace Gravity.DAL.RSAPI
 			{
 				var associatedObjectsToUpdate = objectsToUpdate
 					.Select(objectToUpdate => (IEnumerable)objectToUpdate.GetPropertyValue(propertyInfo.Name))
-					.Where(x => x != null)
+					.ExceptSingle(null)
 					.SelectMany(x => x.Cast<BaseDto>());
 
 				var associatedType = propertyInfo.PropertyType.GetEnumerableInnerType();
@@ -83,7 +83,7 @@ namespace Gravity.DAL.RSAPI
 
 				var childObjectsToUpdate = objectsToUpdate
 					.Select(GetObjectsToUpdate)
-					.Where(x => x != null)
+					.ExceptSingle(null)
 					.SelectMany(x => x)
 					.ToList();
 

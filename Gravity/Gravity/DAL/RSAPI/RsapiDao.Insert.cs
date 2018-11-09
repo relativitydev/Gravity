@@ -102,7 +102,7 @@ namespace Gravity.DAL.RSAPI
 				}
 
 				var childObjectsToInsert = objectsToInsert.Select(GetObjectsToInsert)
-					.Where(x => x != null)
+					.ExceptSingle(null)
 					.SelectMany(x => x);
 
 				var childType = childPropertyInfo.PropertyType.GetEnumerableInnerType();
@@ -121,7 +121,7 @@ namespace Gravity.DAL.RSAPI
 			{
 				var associatedObjectsToInsert = objectsToInsert
 					.Select(objectToInsert => (BaseDto)objectToInsert.GetPropertyValue(propertyInfo.Name))
-					.Where(x => x != null && x.ArtifactId == 0);
+					.Where(x => x?.ArtifactId == 0);
 
 				var associatedType = propertyInfo.PropertyType;
 
@@ -139,7 +139,7 @@ namespace Gravity.DAL.RSAPI
 			{
 				var associatedObjectsToInsert = objectsToInsert
 					.Select(objectToInsert => (IEnumerable)objectToInsert.GetPropertyValue(propertyInfo.Name))
-					.Where(x => x != null)
+					.ExceptSingle(null)
 					.SelectMany(x => x.Cast<BaseDto>())
 					.Where(x => x.ArtifactId == 0);
 
