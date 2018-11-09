@@ -21,14 +21,15 @@ namespace Gravity.DAL.RSAPI.Tests
 		[TearDown]
 		public void End()
 		{
-			if (!true.Equals(TestContext.CurrentContext.Test.Properties["SkipVerifyAll"].FirstOrDefault()))
+			var skipVerify = (bool?)TestContext.CurrentContext.Test.Properties["SkipVerifyAll"].FirstOrDefault();
+			if (skipVerify != true)
 			{
 				rsapiProvider.VerifyAll();
 			}
 		}
 
 		[AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-		[Obsolete("Fix the test to handle" + nameof(Mock.VerifyAll))]
+		[Obsolete("Fix the test to handle " + nameof(Mock.VerifyAll))]
 		public class SkipVerifyAllAttribute : PropertyAttribute
 		{
 			public SkipVerifyAllAttribute() : base(true) { }
