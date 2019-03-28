@@ -12,7 +12,8 @@ We would like to recognize the following Relativity Development Partners who hav
 	<img src="http://www.tsdservices.com/wp-content/uploads/2015/03/TSD_Logo-TM-for-website.png">  
 </p>
 
-![TSD Services](https://cdn.tsd.com/wp-content/uploads/2017/07/TSD-Services-logo-april-2017-Favicon-5.png "TSD Services")  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ![MILYLI](http://milyli.com/wp-content/uploads/2014/07/milyli_header-regular.png "MILYLI")
+![TSD Services](https://cdn.tsd.com/wp-content/uploads/2017/07/TSD-Services-logo-april-2017-Favicon-5.png "TSD Services")  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 
+<a href="https://www.milyli.com/"><img src="https://i.postimg.cc/85DMhW2c/Milyli-Logo-Color-Tagline.png" width="250"></a>
 
 This is also available as a [nuget package](https://www.nuget.org/packages/RelativityDev.Gravity).
 
