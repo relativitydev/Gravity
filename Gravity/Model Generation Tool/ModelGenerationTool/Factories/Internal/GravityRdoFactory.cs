@@ -49,12 +49,12 @@ namespace ModelGenerationTool.Factories.Internal
 
 				foreach (var objField in objectFields)
 				{
-					string descriptorObjName = models.First(m => m.DescriptorArtifactTypeId == objField.AssociativeArtifactTypeId.Value)?.Name;
-					var associatedObjs = model.GravityFields.Where(f => f.AssociativeArtifactTypeId == objField.AssociativeArtifactTypeId.Value);
+					string descriptorObjName = models.FirstOrDefault(m => m.DescriptorArtifactTypeId == objField.AssociativeArtifactTypeId.Value)?.Name;
+					var associatedObjs = model.GravityFields.Where(f => f.AssociativeArtifactTypeId == objField.AssociativeArtifactTypeId.Value).ToList();
 
 					foreach (var associatedObj in associatedObjs)
 					{
-						associatedObj.Name = descriptorObjName;
+						associatedObj.Name = descriptorObjName ?? associatedObj.Name;
 					}
 				}
 			}
