@@ -1,0 +1,7 @@
+%usings%
+
+namespace %namespace%
+{%attributes%
+%access_modifier% enum %name%
+	{%flags%}
+}

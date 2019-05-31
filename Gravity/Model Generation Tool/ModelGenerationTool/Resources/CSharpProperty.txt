@@ -1,0 +1,3 @@
+
+%attributes%
+%access_modifier% %type% %name% %get_modifier% %set_modifier% %value%

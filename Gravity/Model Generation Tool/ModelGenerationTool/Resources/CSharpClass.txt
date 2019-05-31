@@ -1,0 +1,8 @@
+%usings%
+
+namespace %namespace%
+{
+%attributes%
+%access_modifier% %additional_keyword% class %name% %inherits%
+	{%properties%}
+}
